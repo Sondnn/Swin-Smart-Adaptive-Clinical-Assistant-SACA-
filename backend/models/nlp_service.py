@@ -98,8 +98,8 @@ def stem_tokens(tokens: Iterable[str], stopwords: set[str], stemmer) -> list[str
         return [token for token in tokens if token and token not in stopwords]
     return [stemmer.stem(token) for token in tokens if token and token not in stopwords]
 
-# A function to convert the symptom description from a JSON object to a string, which can then be processed by the NLP model
-def convert_symptom_description(json_data: dict) -> str:
+# A function to convert the text (user input) symptom description to a JSON object, which can then be processed by the NLP model
+def convert_text_to_text(json_data: dict) -> str:
     return json_data.get("symptom_description", "")
 
 # A function to process the symptom description provided by the user, which includes normalization, tokenization, stemming, and symptom extraction based on predefined patterns
@@ -172,7 +172,7 @@ def main() -> None:
     # hardcode - user input (text) under description of the symptoms
     symptom_description = json.loads('{"symptom_description": "I feel cold and had belly pain"}')
     # symptom_description = json.loads('{"symptom_description": "I have cold and fever but no headache."}')
-    symptom_description = convert_symptom_description(symptom_description)
+    symptom_description = convert_text_to_text(symptom_description)
     
     result = process_symptom_description(
         symptom_description,
