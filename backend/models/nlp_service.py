@@ -108,12 +108,15 @@ def convert_text_to_text(json_data: dict) -> str:
 
 # A function to convert the wav files to text using a speech-to-text model, which can then be processed by the NLP model
 def convert_wav_to_text(wav_file_path: str) -> str:
+    
+    # Error handling if dependency is missing or if the file is not found or if the file is not a valid WAV audio file
     if sr is None:
         raise ImportError(
             "Missing dependency 'speech_recognition'.\n"
             "Install backend requirements to enable audio transcription."
         )
     
+    # Error handling to check if the provided file path exists and is a file
     if not os.path.isfile(wav_file_path):
         raise FileNotFoundError(f"WAV file not found: {wav_file_path}")
 
@@ -126,7 +129,7 @@ def convert_wav_to_text(wav_file_path: str) -> str:
             f"Invalid WAV audio file: {wav_file_path}. File must be RIFF/PCM WAV."
         ) from exc
     
-    # A function uses Google Cloud Speech-to-Text API to convert the audio in the wav file to text, which can then be processed by the NLP model
+    # A function uses Google Cloud Speech-to-Text API to convert the audio in the wav file to text
     recognizer = sr.Recognizer()
     with sr.AudioFile(wav_file_path) as source:
         audio = recognizer.record(source)
@@ -161,6 +164,7 @@ def process_symptom_description(symptom_description: str, nlp, stopwords, tokeni
     negated = []
     negation_words = {"no", "not", "without", "don't", "doesn't", "didn't"}
     
+    # Iterate through the predefined symptom patterns and check if any of the phrases are present in the normalized user input text
     for symptom, phrases in SYMPTOM_PATTERNS.items():
         for phrase in phrases:
             phrase_normalized = normalize_text(phrase)
@@ -214,7 +218,7 @@ def main() -> None:
     symptom_description = convert_wav_to_text(wav_input)
     
     
-    result = process_symptom_description(
+    symptoms_extracted = process_symptom_description(
         symptom_description,
         nlp,
         stopwords,
@@ -223,7 +227,7 @@ def main() -> None:
     )
 
     # convert the final processed data into a JSON string and print it
-    nlp_text = json.dumps(result)
+    nlp_text = json.dumps(symptoms_extracted)
     print(nlp_text)
 
 if __name__ == "__main__":
