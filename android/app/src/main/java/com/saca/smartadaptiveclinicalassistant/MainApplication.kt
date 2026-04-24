@@ -1,6 +1,8 @@
 package com.saca.smartadaptiveclinicalassistant
 
 import android.app.Application
+import com.saca.smartadaptiveclinicalassistant.data.repository.MockTriageRepositoryImpl
+import com.saca.smartadaptiveclinicalassistant.data.repository.TriageRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.GlobalContext.startKoin
@@ -19,5 +21,5 @@ class MainApplication : Application() {
 }
 
 val appModule = module {
-
+    single<TriageRepository> { MockTriageRepositoryImpl() }
 }

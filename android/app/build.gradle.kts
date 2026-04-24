@@ -60,4 +60,7 @@ dependencies {
     implementation(libs.koin.android)
     implementation(libs.koin.androidx.compose)
     implementation(libs.koin.androidx.compose.navigation)
+
+    implementation(libs.retrofit)
+    implementation("com.squareup.retrofit2:converter-gson:3.0.0")
 }
