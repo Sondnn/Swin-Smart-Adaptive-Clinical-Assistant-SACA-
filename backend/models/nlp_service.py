@@ -129,7 +129,6 @@ def convert_wav_to_text(wav_file_path: str) -> str:
     # A function uses Google Cloud Speech-to-Text API to convert the audio in the wav file to text, which can then be processed by the NLP model
     recognizer = sr.Recognizer()
     with sr.AudioFile(wav_file_path) as source:
-        recognizer.adjust_for_ambient_noise(source, duration=1)
         audio = recognizer.record(source)
     
     transcript = recognizer.recognize_google(audio)
@@ -211,7 +210,7 @@ def main() -> None:
     # symptom_description = convert_text_to_text(symptom_description)
     
     # file path to the wav file containing the user input describing the symptoms
-    wav_input = "/Users/jasperl/Downloads/test.wav"
+    wav_input = "/Users/jasperl/Downloads/test1.wav"
     symptom_description = convert_wav_to_text(wav_input)
     
     
