@@ -1,7 +1,14 @@
 from collections.abc import Iterable
 import json
+import os
 import re
 import warnings
+import wave
+
+try:
+    import speech_recognition as sr
+except ImportError:  # pragma: no cover - import guard for optional dependency
+    sr = None
 
 # This code snippet is designed to normalize user input describing symptoms, making it easier for an NLP model to process the information
 # The `normalize_text` function converts the input text to lowercase, removes unwanted characters, and collapses multiple spaces into a single space
@@ -102,6 +109,38 @@ def stem_tokens(tokens: Iterable[str], stopwords: set[str], stemmer) -> list[str
 def convert_text_to_text(json_data: dict) -> str:
     return json_data.get("symptom_description", "")
 
+# A function to convert the wav files to text using a speech-to-text model, which can then be processed by the NLP model
+def convert_wav_to_text(wav_file_path: str) -> str:
+    if sr is None:
+        raise ImportError(
+            "Missing dependency 'speech_recognition'.\n"
+            "Install backend requirements to enable audio transcription."
+        )
+    
+    if not os.path.isfile(wav_file_path):
+        raise FileNotFoundError(f"WAV file not found: {wav_file_path}")
+
+    # Validate that the file is readable as a WAV before processing.
+    try:
+        with wave.open(wav_file_path, "rb") as wav_file:
+            _ = wav_file.getnframes()
+    except wave.Error as exc:
+        raise ValueError(
+            f"Invalid WAV audio file: {wav_file_path}. File must be RIFF/PCM WAV."
+        ) from exc
+    
+    # A function uses Google Cloud Speech-to-Text API to convert the audio in the wav file to text, which can then be processed by the NLP model
+    recognizer = sr.Recognizer()
+    with sr.AudioFile(wav_file_path) as source:
+        recognizer.adjust_for_ambient_noise(source, duration=1)
+        audio = recognizer.record(source)
+    
+    transcript = recognizer.recognize_google(audio)
+    
+    print(f"Transcription: {transcript}")
+    
+    return transcript
+
 # A function to process the symptom description provided by the user, which includes normalization, tokenization, stemming, and symptom extraction based on predefined patterns
 # The function returns a JSON object containing the original symptom description, the stemmed tokens, the extracted symptoms, and any negated symptoms
 def process_symptom_description(symptom_description: str, nlp, stopwords, tokenizer, stemmer) -> dict:
@@ -170,9 +209,20 @@ def main() -> None:
     tokenizer, stemmer = load_nltk_components()
     
     # hardcode - user input (text) under description of the symptoms
-    symptom_description = json.loads('{"symptom_description": "I feel cold and had belly pain"}')
+    # symptom_description = json.loads('{"symptom_description": "I feel cold and had belly pain"}')
     # symptom_description = json.loads('{"symptom_description": "I have cold and fever but no headache."}')
-    symptom_description = convert_text_to_text(symptom_description)
+    # symptom_description = convert_text_to_text(symptom_description)
+    wav_input = "/Users/jasperl/Downloads/test1.wav"
+    # symptom_description = "I feel cold and had belly pain"
+
+    if os.path.isfile(wav_input):
+        try:
+            symptom_description = convert_wav_to_text(wav_input)
+        except (ImportError, FileNotFoundError, ValueError) as exc:
+            warnings.warn(
+                f"Audio transcription skipped: {exc}. Falling back to text input.",
+                stacklevel=1,
+            )
     
     result = process_symptom_description(
         symptom_description,
