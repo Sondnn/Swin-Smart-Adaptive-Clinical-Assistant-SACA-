@@ -1,0 +1,11 @@
+# Root level ignore 
+*.log
+*.tmp
+
+# OS file
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+*.pyc
+__pycache__/
