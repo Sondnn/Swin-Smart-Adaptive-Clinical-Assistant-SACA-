@@ -4,11 +4,8 @@ import os
 import re
 import warnings
 import wave
+import speech_recognition as sr
 
-try:
-    import speech_recognition as sr
-except ImportError:  # pragma: no cover - import guard for optional dependency
-    sr = None
 
 # This code snippet is designed to normalize user input describing symptoms, making it easier for an NLP model to process the information
 # The `normalize_text` function converts the input text to lowercase, removes unwanted characters, and collapses multiple spaces into a single space
@@ -120,7 +117,7 @@ def convert_wav_to_text(wav_file_path: str) -> str:
     if not os.path.isfile(wav_file_path):
         raise FileNotFoundError(f"WAV file not found: {wav_file_path}")
 
-    # Validate that the file is readable as a WAV before processing.
+    # Validate that the file is readable as a WAV before processing
     try:
         with wave.open(wav_file_path, "rb") as wav_file:
             _ = wav_file.getnframes()
@@ -212,17 +209,11 @@ def main() -> None:
     # symptom_description = json.loads('{"symptom_description": "I feel cold and had belly pain"}')
     # symptom_description = json.loads('{"symptom_description": "I have cold and fever but no headache."}')
     # symptom_description = convert_text_to_text(symptom_description)
-    wav_input = "/Users/jasperl/Downloads/test1.wav"
-    # symptom_description = "I feel cold and had belly pain"
-
-    if os.path.isfile(wav_input):
-        try:
-            symptom_description = convert_wav_to_text(wav_input)
-        except (ImportError, FileNotFoundError, ValueError) as exc:
-            warnings.warn(
-                f"Audio transcription skipped: {exc}. Falling back to text input.",
-                stacklevel=1,
-            )
+    
+    # file path to the wav file containing the user input describing the symptoms
+    wav_input = "/Users/jasperl/Downloads/test.wav"
+    symptom_description = convert_wav_to_text(wav_input)
+    
     
     result = process_symptom_description(
         symptom_description,
