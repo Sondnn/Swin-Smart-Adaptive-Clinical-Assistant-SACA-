@@ -8,15 +8,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.saca.smartadaptiveclinicalassistant.R
+import com.saca.smartadaptiveclinicalassistant.common.Constants.LANGUAGE_TAG_ENGLISH
+import com.saca.smartadaptiveclinicalassistant.common.Constants.LANGUAGE_TAG_WALMAJARRI
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
+import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
+import com.saca.smartadaptiveclinicalassistant.ui.theme.Orange
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -34,8 +40,11 @@ fun LanguageScreen(
         Text(
             text = stringResource(R.string.language_title),
             style = MaterialTheme.typography.headlineMedium,
+            textAlign = TextAlign.Center
         )
+
         Spacer(modifier = Modifier.height(8.dp))
+
         Text(
             text = stringResource(R.string.language_subtitle),
             style = MaterialTheme.typography.bodyLarge,
@@ -48,6 +57,7 @@ fun LanguageScreen(
                 sessionViewModel.onLanguagePicked(LANGUAGE_TAG_ENGLISH)
                 onLanguagePicked()
             },
+            colors = ButtonDefaults.buttonColors(containerColor = Brown),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp),
@@ -62,6 +72,7 @@ fun LanguageScreen(
                 sessionViewModel.onLanguagePicked(LANGUAGE_TAG_WALMAJARRI)
                 onLanguagePicked()
             },
+            colors = ButtonDefaults.buttonColors(containerColor = Brown),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(64.dp),
@@ -70,7 +81,3 @@ fun LanguageScreen(
         }
     }
 }
-
-private const val LANGUAGE_TAG_ENGLISH = "en"
-
-private const val LANGUAGE_TAG_WALMAJARRI = "wmt"
