@@ -7,6 +7,14 @@ This repo holds an entire stack
 
 ## Description
 
+### NLP
+
+### ML
+
+### Android
+
+### Window
+
 ## Repository Layout
 
 ## Prerequisite
