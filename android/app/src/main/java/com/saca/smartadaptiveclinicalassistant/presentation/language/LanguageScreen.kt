@@ -1,6 +1,9 @@
 package com.saca.smartadaptiveclinicalassistant.presentation.language
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,13 +17,21 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.common.Constants.LANGUAGE_TAG_ENGLISH
 import com.saca.smartadaptiveclinicalassistant.common.Constants.LANGUAGE_TAG_WALMAJARRI
+import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButton
+import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButtonStyle
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
+import com.saca.smartadaptiveclinicalassistant.ui.theme.AppBackground
+import com.saca.smartadaptiveclinicalassistant.ui.theme.AppBackgroundTeal
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Orange
 import org.koin.androidx.compose.koinViewModel
@@ -30,54 +41,82 @@ fun LanguageScreen(
     onLanguagePicked: () -> Unit,
     sessionViewModel: SessionViewModel = koinViewModel(),
 ) {
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+            .background(AppBackgroundTeal),
     ) {
-        Text(
-            text = stringResource(R.string.language_title),
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center
+        Image(
+            painter = painterResource(R.drawable.lang_foreground),
+            contentDescription = null,
+            contentScale = ContentScale.FillWidth,
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = stringResource(R.string.language_subtitle),
-            style = MaterialTheme.typography.bodyLarge,
+        Image(
+            painter = painterResource(R.drawable.lang_background),
+            contentDescription = null,
+            contentScale = ContentScale.FillWidth,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
         )
 
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Button(
-            onClick = {
-                sessionViewModel.onLanguagePicked(LANGUAGE_TAG_ENGLISH)
-                onLanguagePicked()
-            },
-            colors = ButtonDefaults.buttonColors(containerColor = Brown),
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp),
+                .height(330.dp)
+                .padding(horizontal = 28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
         ) {
-            Text(text = stringResource(R.string.language_option_english))
+            Text(
+                text = stringResource(R.string.language_title),
+                color = AppBackground,
+                style = MaterialTheme.typography.headlineMedium,
+                fontSize = 36.sp,
+                fontWeight = FontWeight.Black,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(40.dp))
+
+            Text(
+                text = stringResource(R.string.language_subtitle),
+                color = AppBackground,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Black,
+                lineHeight = 32.sp,
+                style = MaterialTheme.typography.bodyLarge,
+            )
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = {
-                sessionViewModel.onLanguagePicked(LANGUAGE_TAG_WALMAJARRI)
-                onLanguagePicked()
-            },
-            colors = ButtonDefaults.buttonColors(containerColor = Brown),
+        Column(
             modifier = Modifier
+                .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .height(64.dp),
+                .padding(horizontal = 24.dp, vertical = 28.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            Text(text = stringResource(R.string.language_option_walmajarri))
+            AppButton(
+                text = stringResource(R.string.language_option_english),
+                style = AppButtonStyle.Brown,
+                onClick = {
+                    sessionViewModel.onLanguagePicked(LANGUAGE_TAG_ENGLISH)
+                    onLanguagePicked()
+                }
+            )
+
+            AppButton(
+                text = stringResource(R.string.language_option_walmajarri),
+                style = AppButtonStyle.Brown,
+                onClick = {
+                    sessionViewModel.onLanguagePicked(LANGUAGE_TAG_WALMAJARRI)
+                    onLanguagePicked()
+                }
+            )
         }
     }
 }
