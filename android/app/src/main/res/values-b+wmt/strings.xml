@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">(WMT) Smart Adaptive Clinical Assistant</string>
+
+    <string name="language_title">(WMT) Smart Adaptive Clinical Assistant</string>
+    <string name="language_subtitle">(WMT) Welcome!</string>
+    <string name="language_option_english">(WMT) English</string>
+    <string name="language_option_walmajarri">(WMT) Walmajarri</string>
+
+    <string name="welcome_image_placeholder">(WMT) Image goes here</string>
+    <string name="welcome_title">(WMT) Triage Assessment</string>
+    <string name="welcome_body">(WMT) This assessment will help you check how severity your symptoms are and help you know what to do next quickly.</string>
+    <string name="welcome_get_started">(WMT) Get Started</string>
+
+    <string name="home_action_bar_title">(WMT) Clinical Assistant</string>
+    <string name="home_drawer_section_assessment">(WMT) Assessment</string>
+    <string name="home_drawer_section_language">(WMT) Language</string>
+</resources>
