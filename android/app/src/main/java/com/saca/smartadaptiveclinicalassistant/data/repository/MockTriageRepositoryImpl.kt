@@ -6,6 +6,7 @@ import com.saca.smartadaptiveclinicalassistant.data.remote.dto.AnalysisSymptomsR
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.ExtractSymptomsRequest
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.ExtractSymptomsResponse
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.SpeechToTextResponse
+import com.saca.smartadaptiveclinicalassistant.domain.repository.TriageRepository
 import java.io.File
 
 class MockTriageRepositoryImpl: TriageRepository {

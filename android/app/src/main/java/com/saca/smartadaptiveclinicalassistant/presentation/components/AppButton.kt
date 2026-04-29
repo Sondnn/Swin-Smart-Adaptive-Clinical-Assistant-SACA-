@@ -12,7 +12,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.saca.smartadaptiveclinicalassistant.ui.theme.DisabledTextBrown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown as ColorBrown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Orange as ColorOrange
 

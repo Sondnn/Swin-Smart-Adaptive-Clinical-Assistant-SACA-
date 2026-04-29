@@ -6,6 +6,7 @@ import com.saca.smartadaptiveclinicalassistant.data.remote.dto.AnalysisSymptomsR
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.ExtractSymptomsRequest
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.ExtractSymptomsResponse
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.SpeechToTextResponse
+import com.saca.smartadaptiveclinicalassistant.domain.repository.TriageRepository
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -14,7 +15,7 @@ import java.io.File
 
 class TriageRepositoryImpl(
     private val api: TriageApi
-) : TriageRepository {
+): TriageRepository {
     override suspend fun speechToText(
         language: Int,
         audioFile: File
