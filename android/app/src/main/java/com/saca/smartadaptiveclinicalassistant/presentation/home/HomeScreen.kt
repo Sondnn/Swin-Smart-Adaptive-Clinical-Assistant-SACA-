@@ -1,5 +1,6 @@
 package com.saca.smartadaptiveclinicalassistant.presentation.home
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -31,6 +33,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -39,9 +43,13 @@ import androidx.compose.ui.unit.sp
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.common.Constants.LANGUAGE_TAG_ENGLISH
 import com.saca.smartadaptiveclinicalassistant.common.Constants.LANGUAGE_TAG_WALMAJARRI
+import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButton
+import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButtonStyle
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
+import com.saca.smartadaptiveclinicalassistant.ui.theme.AppBackground
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Orange
+import com.saca.smartadaptiveclinicalassistant.ui.theme.TextBrown
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
 
@@ -108,48 +116,60 @@ fun HomeContent(
     onGetStarted: () -> Unit,
     modifier: Modifier
 ) {
-    Column(
-        modifier = modifier
+    Box(
+        modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterVertically),
+            .background(AppBackground),
     ) {
-        Box(
+        Image(
+            painter = painterResource(R.drawable.home_screen_welcome),
+            contentDescription = null,
+            contentScale = ContentScale.Fit,
             modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 425.dp)
+                .size(256.dp)
+        )
+
+        Image(
+            painter = painterResource(R.drawable.home_screen_background),
+            contentDescription = null,
+            contentScale = ContentScale.FillWidth,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
                 .fillMaxWidth()
-                .height(220.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant),
-            contentAlignment = Alignment.Center
+        )
+
+        Column(
+            modifier = modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(start = 32.dp, end = 32.dp, bottom = 60.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = stringResource(R.string.welcome_image_placeholder),
-                style = MaterialTheme.typography.bodyMedium
+                text = stringResource(R.string.welcome_title),
+                fontWeight = FontWeight.Black,
+                color = TextBrown,
+                fontSize = 28.sp,
+                textAlign = TextAlign.Center
             )
-        }
 
-        Text(
-            text = stringResource(R.string.welcome_title),
-            style = MaterialTheme.typography.headlineMedium,
-            textAlign = TextAlign.Center
-        )
+            Text(
+                text = stringResource(R.string.welcome_body),
+                fontWeight = FontWeight.SemiBold,
+                color = TextBrown,
+                fontSize = 16.sp,
+                textAlign = TextAlign.Center
+            )
 
-        Text(
-            text = stringResource(R.string.welcome_body),
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center
-        )
+            Spacer(modifier = modifier.height(8.dp))
 
-        Spacer(modifier = modifier.height(8.dp))
-
-        Button(
-            onClick = onGetStarted,
-            colors = ButtonDefaults.buttonColors(containerColor = Orange),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(56.dp)
-        ) {
-            Text(text = stringResource(R.string.welcome_get_started))
+            AppButton(
+                text = stringResource(R.string.welcome_get_started),
+                style = AppButtonStyle.Orange,
+                onClick = onGetStarted
+            )
         }
     }
 }

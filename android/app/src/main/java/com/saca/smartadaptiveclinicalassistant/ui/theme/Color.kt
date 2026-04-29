@@ -21,6 +21,6 @@ val Brown = Color(0xFFA25933)
 
 val Orange = Color(0xFFFFA600)
 
-val ActionBarTextBrown = Color(0xFF84421E)
+val TextBrown = Color(0xFF84421E)
 
 val DisabledTextBrown = Color(0x9986736B)

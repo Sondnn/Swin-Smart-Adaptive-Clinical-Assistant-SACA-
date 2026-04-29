@@ -56,13 +56,12 @@ enum class AppButtonStyle(
         backgroundColor = ColorOrange,
         textColor = Color.White
     ),
+    Orange(
+        backgroundColor = ColorBrown,
+        textColor = Color.White
+    ),
 
 // For later use
-//    Orange(
-//        backgroundColor = ColorBrown,
-//        textColor = Color.White
-//    ),
-//
 //    Transparent(
 //        backgroundColor = Color.Transparent,
 //        textColor = DisabledTextBrown
