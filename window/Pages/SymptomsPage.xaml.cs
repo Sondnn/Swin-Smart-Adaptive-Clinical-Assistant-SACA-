@@ -1,17 +1,13 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace SACA.WindowsApp.Pages
 {
@@ -21,6 +17,12 @@ namespace SACA.WindowsApp.Pages
     public partial class SymptomsPage : UserControl
     {
         private readonly MainWindow _mainWindow;
+        private const string RecordingAlias = "triageRecording";
+        private bool _isRecording;
+        private string _recordingPath = "";
+
+        [DllImport("winmm.dll", CharSet = CharSet.Auto)]
+        private static extern int mciSendString(string command, StringBuilder? returnValue, int returnLength, IntPtr winHandle);
 
         public SymptomsPage(MainWindow mainWindow)
         {
@@ -47,8 +49,103 @@ namespace SACA.WindowsApp.Pages
             _mainWindow.CurrentRequest.Symptoms = symptoms;
             _mainWindow.CurrentRequest.Severity = severity;
             _mainWindow.CurrentRequest.Description = DescriptionTextBox.Text.Trim();
+            _mainWindow.CurrentRequest.AudioRecordingPath = _recordingPath;
 
             _mainWindow.NavigateToDuration();
+        }
+
+        private void RecordButton_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            StartRecording();
+            RecordButton.CaptureMouse();
+        }
+
+        private void RecordButton_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            StopRecording();
+        }
+
+        private void RecordButton_MouseLeave(object sender, MouseEventArgs e)
+        {
+            if (_isRecording && Mouse.LeftButton != MouseButtonState.Pressed)
+            {
+                StopRecording();
+            }
+        }
+
+        private void StartRecording()
+        {
+            if (_isRecording)
+            {
+                return;
+            }
+
+            try
+            {
+                string recordingsFolder = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "SACA",
+                    "Recordings");
+
+                Directory.CreateDirectory(recordingsFolder);
+                _recordingPath = Path.Combine(recordingsFolder, $"triage-{DateTime.Now:yyyyMMdd-HHmmss}.wav");
+
+                SendMciCommand($"open new Type waveaudio Alias {RecordingAlias}");
+                SendMciCommand($"set {RecordingAlias} bitspersample 16 channels 1 samplespersec 16000 bytespersec 32000 alignment 2");
+                SendMciCommand($"record {RecordingAlias}");
+
+                _isRecording = true;
+                RecordingStatusTextBlock.Text = "Recording... release to stop";
+            }
+            catch (Exception ex)
+            {
+                _isRecording = false;
+                RecordingStatusTextBlock.Text = "Recording unavailable";
+                MessageBox.Show($"Could not start voice recording: {ex.Message}");
+                CloseRecordingDevice();
+            }
+        }
+
+        private void StopRecording()
+        {
+            if (!_isRecording)
+            {
+                return;
+            }
+
+            try
+            {
+                SendMciCommand($"stop {RecordingAlias}");
+                SendMciCommand($"save {RecordingAlias} \"{_recordingPath}\"");
+                RecordingStatusTextBlock.Text = $"Recording saved: {Path.GetFileName(_recordingPath)}";
+            }
+            catch (Exception ex)
+            {
+                _recordingPath = "";
+                RecordingStatusTextBlock.Text = "Recording failed";
+                MessageBox.Show($"Could not save voice recording: {ex.Message}");
+            }
+            finally
+            {
+                _isRecording = false;
+                CloseRecordingDevice();
+                RecordButton.ReleaseMouseCapture();
+            }
+        }
+
+        private static void SendMciCommand(string command)
+        {
+            int result = mciSendString(command, null, 0, IntPtr.Zero);
+
+            if (result != 0)
+            {
+                throw new InvalidOperationException($"Audio command failed: {command}");
+            }
+        }
+
+        private static void CloseRecordingDevice()
+        {
+            mciSendString($"close {RecordingAlias}", null, 0, IntPtr.Zero);
         }
 
         private List<string> GetSelectedSymptoms()
