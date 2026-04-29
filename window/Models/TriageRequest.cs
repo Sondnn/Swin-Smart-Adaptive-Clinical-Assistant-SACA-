@@ -16,6 +16,7 @@ namespace SACA.WindowsApp.Models
         public string Severity { get; set; } = "";
         public string Duration { get; set; } = "";
         public string Description { get; set; } = "";
+        public string AudioRecordingPath { get; set; } = "";
         public string Source { get; set; } = "WindowsApp";
     }
 }
