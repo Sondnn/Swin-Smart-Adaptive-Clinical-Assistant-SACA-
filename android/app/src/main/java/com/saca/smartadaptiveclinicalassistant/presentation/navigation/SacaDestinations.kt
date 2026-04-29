@@ -4,7 +4,7 @@ object SacaDestinations {
     const val LANGUAGE = "language"
     const val HOME = "home"
     const val TRIAGE_FORM_GENDER = "triage_from_gender"
-    const val TRIAGE_FORM_AGE = "triage_from_gender"
+    const val TRIAGE_FORM_AGE = "triage_from_age"
     const val TRIAGE_FORM_SYMPTOM = "triage_from_symptom"
     const val TRIAGE_FORM_SEVERITY = "triage_from_severity"
     const val TRIAGE_FORM_DURATION = "triage_from_duration"

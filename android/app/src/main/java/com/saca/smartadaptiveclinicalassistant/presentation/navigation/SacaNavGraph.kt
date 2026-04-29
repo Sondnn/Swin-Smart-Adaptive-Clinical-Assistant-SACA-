@@ -7,10 +7,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.saca.smartadaptiveclinicalassistant.presentation.home.HomeScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.language.LanguageScreen
+import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
+import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.GenderQuestionScreen
+import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.TriageFormViewModel
+import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SacaNavGraph(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
+    val triageFormViewModel: TriageFormViewModel = koinViewModel()
 
     NavHost(
         navController = navController,
@@ -32,13 +37,22 @@ fun SacaNavGraph(modifier: Modifier = Modifier) {
         composable(SacaDestinations.HOME) {
             HomeScreen(
                 onGetStarted = {
-                    navController.navigate(SacaDestinations.TRIAGE_FORM_GENDER)
+                    navController.navigate(SacaDestinations.TRIAGE_FORM_GENDER) {
+                    }
                 }
             )
         }
 
         composable(SacaDestinations.TRIAGE_FORM_GENDER) {
-           // Todo: Triage from gender question
+            GenderQuestionScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onContinueClick = {
+                    navController.popBackStack()
+                },
+                triageFormViewModel = triageFormViewModel
+            )
         }
 
         composable(SacaDestinations.TRIAGE_FORM_AGE) {
