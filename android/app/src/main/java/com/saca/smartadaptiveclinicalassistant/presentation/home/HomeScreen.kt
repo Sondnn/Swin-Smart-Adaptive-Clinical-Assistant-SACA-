@@ -43,6 +43,8 @@ import androidx.compose.ui.unit.sp
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.common.Constants.LANGUAGE_TAG_ENGLISH
 import com.saca.smartadaptiveclinicalassistant.common.Constants.LANGUAGE_TAG_WALMAJARRI
+import com.saca.smartadaptiveclinicalassistant.presentation.components.ActionBarIconButton
+import com.saca.smartadaptiveclinicalassistant.presentation.components.AppBar
 import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButton
 import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButtonStyle
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
@@ -61,9 +63,7 @@ fun HomeScreen(
     sessionViewModel: SessionViewModel = koinViewModel(),
 ) {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
-
     val coroutineScope = rememberCoroutineScope()
-
     val currentLanguageTag: String = sessionViewModel.languageTag
 
     ModalNavigationDrawer(
@@ -80,22 +80,12 @@ fun HomeScreen(
     ) {
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = {
-                        Text(text = stringResource(R.string.home_action_bar_title))
-                    },
-                    navigationIcon = {
-                        TextButton(
-                            onClick = {
-                                coroutineScope.launch { drawerState.open() }
-                            }
-                        ) {
-                            Text(
-                                text = "\u2630",
-                                fontSize = 22.sp,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
+                AppBar(
+                    title = stringResource(R.string.home_action_bar_title),
+                    ActionBarIconButton.MENU,
+                    iconContentDescription = stringResource(R.string.home_action_bar_title),
+                    onIconButtonClick = {
+                        coroutineScope.launch { drawerState.open() }
                     }
                 )
             }
