@@ -32,9 +32,37 @@ fun SacaNavGraph(modifier: Modifier = Modifier) {
         composable(SacaDestinations.HOME) {
             HomeScreen(
                 onGetStarted = {
-                    // start the assessment
+                    navController.navigate(SacaDestinations.TRIAGE_FORM_GENDER)
                 }
             )
+        }
+
+        composable(SacaDestinations.TRIAGE_FORM_GENDER) {
+           // Todo: Triage from gender question
+        }
+
+        composable(SacaDestinations.TRIAGE_FORM_AGE) {
+            // Todo: Triage from gender question
+        }
+
+        composable(SacaDestinations.TRIAGE_FORM_SYMPTOM) {
+            // Todo: Triage from symptom question
+        }
+
+        composable(SacaDestinations.TRIAGE_FORM_SEVERITY) {
+            // Todo: Triage from severity question
+        }
+
+        composable(SacaDestinations.TRIAGE_FORM_DURATION) {
+            // Todo: Triage from duration question
+        }
+
+        composable(SacaDestinations.TRIAGE_RESULT_LOADING) {
+            // Todo: Triage from loading
+        }
+
+        composable(SacaDestinations.TRIAGE_RESULT) {
+            // Todo: Triage from result
         }
     }
 
