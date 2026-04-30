@@ -42,6 +42,8 @@ import org.koin.androidx.compose.koinViewModel
 
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.presentation.components.FormQuestionImageOption
+import com.saca.smartadaptiveclinicalassistant.presentation.components.QuestionTextInput
+import com.saca.smartadaptiveclinicalassistant.presentation.components.QuestionTitle
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Orange
 import kotlin.collections.chunked
 
@@ -81,13 +83,8 @@ fun SymptomQuestionScreen(
         ) {
             Spacer(modifier = Modifier.height(54.dp))
 
-            Text(
-                text = stringResource(R.string.triage_form_symptom_title),
-                color = TextBrown,
-                fontWeight = FontWeight.Black,
-                fontSize = 24.sp,
-                lineHeight = 32.sp,
-                textAlign = TextAlign.Center
+            QuestionTitle(
+                text = stringResource(R.string.triage_form_symptom_title)
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -98,8 +95,21 @@ fun SymptomQuestionScreen(
                 onSymptomClick = triageFormViewModel::onSymptomOptionSelected
             )
 
+            Spacer(modifier = Modifier.height(24.dp))
 
-            Spacer(modifier = Modifier.weight(1f))
+            QuestionTitle(
+                text = stringResource(R.string.triage_form_symptom_describe_title)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            QuestionTextInput(
+                text = triageFormViewModel.symptomDescriptionText,
+                placeholder = stringResource(R.string.triage_form_symptom_details_placeholder),
+                onTextChanged = triageFormViewModel::onSymptomDescriptionChanged
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             QuestionBottomBar(
                 backButtonText = stringResource(R.string.triage_form_back_button),
@@ -187,7 +197,7 @@ fun SymptomCard(
                 color = Color.Black,
                 fontWeight = FontWeight.Bold,
                 lineHeight = 11.sp,
-                textAlign = TextAlign.Center,
+                textAlign = TextAlign.Center
             )
         }
     }

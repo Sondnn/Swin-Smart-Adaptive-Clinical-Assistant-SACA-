@@ -52,7 +52,7 @@ class TriageFormViewModel: ViewModel() {
         FEVER("fever", R.string.triage_form_symptom_fever, R.drawable.ic_symptom_fever),
         DIARRHEA("diarrhea", R.string.triage_form_symptom_diarrhea, R.drawable.ic_symptom_diarrhea),
         COUGH("cough", R.string.triage_form_symptom_cough, R.drawable.ic_symptom_cough),
-        VOMITING("fever", R.string.triage_form_symptom_vomiting, R.drawable.ic_symptom_vomiting),
+        VOMITING("vomiting", R.string.triage_form_symptom_vomiting, R.drawable.ic_symptom_vomiting),
         DIZZINESS("dizziness", R.string.triage_form_symptom_dizziness, R.drawable.ic_symptom_dizzy),
         RUNNY_NOSE("runny_nose", R.string.triage_form_symptom_runny_nose, R.drawable.ic_symptom_runny_nose),
         EYE_PAIN("eye_pain", R.string.triage_form_symptom_eye_pain, R.drawable.ic_symptom_eye_pain),
@@ -70,6 +70,9 @@ class TriageFormViewModel: ViewModel() {
         private set
 
     var selectedSymptomIds: Set<String> by mutableStateOf(emptySet())
+        private set
+
+    var symptomDescriptionText: String by mutableStateOf("")
         private set
 
     var selectedSeverityOptionId: String? by mutableStateOf(null)
@@ -92,6 +95,10 @@ class TriageFormViewModel: ViewModel() {
         } else {
             selectedSymptomIds + optionId
         }
+    }
+
+    fun onSymptomDescriptionChanged(text: String) {
+        symptomDescriptionText = text
     }
 
     fun onSeverityOptionSelected(optionId: String) {

@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
@@ -19,8 +20,11 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.Placeable
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -71,13 +75,8 @@ fun FormQuestionScaffold(
         ) {
             Spacer(modifier = Modifier.height(54.dp))
 
-            Text(
-                text = questionTitle,
-                color = TextBrown,
-                fontWeight = FontWeight.Black,
-                fontSize = 24.sp,
-                lineHeight = 32.sp,
-                textAlign = TextAlign.Center
+            QuestionTitle(
+                text = questionTitle
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -102,6 +101,54 @@ fun FormQuestionScaffold(
             )
         }
     }
+}
+
+@Composable
+fun QuestionTitle(
+    text: String
+) {
+    Text(
+        text = text,
+        color = TextBrown,
+        fontWeight = FontWeight.Black,
+        fontSize = 24.sp,
+        lineHeight = 32.sp,
+        textAlign = TextAlign.Center
+    )
+}
+
+@Composable
+fun QuestionTextInput(
+    text: String,
+    placeholder: String,
+    onTextChanged: (String) -> Unit,
+) {
+    BasicTextField(
+        value = text,
+        onValueChange = onTextChanged,
+        textStyle = TextStyle(
+            color = Color.Black,
+        ),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(130.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .background(Color.White)
+            .padding(14.dp),
+        decorationBox = { innerTextField ->
+            Box(modifier = Modifier.fillMaxWidth()) {
+                if (text.isEmpty()) {
+                    Text(
+
+                        text = placeholder,
+                        color = Color.Gray,
+                    )
+                }
+
+                innerTextField()
+            }
+        }
+    )
 }
 
 @Composable
