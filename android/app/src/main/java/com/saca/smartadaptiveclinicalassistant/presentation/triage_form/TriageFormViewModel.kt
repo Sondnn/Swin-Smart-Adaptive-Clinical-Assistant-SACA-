@@ -6,8 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import com.saca.smartadaptiveclinicalassistant.R
 
-class TriageFormViewModel(
-): ViewModel() {
+class TriageFormViewModel: ViewModel() {
     enum class GenderOption(
         val value: String,
         val labelRes: Int
@@ -45,11 +44,32 @@ class TriageFormViewModel(
         UNKNOWN("unknown", R.string.triage_form_duration_option_unknown),
     }
 
+    enum class SymptomOption(
+        val value: String,
+        val labelRes: Int,
+        val iconRes: Int
+    ) {
+        FEVER("fever", R.string.triage_form_symptom_fever, R.drawable.ic_symptom_fever),
+        DIARRHEA("diarrhea", R.string.triage_form_symptom_diarrhea, R.drawable.ic_symptom_diarrhea),
+        COUGH("cough", R.string.triage_form_symptom_cough, R.drawable.ic_symptom_cough),
+        VOMITING("fever", R.string.triage_form_symptom_vomiting, R.drawable.ic_symptom_vomiting),
+        DIZZINESS("dizziness", R.string.triage_form_symptom_dizziness, R.drawable.ic_symptom_dizzy),
+        RUNNY_NOSE("runny_nose", R.string.triage_form_symptom_runny_nose, R.drawable.ic_symptom_runny_nose),
+        EYE_PAIN("eye_pain", R.string.triage_form_symptom_eye_pain, R.drawable.ic_symptom_eye_pain),
+        SORE_THROAT("sore_throat", R.string.triage_form_symptom_sore_throat, R.drawable.ic_symptom_sore_throat),
+        HEADACHE("headache", R.string.triage_form_symptom_headache, R.drawable.ic_symptom_headache),
+        JOINT_PAIN("joint_pain", R.string.triage_form_symptom_joint_pain, R.drawable.ic_symptom_joint_pain),
+        ABDOMINAL_PAIN("abdominal_pain", R.string.triage_form_symptom_abdominal_pain, R.drawable.ic_symptom_abdominal_pain),
+        BODY_PAIN("body_pain", R.string.triage_form_symptom_body_pain, R.drawable.ic_symptom_back_pain),
+    }
 
     var selectedGenderOptionId: String? by mutableStateOf(null)
         private set
 
     var selectedAgeOptionId: String? by mutableStateOf(null)
+        private set
+
+    var selectedSymptomIds: Set<String> by mutableStateOf(emptySet())
         private set
 
     var selectedSeverityOptionId: String? by mutableStateOf(null)
@@ -64,6 +84,14 @@ class TriageFormViewModel(
 
     fun onAgeOptionSelected(optionId: String) {
         selectedAgeOptionId = optionId
+    }
+
+    fun onSymptomOptionSelected(optionId: String) {
+        selectedSymptomIds = if (selectedSymptomIds.contains(optionId)) {
+            selectedSymptomIds - optionId
+        } else {
+            selectedSymptomIds + optionId
+        }
     }
 
     fun onSeverityOptionSelected(optionId: String) {

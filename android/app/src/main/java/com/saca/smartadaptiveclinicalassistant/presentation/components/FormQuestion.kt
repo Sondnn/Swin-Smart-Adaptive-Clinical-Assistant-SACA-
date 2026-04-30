@@ -152,8 +152,6 @@ fun QuestionOptionButton(
             text = text,
             color = Brown,
             fontWeight = FontWeight.Bold,
-            fontSize = 14.sp,
-            lineHeight = 20.sp,
             textAlign = TextAlign.Center
         )
     }
