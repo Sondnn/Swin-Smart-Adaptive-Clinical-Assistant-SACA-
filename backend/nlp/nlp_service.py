@@ -107,7 +107,7 @@ def convert_text_to_text(json_data: dict) -> str:
     return json_data.get("symptom_description", "")
 
 # A function to convert the wav files to text using a speech-to-text model, which can then be processed by the NLP model
-def convert_wav_to_text(wav_file_path: str) -> str:
+# def convert_wav_to_text(wav_file_path: str) -> str:
     
     # Error handling if dependency is missing or if the file is not found or if the file is not a valid WAV audio file
     if sr is None:
@@ -138,6 +138,58 @@ def convert_wav_to_text(wav_file_path: str) -> str:
     
     print(f"Transcription: {transcript}")
     
+    return transcript
+# speech to text function with two parameters: the path to the wav file and the language (1 for English, 0 for Indigenous language), 
+# which will determine the language code used in the Google Speech Recognition API
+def convert_wav_to_text(wav_file_path: str, language: int = 1) -> str:
+    """
+    Convert a WAV audio file to text using Google Speech Recognition.
+    
+    Args:
+        wav_file_path: Path to the WAV file
+        language: 1 for English (default), 0 for Indigenous language
+    """
+
+    # Map language int to Google Speech API language code
+    LANGUAGE_MAP = {
+        1: "en-AU",   # English (Australian, adjust to en-US if needed)
+        0: "..."      # Add your indigenous language code here if supported
+    }
+
+    if language not in LANGUAGE_MAP:
+        raise ValueError(f"Unsupported language code: {language}. Use 1 (English) or 0 (Indigenous).")
+
+    language_code = LANGUAGE_MAP[language]
+
+    # Error handling if dependency is missing
+    if sr is None:
+        raise ImportError(
+            "Missing dependency 'speech_recognition'.\n"
+            "Install backend requirements to enable audio transcription."
+        )
+
+    # Error handling to check if the provided file path exists
+    if not os.path.isfile(wav_file_path):
+        raise FileNotFoundError(f"WAV file not found: {wav_file_path}")
+
+    # Validate that the file is readable as a WAV before processing
+    try:
+        with wave.open(wav_file_path, "rb") as wav_file:
+            _ = wav_file.getnframes()
+    except wave.Error as exc:
+        raise ValueError(
+            f"Invalid WAV audio file: {wav_file_path}. File must be RIFF/PCM WAV."
+        ) from exc
+
+    # Convert audio to text using Google Speech Recognition
+    recognizer = sr.Recognizer()
+    with sr.AudioFile(wav_file_path) as source:
+        audio = recognizer.record(source)
+
+    transcript = recognizer.recognize_google(audio, language=language_code)
+
+    print(f"Transcription ({language_code}): {transcript}")
+
     return transcript
 
 # A function to process the symptom description provided by the user, which includes normalization, tokenization, stemming, and symptom extraction based on predefined patterns
