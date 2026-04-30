@@ -4,10 +4,12 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using SACA.WindowsApp.Services;
 
 namespace SACA.WindowsApp.Pages
 {
@@ -17,8 +19,10 @@ namespace SACA.WindowsApp.Pages
     public partial class SymptomsPage : UserControl
     {
         private readonly MainWindow _mainWindow;
+        private readonly TriageApiService _triageApiService = new();
         private const string RecordingAlias = "triageRecording";
         private bool _isRecording;
+        private bool _isTranscribing;
         private string _recordingPath = "";
 
         [DllImport("winmm.dll", CharSet = CharSet.Auto)]
@@ -60,9 +64,14 @@ namespace SACA.WindowsApp.Pages
             RecordButton.CaptureMouse();
         }
 
-        private void RecordButton_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
+        private async void RecordButton_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            StopRecording();
+            string savedRecordingPath = StopRecording();
+
+            if (!string.IsNullOrWhiteSpace(savedRecordingPath))
+            {
+                await ConvertRecordingToTextAsync(savedRecordingPath);
+            }
         }
 
         private void RecordButton_MouseLeave(object sender, MouseEventArgs e)
@@ -75,7 +84,7 @@ namespace SACA.WindowsApp.Pages
 
         private void StartRecording()
         {
-            if (_isRecording)
+            if (_isRecording || _isTranscribing)
             {
                 return;
             }
@@ -106,17 +115,20 @@ namespace SACA.WindowsApp.Pages
             }
         }
 
-        private void StopRecording()
+        private string StopRecording()
         {
             if (!_isRecording)
             {
-                return;
+                return "";
             }
+
+            string savedRecordingPath = "";
 
             try
             {
                 SendMciCommand($"stop {RecordingAlias}");
                 SendMciCommand($"save {RecordingAlias} \"{_recordingPath}\"");
+                savedRecordingPath = _recordingPath;
                 RecordingStatusTextBlock.Text = $"Recording saved: {Path.GetFileName(_recordingPath)}";
             }
             catch (Exception ex)
@@ -131,6 +143,47 @@ namespace SACA.WindowsApp.Pages
                 CloseRecordingDevice();
                 RecordButton.ReleaseMouseCapture();
             }
+
+            return savedRecordingPath;
+        }
+
+        private async Task ConvertRecordingToTextAsync(string audioFilePath)
+        {
+            _isTranscribing = true;
+            RecordButton.IsEnabled = false;
+            RecordingStatusTextBlock.Text = "Converting speech to text...";
+
+            try
+            {
+                int languageCode = GetSpeechToTextLanguageCode();
+                string transcript = await _triageApiService.ConvertSpeechToTextAsync(audioFilePath, languageCode);
+
+                if (string.IsNullOrWhiteSpace(transcript))
+                {
+                    RecordingStatusTextBlock.Text = "No speech text returned";
+                    return;
+                }
+
+                DescriptionTextBox.Text = transcript.Trim();
+                RecordingStatusTextBlock.Text = "Text added. Check it or record again.";
+            }
+            catch (Exception ex)
+            {
+                RecordingStatusTextBlock.Text = "Speech-to-text failed";
+                MessageBox.Show($"Could not convert the recording to text: {ex.Message}");
+            }
+            finally
+            {
+                _isTranscribing = false;
+                RecordButton.IsEnabled = true;
+            }
+        }
+
+        private int GetSpeechToTextLanguageCode()
+        {
+            return _mainWindow.CurrentRequest.Language.Equals("English", StringComparison.OrdinalIgnoreCase)
+                ? 1
+                : 2;
         }
 
         private static void SendMciCommand(string command)
