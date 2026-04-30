@@ -8,6 +8,7 @@ import androidx.navigation.compose.rememberNavController
 import com.saca.smartadaptiveclinicalassistant.presentation.home.HomeScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.language.LanguageScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
+import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.AgeQuestionScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.GenderQuestionScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.TriageFormViewModel
 import org.koin.androidx.compose.koinViewModel
@@ -49,14 +50,22 @@ fun SacaNavGraph(modifier: Modifier = Modifier) {
                     navController.popBackStack()
                 },
                 onContinueClick = {
-                    navController.popBackStack()
+                    navController.navigate(SacaDestinations.TRIAGE_FORM_AGE)
                 },
                 triageFormViewModel = triageFormViewModel
             )
         }
 
         composable(SacaDestinations.TRIAGE_FORM_AGE) {
-            // Todo: Triage from gender question
+            AgeQuestionScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onContinueClick = {
+                    navController.popBackStack()
+                },
+                triageFormViewModel = triageFormViewModel
+            )
         }
 
         composable(SacaDestinations.TRIAGE_FORM_SYMPTOM) {
