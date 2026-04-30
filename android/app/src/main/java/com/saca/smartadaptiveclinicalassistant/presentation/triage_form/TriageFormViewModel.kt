@@ -25,10 +25,38 @@ class TriageFormViewModel(
         OLDER_ADULT_OR_YOUNGER("older_adult_or_younger", R.string.triage_form_age_option_older_adult_or_younger)
     }
 
+    enum class SeverityOption(
+        val value: String,
+        val labelRes: Int
+    ) {
+        MILD("mild", R.string.triage_form_severity_option_mild),
+        LOW("low", R.string.triage_form_severity_option_low),
+        MODERATE("moderate", R.string.triage_form_severity_option_moderate),
+        HIGH("high", R.string.triage_form_severity_option_high),
+        SEVERE("severe", R.string.triage_form_severity_option_severe),
+    }
+
+    enum class DurationOption(
+        val value: String,
+        val labelRes: Int
+    ) {
+        LESS_THAN_DAY("less_than_day", R.string.triage_form_duration_option_less_than_day),
+        MORE_THAN_DAY("more_than_day", R.string.triage_form_duration_option_more_than_day),
+        UNKNOWN("unknown", R.string.triage_form_duration_option_unknown),
+    }
+
+
     var selectedGenderOptionId: String? by mutableStateOf(null)
         private set
 
     var selectedAgeOptionId: String? by mutableStateOf(null)
+        private set
+
+    var selectedSeverityOptionId: String? by mutableStateOf(null)
+        private set
+
+    var selectedDurationOptionId: String? by mutableStateOf(null)
+        private set
 
     fun onGenderOptionSelected(optionId: String) {
         selectedGenderOptionId = optionId
@@ -36,5 +64,13 @@ class TriageFormViewModel(
 
     fun onAgeOptionSelected(optionId: String) {
         selectedAgeOptionId = optionId
+    }
+
+    fun onSeverityOptionSelected(optionId: String) {
+        selectedSeverityOptionId = optionId
+    }
+
+    fun onDurationOptionSelected(optionId: String) {
+        selectedDurationOptionId = optionId
     }
 }
