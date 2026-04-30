@@ -26,20 +26,6 @@
                 <ComboBoxItem Content="Female"/>
             </ComboBox>
 
-            <TextBlock x:Name="PregnancyLabel"
-                       Text="Pregnancy Status"
-                       Style="{StaticResource SectionLabelTextStyle}"
-                       Visibility="Collapsed"/>
-
-            <ComboBox x:Name="PregnancyComboBox"
-                      Height="40"
-                      Margin="0,5,0,20"
-                      Visibility="Collapsed">
-                <ComboBoxItem Content="Pregnant"/>
-                <ComboBoxItem Content="Not Pregnant"/>
-                <ComboBoxItem Content="Unknown"/>
-            </ComboBox>
-
             <TextBlock Text="Your Age" Style="{StaticResource SectionLabelTextStyle}"/>
             <ComboBox x:Name="AgeComboBox"
                       Height="40"
