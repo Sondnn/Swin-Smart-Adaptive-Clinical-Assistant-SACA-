@@ -34,8 +34,8 @@ namespace SACA.WindowsApp.Pages
             var gender = GetComboBoxValue(GenderComboBox);
             bool isFemale = gender == "Female";
 
-            PregnancyLabel.Visibility = isFemale ? Visibility.Visible : Visibility.Collapsed;
-            PregnancyComboBox.Visibility = isFemale ? Visibility.Visible : Visibility.Collapsed;
+            //PregnancyLabel.Visibility = isFemale ? Visibility.Visible : Visibility.Collapsed;
+            //PregnancyComboBox.Visibility = isFemale ? Visibility.Visible : Visibility.Collapsed;
         }
 
         private void Back_Click(object sender, RoutedEventArgs e)
@@ -55,7 +55,7 @@ namespace SACA.WindowsApp.Pages
             }
 
             _mainWindow.CurrentRequest.Gender = gender;
-            _mainWindow.CurrentRequest.PregnancyStatus = GetComboBoxValue(PregnancyComboBox);
+            //_mainWindow.CurrentRequest.PregnancyStatus = GetComboBoxValue(PregnancyComboBox);
             _mainWindow.CurrentRequest.AgeGroup = age;
 
             _mainWindow.NavigateToSymptoms();
