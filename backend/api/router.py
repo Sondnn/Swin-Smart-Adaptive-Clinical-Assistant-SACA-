@@ -45,7 +45,11 @@ async def speech_to_text(
     }
     finally:
         os.unlink(tmp_path)
-        
+
+# API endpoint: POST /extract-symptoms
+# Request body: JSON object with fields "symptoms_description" (string), "language" (int), and "symptoms" (list of strings)
+# Response: JSON object with fields "symptoms_description" (original input), "extracted_symptoms" (list of symptoms extracted), 
+# "negated_symptoms" (list of negated symptoms), and "symptoms" (combined list of original and extracted symptoms)
 @router.post("/extract-symptoms")
 async def extract_symptoms(payload: dict):
     try:
