@@ -1,20 +1,27 @@
-from fastapi import APIRouter, UploadFile, File, Form
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from pydantic import BaseModel
 from typing import List
 from config import MODEL_DIR
 from ml.ml_service import MLService
-import traceback
+from nlp import nlp_service
+from nlp.nlp_service import ExtractSymptomsRequest, ExtractSymptomsResponse
 import os
 import shutil
 import tempfile
-from nlp import nlp_service
+
 
 router = APIRouter()
 ml_service = MLService(MODEL_DIR)
 
+# Load NLP components once at startup
+_nlp, _stopwords = nlp_service.load_spacy_components()
+_tokenizer, _stemmer = nlp_service.load_nltk_components()
+
+
 @router.get("/")
 def root():
     return {"message": "SACA Backend API is running"}
+
 
 @router.post("/predict")
 def analyze_symptoms(payload: dict):
@@ -27,57 +34,44 @@ def analyze_symptoms(payload: dict):
 @router.post("/speech-to-text")
 async def speech_to_text(
     language: int = Form(...),
-    files: UploadFile = File(...)
+    files: UploadFile = File(...),
 ):
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
         shutil.copyfileobj(files.file, tmp)
         tmp_path = tmp.name
 
     try:
-        # Pass language int through to the method
         result_text = nlp_service.convert_wav_to_text(tmp_path, language=language)
         return {"symptoms_description": result_text}
     except Exception as e:
-        return {
-        "error": str(e),
-        "type": type(e).name,        # the exception class
-        "traceback": traceback.format_exc()  # exact line it failed on
-    }
+        raise HTTPException(status_code=500, detail=str(e))
     finally:
         os.unlink(tmp_path)
 
-# API endpoint: POST /extract-symptoms
-# Request body: JSON object with fields "symptoms_description" (string), "language" (int), and "symptoms" (list of strings)
-# Response: JSON object with fields "symptoms_description" (original input), "extracted_symptoms" (list of symptoms extracted), 
-# "negated_symptoms" (list of negated symptoms), and "symptoms" (combined list of original and extracted symptoms)
-@router.post("/extract-symptoms")
-async def extract_symptoms(payload: dict):
+#API endpoint: POST /extract-symptoms
+#Request body: JSON object with fields "language" (int), "symptoms_description" (string), and "symptoms" (list of strings)
+#Response: JSON object with fields "symptoms_description" (string), "extracted_symptoms" (list of strings), "negated_symptoms" (list of strings), and "symptoms" (list of strings)
+@router.post("/extract-symptoms", response_model=ExtractSymptomsResponse)
+async def extract_symptoms(payload: ExtractSymptomsRequest):
     try:
-        nlp, stopwords = nlp_service.load_spacy_components()
-        tokenizer, stemmer = nlp_service.load_nltk_components()
-
         processed = nlp_service.process_symptom_description(
-            payload.get("symptoms_description", ""),
-            nlp,
-            stopwords,
-            tokenizer,
-            stemmer,
-            language=payload.get("language", 1),
+            payload.symptoms_description,
+            _nlp,
+            _stopwords,
+            _tokenizer,
+            _stemmer,
+            language=payload.language,
         )
 
         extracted_symptoms = processed.get("extracted_symptoms", [])
-        all_symptoms = list(dict.fromkeys(payload.get("symptoms", []) + extracted_symptoms))
+        all_symptoms = list(dict.fromkeys(payload.symptoms + extracted_symptoms))
 
-        return {
-            "symptoms_description": payload.get("symptoms_description", ""),
-            "extracted_symptoms": extracted_symptoms,
-            "negated_symptoms": processed.get("negated_symptoms", []),
-            "symptoms": all_symptoms
-        }
+        return ExtractSymptomsResponse(
+            symptoms_description=payload.symptoms_description,
+            extracted_symptoms=extracted_symptoms,
+            negated_symptoms=processed.get("negated_symptoms", []),
+            symptoms=all_symptoms,
+        )
     except Exception as e:
-        return {
-            "error": str(e),
-            "type": type(e).__name__,
-            "traceback": traceback.format_exc()
-        }
-        
+        raise HTTPException(status_code=500, detail=str(e))
+
