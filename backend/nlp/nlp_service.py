@@ -154,7 +154,18 @@ def convert_wav_to_text(wav_file_path: str, language: int = 1) -> str:
 
 # A function to process the symptom description provided by the user, which includes normalization, tokenization, stemming, and symptom extraction based on predefined patterns
 # The function returns a JSON object containing the original symptom description, the stemmed tokens, the extracted symptoms, and any negated symptoms
-def process_symptom_description(symptom_description: str, nlp, stopwords, tokenizer, stemmer) -> dict:
+def process_symptom_description(symptom_description: str, nlp, stopwords, tokenizer, stemmer, language: int = 1) -> dict:
+    # Map language int to Google Speech API language code
+    LANGUAGE_MAP = {
+        1: "en-AU",   # English (Australian, adjust to en-US if needed)
+        0: "..."      # Add your indigenous language code here if supported
+    }
+
+    if language not in LANGUAGE_MAP:
+        raise ValueError(f"Unsupported language code: {language}. Use 1 (English) or 0 (Indigenous).")
+
+    language_code = LANGUAGE_MAP[language]
+    
     # normalize the user input text
     normalized_text = normalize_text(symptom_description)
     
@@ -168,8 +179,8 @@ def process_symptom_description(symptom_description: str, nlp, stopwords, tokeni
     nltk_stems = set(stem_tokens(nltk_tokens, stopwords, stemmer))
     combined_stems = spacy_stems | nltk_stems
 
-    input_text = {"symptom_description": symptom_description}
-    input_text["stemmed_tokens"] = list(combined_stems)
+    extracted_symptoms = {"symptom_description": symptom_description}
+    extracted_symptoms["stemmed_tokens"] = list(combined_stems)
     
     # extract symptoms based on predefined patterns and add them to the input text JSON object
     extracted = []
@@ -211,10 +222,10 @@ def process_symptom_description(symptom_description: str, nlp, stopwords, tokeni
     # add the extracted symptoms to the input text JSON object
     # add the negated symptoms to the input text JSON object
     # use dict.fromkeys to remove duplicates while preserving order, and sort the final list of extracted symptoms
-    input_text["extracted_symptoms"] = list(dict.fromkeys(extracted))
-    input_text["negated_symptoms"] = list(dict.fromkeys(negated))
+    extracted_symptoms["extracted_symptoms"] = list(dict.fromkeys(extracted))
+    extracted_symptoms["negated_symptoms"] = list(dict.fromkeys(negated))
     
-    return input_text
+    return extracted_symptoms
 
 def main() -> None:
     nlp, stopwords = load_spacy_components()
