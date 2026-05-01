@@ -224,7 +224,8 @@ def process_symptom_description(symptom_description: str, language: int = 1) -> 
 def extract_symptoms(request: ExtractSymptomsRequest) -> ExtractSymptomsResponse:
     processed = process_symptom_description(request.symptoms_description, language=request.language)
     extracted = processed.get("extracted_symptoms", [])
-    all_symptoms = list(dict.fromkeys(request.symptoms + extracted))
+    normalized_input_symptoms = [s.strip().lower().replace(" ", "_") for s in request.symptoms ]
+    all_symptoms = list(dict.fromkeys(normalized_input_symptoms + extracted))
 
     return ExtractSymptomsResponse(
         symptoms_description=request.symptoms_description,

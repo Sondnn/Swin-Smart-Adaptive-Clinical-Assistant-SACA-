@@ -4,7 +4,7 @@ from fastapi import APIRouter, File, Form, UploadFile
 from fastapi.responses import JSONResponse
 
 from config import MODEL_DIR
-from ml.ml_service import MLService
+from ml.ml_service import MLService, PredictRequest
 from nlp import nlp_service
 from nlp.nlp_service import ExtractSymptomsRequest, ExtractSymptomsResponse
 
@@ -18,8 +18,18 @@ def root():
 
 
 @router.post("/predict")
-def analyze_symptoms(payload: dict):
-    return ml_service.predict(payload)
+async def analyze_symptoms(payload: PredictRequest):
+    try:
+        return ml_service.predict(payload)
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": str(e),
+                "type": type(e).__name__,
+                "traceback": traceback.format_exc(),
+            }
+        )
 
 
 @router.post("/speech-to-text")
