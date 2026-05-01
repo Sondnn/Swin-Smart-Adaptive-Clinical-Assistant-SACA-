@@ -1,10 +1,14 @@
 from collections.abc import Iterable
 import json
 import os
+from pathlib import Path
 import re
 import warnings
 import wave
 import speech_recognition as sr
+
+BASE_DIR = Path(__file__).resolve().parents[1]
+FEATURE_COLUMNS_FILE = BASE_DIR / "models" / "feature_columns.json"
 
 
 # This code snippet is designed to normalize user input describing symptoms, making it easier for an NLP model to process the information
@@ -15,14 +19,30 @@ def normalize_text(text: str) -> str:
     text = re.sub(r"[^a-z0-9\s']", " ", text)
     return re.sub(r"\s+", " ", text)
 
-# A dictionary of symptom patterns that maps common symptoms to various phrases that may be used to describe them in user input
-SYMPTOM_PATTERNS = {
-    "cold": ["cold", "chills", "shivering"],
-    "fever": ["fever", "high temperature", "hot"],
-    "cough": ["cough", "coughing"],
-    "headache": ["headache", "head pain", "migraine"],
-    "stomach ache": ["stomach ache", "belly pain", "abdominal pain"],
-}
+# This function builds a dictionary of symptom patterns from the feature columns defined in the trained ML model schema
+def build_symptom_patterns(feature_columns: Iterable[str]) -> dict[str, list[str]]:
+    symptom_patterns: dict[str, list[str]] = {}
+    for column in feature_columns:
+        if not column.startswith("symptom__"):
+            continue
+
+        phrase = column.removeprefix("symptom__").replace("_", " ").strip()
+        if not phrase:
+            continue
+        
+        # Remove the "symptom__" prefix to get the symptom name, and add the corresponding phrase to the symptom patterns dictionary
+        symptom_key = column.removeprefix("symptom__")
+        symptom_patterns[symptom_key] = [phrase]
+
+    return symptom_patterns
+
+# This function loads the symptom patterns from the feature columns defined in the trained ML model schema
+def load_symptom_patterns() -> dict[str, list[str]]:
+    feature_columns = json.loads(FEATURE_COLUMNS_FILE.read_text())
+    return build_symptom_patterns(feature_columns)
+
+# Use the trained ML schema as the source of truth for symptom names.
+SYMPTOM_PATTERNS = load_symptom_patterns()
 
 # A set of common stopwords that may be used as a fallback if the Spacy library is not available
 FALLBACK_STOPWORDS = {
