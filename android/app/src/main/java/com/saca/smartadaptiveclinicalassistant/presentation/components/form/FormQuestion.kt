@@ -1,4 +1,4 @@
-package com.saca.smartadaptiveclinicalassistant.presentation.components
+package com.saca.smartadaptiveclinicalassistant.presentation.components.form
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -34,6 +34,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.saca.smartadaptiveclinicalassistant.presentation.components.ActionBarIconButton
+import com.saca.smartadaptiveclinicalassistant.presentation.components.AppBar
+import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButton
+import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButtonStyle
 import com.saca.smartadaptiveclinicalassistant.ui.theme.AppBackground
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown20
@@ -56,7 +60,7 @@ fun FormQuestionScaffold(
     selectedOptionId: String?,
     currentStep: Int,
     totalSteps: Int,
-    onBackClick: () -> Unit,
+    onBackClick: () -> Unit = {},
     onOptionClick: (String) -> Unit,
     onContinueClick: () -> Unit,
 ) {
@@ -305,8 +309,8 @@ fun QuestionBottomBar(
     currentStep: Int,
     totalSteps: Int,
     canContinue: Boolean,
-    onBackClick: () -> Unit,
     onContinueClick: () -> Unit,
+    onBackClick: () -> Unit = {},
 ) {
     Column(
         modifier = Modifier
@@ -327,6 +331,7 @@ fun QuestionBottomBar(
             AppButton(
                 text = backButtonText,
                 style = AppButtonStyle.Transparent,
+                enabled = currentStep > 1,
                 onClick = onBackClick,
                 modifier = Modifier.weight(1f),
             )

@@ -1,4 +1,4 @@
-package com.saca.smartadaptiveclinicalassistant.presentation.components
+package com.saca.smartadaptiveclinicalassistant.presentation.components.form
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes

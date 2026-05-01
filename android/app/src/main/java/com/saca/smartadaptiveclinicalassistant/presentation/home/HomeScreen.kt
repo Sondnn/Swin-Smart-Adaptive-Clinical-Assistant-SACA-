@@ -47,6 +47,7 @@ import com.saca.smartadaptiveclinicalassistant.presentation.components.ActionBar
 import com.saca.smartadaptiveclinicalassistant.presentation.components.AppBar
 import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButton
 import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButtonStyle
+import com.saca.smartadaptiveclinicalassistant.presentation.components.SacaDrawerContent
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import com.saca.smartadaptiveclinicalassistant.ui.theme.AppBackground
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
@@ -69,7 +70,7 @@ fun HomeScreen(
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
-            HomeDrawerContent(
+            SacaDrawerContent(
                 currentLanguageTag = currentLanguageTag,
                 onLanguagePicked =  { tag ->
                     sessionViewModel.onLanguagePicked(tag)
@@ -162,97 +163,4 @@ fun HomeContent(
             )
         }
     }
-}
-
-// Move to components later
-@Composable
-private fun HomeDrawerContent(
-    currentLanguageTag: String,
-    onLanguagePicked: (String) -> Unit,
-) {
-    ModalDrawerSheet() {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 24.dp)
-        ) {
-            Text(
-                text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-                    verticalAlignment =  Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.home_drawer_section_assessment),
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            HorizontalDivider()
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = stringResource(R.string.home_drawer_section_language),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            DrawerLanguageRow(
-                label = stringResource(R.string.language_option_english),
-                isSelected = currentLanguageTag == LANGUAGE_TAG_ENGLISH,
-                onClick = { onLanguagePicked(LANGUAGE_TAG_ENGLISH) }
-            )
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            DrawerLanguageRow(
-                label = stringResource(R.string.language_option_walmajarri),
-                isSelected = currentLanguageTag == LANGUAGE_TAG_WALMAJARRI,
-                onClick = { onLanguagePicked(LANGUAGE_TAG_WALMAJARRI) }
-            )
-        }
-    }
-}
-
-
-@Composable
-private fun DrawerLanguageRow(
-    label: String,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-) {
-    NavigationDrawerItem(
-        label = { Text(text = label) },
-        selected = isSelected,
-        onClick = onClick,
-        badge = {
-            if (isSelected) {
-                Text(
-                    text = "\u2713",
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 18.sp,
-                )
-            }
-        },
-        colors = NavigationDrawerItemDefaults.colors(),
-        modifier = Modifier.fillMaxWidth(),
-    )
 }

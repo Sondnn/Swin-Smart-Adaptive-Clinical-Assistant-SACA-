@@ -1,12 +1,24 @@
 package com.saca.smartadaptiveclinicalassistant.presentation.triage_form
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.saca.smartadaptiveclinicalassistant.R
+import com.saca.smartadaptiveclinicalassistant.common.Constants.LANGUAGE_TAG_WALMAJARRI
+import com.saca.smartadaptiveclinicalassistant.domain.use_case.SpeechToTextUseCase
+import kotlinx.coroutines.launch
+import java.io.File
 
-class TriageFormViewModel: ViewModel() {
+class TriageFormViewModel(
+    private val speechToTextUseCase: SpeechToTextUseCase,
+): ViewModel() {
     enum class GenderOption(
         val value: String,
         val labelRes: Int
@@ -78,6 +90,12 @@ class TriageFormViewModel: ViewModel() {
     var symptomDescriptionText: String by mutableStateOf("")
         private set
 
+    var isTranscribing: Boolean by mutableStateOf(false)
+        private set
+
+    var recordingErrorResId: Int? by mutableStateOf(null)
+        private set
+
     var selectedSeverityOptionId: String? by mutableStateOf(null)
         private set
 
@@ -108,6 +126,15 @@ class TriageFormViewModel: ViewModel() {
         symptomDescriptionText = text
     }
 
+    fun showRecordingError(@StringRes messageResId: Int) {
+        isTranscribing = false
+        recordingErrorResId = messageResId
+    }
+
+    fun clearRecordingError() {
+        recordingErrorResId = null
+    }
+
     fun onSeverityOptionSelected(optionId: String) {
         selectedSeverityOptionId = optionId
     }
@@ -115,4 +142,43 @@ class TriageFormViewModel: ViewModel() {
     fun onDurationOptionSelected(optionId: String) {
         selectedDurationOptionId = optionId
     }
+
+    fun transcribeRecordedAudio(audioFile: File, languageTag: String) {
+        if (isTranscribing) {
+            return
+        }
+
+        isTranscribing = true
+        clearRecordingError()
+
+        viewModelScope.launch {
+            try {
+                val language = if (languageTag == LANGUAGE_TAG_WALMAJARRI) 0 else 1
+                val result = speechToTextUseCase(
+                    language = language,
+                    audioFile = audioFile,
+                )
+
+                result.fold(
+                    onSuccess = { transcribedText ->
+                        if (transcribedText.isBlank()) {
+                            recordingErrorResId = R.string.triage_form_symptom_transcription_failed_message
+                            return@fold
+                        }
+
+                        symptomDescriptionText += transcribedText
+                    },
+                    onFailure = {
+                        recordingErrorResId = R.string.triage_form_symptom_transcription_failed_message
+                    },
+                )
+            } catch (_: Exception) {
+                recordingErrorResId = R.string.triage_form_symptom_transcription_failed_message
+            } finally {
+                isTranscribing = false
+                audioFile.delete()
+            }
+        }
+    }
+
 }
