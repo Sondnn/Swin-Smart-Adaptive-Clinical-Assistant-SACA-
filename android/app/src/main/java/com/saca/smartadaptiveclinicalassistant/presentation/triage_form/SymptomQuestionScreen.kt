@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,8 +44,11 @@ import org.koin.androidx.compose.koinViewModel
 
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.presentation.components.FormQuestionImageOption
+import com.saca.smartadaptiveclinicalassistant.presentation.components.QuestionImageOption
 import com.saca.smartadaptiveclinicalassistant.presentation.components.QuestionTextInput
 import com.saca.smartadaptiveclinicalassistant.presentation.components.QuestionTitle
+import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
+import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown20
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Orange
 import kotlin.collections.chunked
 
@@ -89,11 +94,26 @@ fun SymptomQuestionScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            SymptomGrid(
-                symptomOptions = options,
-                selectedSymptomIds = triageFormViewModel.selectedSymptomIds,
-                onSymptomClick = triageFormViewModel::onSymptomOptionSelected
+            QuestionImageOption(
+                options = options,
+                selectedOptionIds = triageFormViewModel.selectedSymptomIds,
+                isExpanded =  triageFormViewModel.isSymptomOptionsExpanded,
+                initialOptionCount = 3,
+                onOptionClick = triageFormViewModel::onSymptomOptionSelected
             )
+
+            if (!triageFormViewModel.isSymptomOptionsExpanded) {
+                Spacer(modifier = Modifier.height(8.dp))
+
+                ShowMoreButton(
+                    text = stringResource(R.string.triage_form_symptom_show_more),
+                    onClick = triageFormViewModel::onSymptomOptionsExpandClicked
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            OrDivider(text = stringResource(R.string.triage_form_symptom_or))
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -124,81 +144,61 @@ fun SymptomQuestionScreen(
     }
 }
 
-
 @Composable
-fun SymptomGrid(
-    symptomOptions: List<FormQuestionImageOption>,
-    selectedSymptomIds: Set<String>,
-    onSymptomClick: (String) -> Unit,
+fun ShowMoreButton(
+    text: String,
+    onClick: () -> Unit
 ) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = Modifier.fillMaxWidth()
+    OutlinedButton(
+        onClick = onClick,
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = Brown20,
+            contentColor = Brown,
+        ),
+        border = BorderStroke(0.dp, Color.Transparent),
+        shape = RoundedCornerShape(2.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(32.dp)
     ) {
-        for (rowOptions in symptomOptions.chunked(3)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                for (option in rowOptions) {
-                    SymptomCard(
-                        option = option,
-                        selected = selectedSymptomIds.contains(option.id),
-                        onClick = {
-                            onSymptomClick(option.id)
-                        },
-                        modifier = Modifier.weight(1f)
-                    )
-                }
-
-                repeat(3 - rowOptions.size) {
-                    Spacer(modifier = Modifier.weight(1f))
-                }
-            }
-        }
+        Text(
+            text = text,
+            color = Brown,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            lineHeight = 16.sp,
+            textAlign = TextAlign.Center,
+        )
     }
 }
 
 @Composable
-fun SymptomCard(
-    option: FormQuestionImageOption,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    val backgroundColor = Color.White
-    val borderColor = if (selected) Orange else Color.Transparent
-
-    Box(
-        modifier = modifier
-            .height(100.dp)
-            .clip(RoundedCornerShape(6.dp))
-            .background(backgroundColor)
-            .border(BorderStroke(2.dp, borderColor), RoundedCornerShape(6.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 4.dp, vertical = 6.dp)
+private fun OrDivider(text: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(
-            modifier = Modifier.align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(1.dp)
+                .background(Brown.copy(alpha = 0.35f)),
+        )
 
-            Image(
-                painter = painterResource(option.iconResourceId),
-                contentDescription = stringResource(option.labelResourceId),
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.size(36.dp)
-            )
+        Text(
+            text = text,
+            color = Brown,
+            fontWeight = FontWeight.Bold,
+            fontSize = 12.sp,
+            lineHeight = 16.sp,
+            modifier = Modifier.padding(horizontal = 16.dp),
+        )
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text(
-                text = stringResource(option.labelResourceId),
-                color = Color.Black,
-                fontWeight = FontWeight.Bold,
-                lineHeight = 11.sp,
-                textAlign = TextAlign.Center
-            )
-        }
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .height(1.dp)
+                .background(Brown.copy(alpha = 0.35f)),
+        )
     }
 }

@@ -69,6 +69,9 @@ class TriageFormViewModel: ViewModel() {
     var selectedAgeOptionId: String? by mutableStateOf(null)
         private set
 
+    var isSymptomOptionsExpanded: Boolean by mutableStateOf(false)
+        private set
+
     var selectedSymptomIds: Set<String> by mutableStateOf(emptySet())
         private set
 
@@ -87,6 +90,10 @@ class TriageFormViewModel: ViewModel() {
 
     fun onAgeOptionSelected(optionId: String) {
         selectedAgeOptionId = optionId
+    }
+
+    fun onSymptomOptionsExpandClicked() {
+        isSymptomOptionsExpanded = true
     }
 
     fun onSymptomOptionSelected(optionId: String) {

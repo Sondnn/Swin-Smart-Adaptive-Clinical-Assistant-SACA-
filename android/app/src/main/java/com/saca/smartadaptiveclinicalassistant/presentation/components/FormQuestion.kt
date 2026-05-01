@@ -1,7 +1,10 @@
 package com.saca.smartadaptiveclinicalassistant.presentation.components
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -10,6 +13,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -22,7 +26,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.Placeable
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -36,6 +41,7 @@ import com.saca.smartadaptiveclinicalassistant.ui.theme.Gray40
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Orange
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Orange40
 import com.saca.smartadaptiveclinicalassistant.ui.theme.TextBrown
+import kotlin.collections.chunked
 
 @Composable
 fun FormQuestionScaffold(
@@ -203,6 +209,93 @@ fun QuestionOptionButton(
         )
     }
 }
+
+@Composable
+fun QuestionImageOption(
+    options: List<FormQuestionImageOption>,
+    selectedOptionIds: Set<String>,
+    isExpanded: Boolean,
+    initialOptionCount: Int,
+    onOptionClick: (String) -> Unit,
+) {
+    val visibleOptions = if (isExpanded) {
+        options
+    } else {
+        options.take(initialOptionCount)
+    }
+
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        for (rowOptions in visibleOptions.chunked(3)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                for (option in rowOptions) {
+                    QuestionImageOptionButton(
+                        option = option,
+                        selected = selectedOptionIds.contains(option.id),
+                        onClick = {
+                            onOptionClick(option.id)
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+
+                repeat(3 - rowOptions.size) {
+                    Spacer(modifier = Modifier.weight(1f))
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun QuestionImageOptionButton(
+    option: FormQuestionImageOption,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val backgroundColor = Color.White
+    val borderColor = if (selected) Orange else Color.Transparent
+
+    Box(
+        modifier = modifier
+            .height(100.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .background(backgroundColor)
+            .border(BorderStroke(2.dp, borderColor), RoundedCornerShape(6.dp))
+            .clickable(onClick = onClick)
+            .padding(horizontal = 4.dp, vertical = 6.dp)
+    ) {
+        Column(
+            modifier = Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+
+            Image(
+                painter = painterResource(option.iconResourceId),
+                contentDescription = stringResource(option.labelResourceId),
+                contentScale = ContentScale.Fit,
+                modifier = Modifier.size(36.dp)
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = stringResource(option.labelResourceId),
+                color = Color.Black,
+                fontWeight = FontWeight.Bold,
+                lineHeight = 11.sp,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
 
 @Composable
 fun QuestionBottomBar(
