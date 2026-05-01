@@ -1,3 +1,4 @@
+from typing import List
 from collections.abc import Iterable
 import json
 import os
@@ -5,10 +6,23 @@ from pathlib import Path
 import re
 import warnings
 import wave
+from pydantic import BaseModel
 import speech_recognition as sr
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 FEATURE_COLUMNS_FILE = BASE_DIR / "models" / "feature_columns.json"
+
+class ExtractSymptomsRequest(BaseModel):
+    language: int = 1
+    symptoms_description: str = ""
+    symptoms: List[str] = []
+
+
+class ExtractSymptomsResponse(BaseModel):
+    symptoms_description: str
+    extracted_symptoms: List[str]
+    negated_symptoms: List[str]
+    symptoms: List[str]
 
 
 # This code snippet is designed to normalize user input describing symptoms, making it easier for an NLP model to process the information
