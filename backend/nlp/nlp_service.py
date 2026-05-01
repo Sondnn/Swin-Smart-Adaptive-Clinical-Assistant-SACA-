@@ -152,9 +152,10 @@ def convert_wav_to_text(wav_file_path: str, language: int = 1) -> str:
 
     return transcript
 
-# A function to process the symptom description provided by the user, which includes normalization, tokenization, stemming, and symptom extraction based on predefined patterns
-# The function returns a JSON object containing the original symptom description, the stemmed tokens, the extracted symptoms, and any negated symptoms
+# A function to process the symptom description text, extract symptoms based on predefined patterns, and identify any negated symptoms
+# It uses both Spacy and NLTK for tokenization and stemming, and it handles different languages based on the provided language code
 def process_symptom_description(symptom_description: str, nlp, stopwords, tokenizer, stemmer, language: int = 1) -> dict:
+    
     # Map language int to Google Speech API language code
     LANGUAGE_MAP = {
         1: "en-AU",   # English (Australian, adjust to en-US if needed)
