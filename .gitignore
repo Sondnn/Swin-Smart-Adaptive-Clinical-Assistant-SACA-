@@ -9,3 +9,6 @@ Thumbs.db
 # Build artifacts
 *.pyc
 __pycache__/
+
+# Training model
+backend/models/*.joblib

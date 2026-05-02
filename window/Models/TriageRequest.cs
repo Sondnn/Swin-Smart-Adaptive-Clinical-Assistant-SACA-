@@ -10,7 +10,7 @@ namespace SACA.WindowsApp.Models
     {
         public string Language { get; set; } = "English";
         public string Gender { get; set; } = "";
-        public string PregnancyStatus { get; set; } = "";
+        //public string PregnancyStatus { get; set; } = "";// not implemented in triage logic yet, can be added later if needed
         public string AgeGroup { get; set; } = "";
         public List<string> Symptoms { get; set; } = new();
         public string Severity { get; set; } = "";
