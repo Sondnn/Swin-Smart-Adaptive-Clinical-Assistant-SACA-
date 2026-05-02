@@ -1,4 +1,4 @@
-package com.saca.smartadaptiveclinicalassistant.data.repository
+package com.saca.smartadaptiveclinicalassistant.domain.repository
 
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.AnalysisSymptomsRequest
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.AnalysisSymptomsResponse

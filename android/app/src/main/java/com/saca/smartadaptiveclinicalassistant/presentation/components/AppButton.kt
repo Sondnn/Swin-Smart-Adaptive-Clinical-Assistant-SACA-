@@ -12,6 +12,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.saca.smartadaptiveclinicalassistant.ui.theme.AppBackground
 import com.saca.smartadaptiveclinicalassistant.ui.theme.DisabledTextBrown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown as ColorBrown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Orange as ColorOrange
@@ -56,15 +57,13 @@ enum class AppButtonStyle(
         backgroundColor = ColorOrange,
         textColor = Color.White
     ),
+    Orange(
+        backgroundColor = ColorBrown,
+        textColor = Color.White
+    ),
 
-// For later use
-//    Orange(
-//        backgroundColor = ColorBrown,
-//        textColor = Color.White
-//    ),
-//
-//    Transparent(
-//        backgroundColor = Color.Transparent,
-//        textColor = DisabledTextBrown
-//    )
+    Transparent(
+        backgroundColor = AppBackground,
+        textColor = DisabledTextBrown
+    )
 }

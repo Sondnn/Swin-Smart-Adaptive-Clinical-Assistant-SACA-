@@ -19,8 +19,14 @@ val AppBackgroundOrange = Color(0xFFFFDDB3)
 
 val Brown = Color(0xFFA25933)
 
+val Brown20 = Color(0xFFF9F1EB)
+
 val Orange = Color(0xFFFFA600)
 
-val ActionBarTextBrown = Color(0xFF84421E)
+val Orange40 = Color(0xFFFFE6C6)
+
+val TextBrown = Color(0xFF84421E)
 
 val DisabledTextBrown = Color(0x9986736B)
+
+val Gray40 = Color(0xFFD7D0CA)
