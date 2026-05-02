@@ -9,7 +9,7 @@ from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, Votin
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-DATA_PATH = BASE_DIR / "models" / "training_data_v1.csv"
+DATA_PATH = BASE_DIR / "models" / "training_data.csv"
 MODELS_DIR = BASE_DIR / "models"
 
 
@@ -87,12 +87,12 @@ def main():
     print(classification_report(y_test, ensemble_pred))
 
     # save model + schema
-    joblib.dump(ensemble, MODELS_DIR / "best_model.joblib")
+    joblib.dump(ensemble, MODELS_DIR / "ensemble.joblib")
     (MODELS_DIR / "best_model_name.txt").write_text("VotingClassifier")
     (MODELS_DIR / "feature_columns.json").write_text(json.dumps(feature_columns, indent=2))
 
     print("\nSaved model files into backend/models/")
-    print("- best_model.joblib")
+    print("- ensemble.joblib")
     print("- best_model_name.txt")
     print("- feature_columns.json")
 
