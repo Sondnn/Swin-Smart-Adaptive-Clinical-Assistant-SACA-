@@ -5,7 +5,7 @@ import joblib
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
-from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
+from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier, VotingClassifier
 
 
 BASE_DIR = Path(__file__).resolve().parents[1]
@@ -63,22 +63,32 @@ def main():
     print("Accuracy:", et_acc)
     print(classification_report(y_test, et_pred))
 
-    # choose best model
-    if et_acc >= rf_acc:
-        best_model = et
-        best_name = "ExtraTreesClassifier"
-        best_acc = et_acc
-    else:
-        best_model = rf
-        best_name = "RandomForestClassifier"
-        best_acc = rf_acc
+    #Ensemble: soft voting averages predicted probabilities fromn both models
+    ensemble = VotingClassifier(
+        estimators=[("rf", rf), ("et", et)],
+        voting="soft"
+    )
+    ensemble.fit(X_train, y_train)
+    ensemble_pred = ensemble.predict(X_test)
+    ensemble_acc = accuracy_score(y_test, ensemble_pred)
+    
+    # # choose best model
+    # if et_acc >= rf_acc:
+    #     best_model = et
+    #     best_name = "ExtraTreesClassifier"
+    #     best_acc = et_acc
+    # else:
+    #     best_model = rf
+    #     best_name = "RandomForestClassifier"
+    #     best_acc = rf_acc
 
-    print("\n=== Best Model Selected ===")
-    print(best_name, "Accuracy:", best_acc)
+    print("\n=== VotingClassifier Results ===")
+    print("Accuracy:", ensemble_acc)
+    print(classification_report(y_test, ensemble_pred))
 
     # save model + schema
-    joblib.dump(best_model, MODELS_DIR / "best_model.joblib")
-    (MODELS_DIR / "best_model_name.txt").write_text(best_name)
+    joblib.dump(ensemble, MODELS_DIR / "best_model.joblib")
+    (MODELS_DIR / "best_model_name.txt").write_text("VotingClassifier")
     (MODELS_DIR / "feature_columns.json").write_text(json.dumps(feature_columns, indent=2))
 
     print("\nSaved model files into backend/models/")
