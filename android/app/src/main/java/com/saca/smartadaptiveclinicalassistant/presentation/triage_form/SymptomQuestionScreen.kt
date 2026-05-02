@@ -19,10 +19,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -57,6 +59,8 @@ import com.saca.smartadaptiveclinicalassistant.presentation.components.form.Reco
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown20
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
 
 @Composable
 fun SymptomQuestionScreen(
@@ -76,7 +80,6 @@ fun SymptomQuestionScreen(
     val context = LocalContext.current
     val voiceRecorder = remember { VoiceRecorder() }
     var isRecordButtonPressed by remember { mutableStateOf(false) }
-
     val requestRecordAudioPermission = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission(),
     ) { isGranted ->
@@ -88,6 +91,7 @@ fun SymptomQuestionScreen(
             triageFormViewModel.clearRecordingError()
         }
     }
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -218,9 +222,34 @@ fun SymptomQuestionScreen(
                 continueButtonText = stringResource(R.string.triage_form_continue_button),
                 currentStep = 3,
                 totalSteps = 5,
-                canContinue = triageFormViewModel.selectedSymptomIds.isNotEmpty(),
+                canContinue = !triageFormViewModel.isExtractingSymptoms && !triageFormViewModel.isTranscribing,
                 onBackClick = onBackClick,
-                onContinueClick = onContinueClick,
+                onContinueClick = {
+                    coroutineScope.launch {
+                        // call api to extract symptoms before continue
+                        val canContinue = triageFormViewModel.extractSymptoms(sessionViewModel.languageTag)
+                        if (canContinue) {
+                            onContinueClick()
+                        }
+                    }
+                },
+            )
+        }
+
+        if (triageFormViewModel.shouldShowExtractSymptomsDialog) {
+            AlertDialog(
+                onDismissRequest = triageFormViewModel::dismissExtractSymptomsDialog,
+                title = {
+                    Text(text = stringResource(R.string.triage_form_symptom_extract_empty_title))
+                },
+                text = {
+                    Text(text = stringResource(R.string.triage_form_symptom_extract_empty_message))
+                },
+                confirmButton = {
+                    TextButton(onClick = triageFormViewModel::dismissExtractSymptomsDialog) {
+                        Text(text = stringResource(R.string.triage_form_symptom_extract_empty_confirm))
+                    }
+                }
             )
         }
     }

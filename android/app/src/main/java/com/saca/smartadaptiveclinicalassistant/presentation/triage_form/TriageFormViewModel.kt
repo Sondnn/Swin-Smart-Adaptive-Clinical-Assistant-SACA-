@@ -1,23 +1,21 @@
 package com.saca.smartadaptiveclinicalassistant.presentation.triage_form
 
-import android.Manifest
-import android.content.Context
-import android.content.pm.PackageManager
 import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.common.Constants.LANGUAGE_TAG_WALMAJARRI
+import com.saca.smartadaptiveclinicalassistant.domain.use_case.ExtractSymptomsUseCase
 import com.saca.smartadaptiveclinicalassistant.domain.use_case.SpeechToTextUseCase
 import kotlinx.coroutines.launch
 import java.io.File
 
 class TriageFormViewModel(
     private val speechToTextUseCase: SpeechToTextUseCase,
+    private val extractSymptomsUseCase: ExtractSymptomsUseCase
 ): ViewModel() {
     enum class GenderOption(
         val value: String,
@@ -96,6 +94,19 @@ class TriageFormViewModel(
     var recordingErrorResId: Int? by mutableStateOf(null)
         private set
 
+    var shouldShowSymptomError: Boolean by mutableStateOf(false)
+
+    var isExtractingSymptoms: Boolean by mutableStateOf(false)
+        private set
+
+    var extractSymptomsErrorResId: Int? by mutableStateOf(null)
+        private set
+
+    var shouldShowExtractSymptomsDialog: Boolean by mutableStateOf(false)
+        private set
+
+    private var extractedSymptomsFromBackend: List<String> by mutableStateOf(emptyList())
+
     var selectedSeverityOptionId: String? by mutableStateOf(null)
         private set
 
@@ -120,10 +131,17 @@ class TriageFormViewModel(
         } else {
             selectedSymptomIds + optionId
         }
+
+        clearExtractSymptomsError()
+        hideSymptomErrorIfExists()
     }
 
     fun onSymptomDescriptionChanged(text: String) {
         symptomDescriptionText = text
+
+        clearRecordingError()
+        clearExtractSymptomsError()
+        hideSymptomErrorIfExists()
     }
 
     fun showRecordingError(@StringRes messageResId: Int) {
@@ -135,6 +153,21 @@ class TriageFormViewModel(
         recordingErrorResId = null
     }
 
+    fun clearExtractSymptomsError() {
+        extractSymptomsErrorResId = null
+    }
+
+    fun dismissExtractSymptomsDialog() {
+        shouldShowExtractSymptomsDialog = false
+        clearExtractSymptomsError()
+    }
+
+    fun hideSymptomErrorIfExists() {
+        if (selectedSymptomIds.isNotEmpty() || symptomDescriptionText.isNotBlank()) {
+            shouldShowSymptomError = false
+        }
+    }
+
     fun onSeverityOptionSelected(optionId: String) {
         selectedSeverityOptionId = optionId
     }
@@ -143,6 +176,9 @@ class TriageFormViewModel(
         selectedDurationOptionId = optionId
     }
 
+    fun getLanguageCode(languageTag: String): Int {
+        return if (languageTag == LANGUAGE_TAG_WALMAJARRI) 0 else 1
+    }
     fun transcribeRecordedAudio(audioFile: File, languageTag: String) {
         if (isTranscribing) {
             return
@@ -153,9 +189,8 @@ class TriageFormViewModel(
 
         viewModelScope.launch {
             try {
-                val language = if (languageTag == LANGUAGE_TAG_WALMAJARRI) 0 else 1
                 val result = speechToTextUseCase(
-                    language = language,
+                    language = getLanguageCode(languageTag),
                     audioFile = audioFile,
                 )
 
@@ -181,4 +216,50 @@ class TriageFormViewModel(
         }
     }
 
+    fun canContinueFromSymptomQuestion(): Boolean {
+        val hasSelectedSymptom = selectedSymptomIds.isNotEmpty()
+        val hasWrittenDetails = symptomDescriptionText.isNotBlank()
+
+        shouldShowSymptomError = !hasSelectedSymptom && !hasWrittenDetails
+        return !shouldShowSymptomError
+    }
+
+    suspend fun extractSymptoms(languageTag: String): Boolean {
+        if (!canContinueFromSymptomQuestion() || isExtractingSymptoms) {
+            return false
+        }
+
+        isExtractingSymptoms = true
+        dismissExtractSymptomsDialog()
+
+        return try {
+            val result = extractSymptomsUseCase(
+                language = getLanguageCode(languageTag),
+                symptomsDescription = symptomDescriptionText.trim(),
+                selectedSymptoms = selectedSymptomIds.toList()
+            )
+
+            result.fold(
+                onSuccess = { extractedSymptoms ->
+                    if (extractedSymptoms.isEmpty()) {
+                        shouldShowExtractSymptomsDialog = true
+                        return@fold false
+                    }
+
+                    extractedSymptomsFromBackend = extractedSymptoms
+                    hideSymptomErrorIfExists()
+                    true
+                },
+                onFailure =  {
+                    extractSymptomsErrorResId = R.string.triage_form_symptom_extract_failed_message
+                    false
+                }
+            )
+        } catch (_: Exception) {
+            extractSymptomsErrorResId = R.string.triage_form_symptom_extract_failed_message
+            false
+        } finally {
+            isExtractingSymptoms = false
+        }
+    }
 }
