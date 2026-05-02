@@ -1,60 +1,71 @@
+from typing import List
 from collections.abc import Iterable
 import json
 import os
+from pathlib import Path
 import re
+import shutil
+import tempfile
 import warnings
 import wave
-import speech_recognition as sr
 
+from pydantic import BaseModel
 
-# This code snippet is designed to normalize user input describing symptoms, making it easier for an NLP model to process the information
-# The `normalize_text` function converts the input text to lowercase, removes unwanted characters, and collapses multiple spaces into a single space
-# The normalized text is then structured as a JSON object, which can be sent to an NLP model for further analysis
-def normalize_text(text: str) -> str:
-    text = text.lower().strip()
-    text = re.sub(r"[^a-z0-9\s']", " ", text)
-    return re.sub(r"\s+", " ", text)
+try:
+    import speech_recognition as sr
+except ImportError:
+    sr = None
 
-# A dictionary of symptom patterns that maps common symptoms to various phrases that may be used to describe them in user input
-SYMPTOM_PATTERNS = {
-    "cold": ["cold", "chills", "shivering"],
-    "fever": ["fever", "high temperature", "hot"],
-    "cough": ["cough", "coughing"],
-    "headache": ["headache", "head pain", "migraine"],
-    "stomach ache": ["stomach ache", "belly pain", "abdominal pain"],
+BASE_DIR = Path(__file__).resolve().parents[1]
+FEATURE_COLUMNS_FILE = BASE_DIR / "models" / "feature_columns.json"
+
+# Maps language int (from API) to Google Speech API language code
+LANGUAGE_MAP = {
+    1: "en-AU",
+    0: "...",  # Replace with supported indigenous language code
 }
 
-# A set of common stopwords that may be used as a fallback if the Spacy library is not available
 FALLBACK_STOPWORDS = {
-    "a",
-    "an",
-    "and",
-    "are",
-    "as",
-    "at",
-    "be",
-    "by",
-    "for",
-    "from",
-    "has",
-    "he",
-    "in",
-    "is",
-    "it",
-    "its",
-    "of",
-    "on",
-    "or",
-    "that",
-    "the",
-    "to",
-    "was",
-    "were",
-    "will",
-    "with",
+    "a", "an", "and", "are", "as", "at", "be", "by", "for", "from",
+    "has", "he", "in", "is", "it", "its", "of", "on", "or", "that",
+    "the", "to", "was", "were", "will", "with",
 }
 
-# A function to load Spacy components, including the NLP model and stopwords
+
+class ExtractSymptomsRequest(BaseModel):
+    language: int = 1
+    symptoms_description: str = ""
+    symptoms: List[str] = []
+
+
+class ExtractSymptomsResponse(BaseModel):
+    symptoms_description: str
+    extracted_symptoms: List[str]
+    negated_symptoms: List[str]
+    symptoms: List[str]
+
+
+def build_symptom_patterns(feature_columns: Iterable[str]) -> dict[str, list[str]]:
+    symptom_patterns: dict[str, list[str]] = {}
+    for column in feature_columns:
+        if not column.startswith("symptom__"):
+            continue
+        phrase = column.removeprefix("symptom__").replace("_", " ").strip()
+        if not phrase:
+            continue
+        symptom_key = column.removeprefix("symptom__")
+        symptom_patterns[symptom_key] = [phrase]
+    return symptom_patterns
+
+
+def load_symptom_patterns() -> dict[str, list[str]]:
+    feature_columns = json.loads(FEATURE_COLUMNS_FILE.read_text())
+    return build_symptom_patterns(feature_columns)
+
+
+SYMPTOM_PATTERNS = load_symptom_patterns()
+
+
 def load_spacy_components():
     try:
         with warnings.catch_warnings():
@@ -64,115 +75,71 @@ def load_spacy_components():
                 category=UserWarning,
             )
             import spacy
-
         nlp = spacy.blank("en")
         stopwords = set(nlp.Defaults.stop_words)
         return nlp, stopwords
     except Exception:
         return None, FALLBACK_STOPWORDS
 
-# A function to load NLTK components, including the tokenizer and stemmer
+
 def load_nltk_components():
     try:
         from nltk.stem import PorterStemmer
         from nltk.tokenize import TreebankWordTokenizer
-
         return TreebankWordTokenizer(), PorterStemmer()
     except Exception:
         return None, None
 
-# A function to tokenize text using Spacy, which returns a list of tokens while ignoring whitespace
+
+# NLP components initialized once at module load
+_nlp, _stopwords = load_spacy_components()
+_tokenizer, _stemmer = load_nltk_components()
+
+
+def normalize_text(text: str) -> str:
+    text = text.lower().strip()
+    text = re.sub(r"[^a-z0-9\s']", " ", text)
+    return re.sub(r"\s+", " ", text)
+
+
 def tokenize_with_spacy(nlp, text: str) -> list[str]:
     if nlp is None:
         return []
     doc = nlp(text)
     return [token.text for token in doc if not token.is_space]
 
-# A function to tokenize text using NLTK, which returns a list of lowercase tokens
-# If the tokenizer is not available, it falls back to splitting the text by spaces
+
 def tokenize_with_nltk(tokenizer, text: str) -> list[str]:
     if tokenizer is None:
         return text.split()
     return [token.lower() for token in tokenizer.tokenize(text)]
 
-# A function to stem tokens using a provided stemmer and filter out stopwords
-# If the stemmer is not available, it simply returns the tokens that are not stopwords
+
 def stem_tokens(tokens: Iterable[str], stopwords: set[str], stemmer) -> list[str]:
     if stemmer is None:
         return [token for token in tokens if token and token not in stopwords]
     return [stemmer.stem(token) for token in tokens if token and token not in stopwords]
 
-# A function to convert the text (user input) symptom description to a JSON object, which can then be processed by the NLP model
+
 def convert_text_to_text(json_data: dict) -> str:
     return json_data.get("symptom_description", "")
 
-# A function to convert the wav files to text using a speech-to-text model, which can then be processed by the NLP model
-# def convert_wav_to_text(wav_file_path: str) -> str:
-    
-    # Error handling if dependency is missing or if the file is not found or if the file is not a valid WAV audio file
-    if sr is None:
-        raise ImportError(
-            "Missing dependency 'speech_recognition'.\n"
-            "Install backend requirements to enable audio transcription."
-        )
-    
-    # Error handling to check if the provided file path exists and is a file
-    if not os.path.isfile(wav_file_path):
-        raise FileNotFoundError(f"WAV file not found: {wav_file_path}")
 
-    # Validate that the file is readable as a WAV before processing
-    try:
-        with wave.open(wav_file_path, "rb") as wav_file:
-            _ = wav_file.getnframes()
-    except wave.Error as exc:
-        raise ValueError(
-            f"Invalid WAV audio file: {wav_file_path}. File must be RIFF/PCM WAV."
-        ) from exc
-    
-    # A function uses Google Cloud Speech-to-Text API to convert the audio in the wav file to text
-    recognizer = sr.Recognizer()
-    with sr.AudioFile(wav_file_path) as source:
-        audio = recognizer.record(source)
-    
-    transcript = recognizer.recognize_google(audio)
-    
-    print(f"Transcription: {transcript}")
-    
-    return transcript
-# speech to text function with two parameters: the path to the wav file and the language (1 for English, 0 for Indigenous language), 
-# which will determine the language code used in the Google Speech Recognition API
 def convert_wav_to_text(wav_file_path: str, language: int = 1) -> str:
-    """
-    Convert a WAV audio file to text using Google Speech Recognition.
-    
-    Args:
-        wav_file_path: Path to the WAV file
-        language: 1 for English (default), 0 for Indigenous language
-    """
-
-    # Map language int to Google Speech API language code
-    LANGUAGE_MAP = {
-        1: "en-AU",   # English (Australian, adjust to en-US if needed)
-        0: "..."      # Add your indigenous language code here if supported
-    }
-
     if language not in LANGUAGE_MAP:
         raise ValueError(f"Unsupported language code: {language}. Use 1 (English) or 0 (Indigenous).")
 
     language_code = LANGUAGE_MAP[language]
 
-    # Error handling if dependency is missing
     if sr is None:
         raise ImportError(
             "Missing dependency 'speech_recognition'.\n"
             "Install backend requirements to enable audio transcription."
         )
 
-    # Error handling to check if the provided file path exists
     if not os.path.isfile(wav_file_path):
         raise FileNotFoundError(f"WAV file not found: {wav_file_path}")
 
-    # Validate that the file is readable as a WAV before processing
     try:
         with wave.open(wav_file_path, "rb") as wav_file:
             _ = wav_file.getnframes()
@@ -181,51 +148,54 @@ def convert_wav_to_text(wav_file_path: str, language: int = 1) -> str:
             f"Invalid WAV audio file: {wav_file_path}. File must be RIFF/PCM WAV."
         ) from exc
 
-    # Convert audio to text using Google Speech Recognition
     recognizer = sr.Recognizer()
     with sr.AudioFile(wav_file_path) as source:
         audio = recognizer.record(source)
 
     transcript = recognizer.recognize_google(audio, language=language_code)
-
     print(f"Transcription ({language_code}): {transcript}")
-
     return transcript
 
-# A function to process the symptom description provided by the user, which includes normalization, tokenization, stemming, and symptom extraction based on predefined patterns
-# The function returns a JSON object containing the original symptom description, the stemmed tokens, the extracted symptoms, and any negated symptoms
-def process_symptom_description(symptom_description: str, nlp, stopwords, tokenizer, stemmer) -> dict:
-    # normalize the user input text
+
+def transcribe_upload(file_obj, language: int = 1) -> str:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+        shutil.copyfileobj(file_obj, tmp)
+        tmp_path = tmp.name
+
+    try:
+        return convert_wav_to_text(tmp_path, language=language)
+    finally:
+        os.unlink(tmp_path)
+
+
+def process_symptom_description(symptom_description: str, language: int = 1) -> dict:
+    if language not in LANGUAGE_MAP:
+        raise ValueError(f"Unsupported language code: {language}. Use 1 (English) or 0 (Indigenous).")
+
     normalized_text = normalize_text(symptom_description)
-    
-    # tokenize the normalized text using both Spacy and NLTK tokenizers
-    spacy_tokens = tokenize_with_spacy(nlp, normalized_text)
-    nltk_tokens = tokenize_with_nltk(tokenizer, normalized_text)
-    
-    # stem the tokens and filter out stopwords
-    # combine the stemmed tokens from both Spacy and NLTK into a single set to ensure uniqueness
-    spacy_stems = set(stem_tokens(spacy_tokens, stopwords, stemmer))
-    nltk_stems = set(stem_tokens(nltk_tokens, stopwords, stemmer))
+
+    spacy_tokens = tokenize_with_spacy(_nlp, normalized_text)
+    nltk_tokens = tokenize_with_nltk(_tokenizer, normalized_text)
+
+    spacy_stems = set(stem_tokens(spacy_tokens, _stopwords, _stemmer))
+    nltk_stems = set(stem_tokens(nltk_tokens, _stopwords, _stemmer))
     combined_stems = spacy_stems | nltk_stems
 
-    input_text = {"symptom_description": symptom_description}
-    input_text["stemmed_tokens"] = list(combined_stems)
-    
-    # extract symptoms based on predefined patterns and add them to the input text JSON object
+    result = {
+        "symptom_description": symptom_description,
+        "stemmed_tokens": list(combined_stems),
+    }
+
     extracted = []
     negated = []
     negation_words = {"no", "not", "without", "don't", "doesn't", "didn't"}
-    
-    # Iterate through the predefined symptom patterns and check if any of the phrases are present in the normalized user input text
+
     for symptom, phrases in SYMPTOM_PATTERNS.items():
         for phrase in phrases:
             phrase_normalized = normalize_text(phrase)
-            phrase_tokens = phrase_normalized.split()
-            phrase_stems = set(stem_tokens(phrase_tokens, stopwords, stemmer))
+            phrase_stems = set(stem_tokens(phrase_normalized.split(), _stopwords, _stemmer))
 
-            # check if the normalized phrase is directly present in the normalized user input text
             if phrase_normalized in normalized_text:
-                # check if preceded by negation word
                 phrase_index = normalized_text.find(phrase_normalized)
                 text_before = normalized_text[:phrase_index].split()
                 if text_before and text_before[-1] in negation_words:
@@ -234,53 +204,43 @@ def process_symptom_description(symptom_description: str, nlp, stopwords, tokeni
                     extracted.append(symptom)
                 break
 
-            # if the stemmed tokens of the phrase are a subset of the combined stemmed tokens from the user input, consider it a match
             if phrase_stems and phrase_stems.issubset(combined_stems):
-                # check if preceded by negation word in original text
                 negation_found = False
                 for negation_word in negation_words:
-                    pattern = negation_word + r"\s+.*?" + phrase_normalized
-                    if re.search(pattern, normalized_text):
+                    if re.search(negation_word + r"\s+.*?" + phrase_normalized, normalized_text):
                         negated.append(symptom)
                         negation_found = True
                         break
                 if not negation_found:
                     extracted.append(symptom)
                 break
-    
-    # add the extracted symptoms to the input text JSON object
-    # add the negated symptoms to the input text JSON object
-    # use dict.fromkeys to remove duplicates while preserving order, and sort the final list of extracted symptoms
-    input_text["extracted_symptoms"] = list(dict.fromkeys(extracted))
-    input_text["negated_symptoms"] = list(dict.fromkeys(negated))
-    
-    return input_text
 
-def main() -> None:
-    nlp, stopwords = load_spacy_components()
-    tokenizer, stemmer = load_nltk_components()
-    
-    # hardcode - user input (text) under description of the symptoms
-    # symptom_description = json.loads('{"symptom_description": "I feel cold and had belly pain"}')
-    # symptom_description = json.loads('{"symptom_description": "I have cold and fever but no headache."}')
-    # symptom_description = convert_text_to_text(symptom_description)
-    
-    # file path to the wav file containing the user input describing the symptoms
-    wav_input = "/Users/jasperl/Downloads/test1.wav"
-    symptom_description = convert_wav_to_text(wav_input)
-    
-    
-    symptoms_extracted = process_symptom_description(
-        symptom_description,
-        nlp,
-        stopwords,
-        tokenizer,
-        stemmer
+    result["extracted_symptoms"] = list(dict.fromkeys(extracted))
+    result["negated_symptoms"] = list(dict.fromkeys(negated))
+
+    return result
+
+
+def extract_symptoms(request: ExtractSymptomsRequest) -> ExtractSymptomsResponse:
+    processed = process_symptom_description(request.symptoms_description, language=request.language)
+    extracted = processed.get("extracted_symptoms", [])
+    normalized_input_symptoms = [s.strip().lower().replace(" ", "_") for s in request.symptoms ]
+    all_symptoms = list(dict.fromkeys(normalized_input_symptoms + extracted))
+
+    return ExtractSymptomsResponse(
+        symptoms_description=request.symptoms_description,
+        extracted_symptoms=extracted,
+        negated_symptoms=processed.get("negated_symptoms", []),
+        symptoms=all_symptoms,
     )
 
-    # convert the final processed data into a JSON string and print it
-    nlp_text = json.dumps(symptoms_extracted)
-    print(nlp_text)
+
+def main() -> None:
+    wav_input = "/Users/jasperl/Downloads/test1.wav"
+    symptom_description = convert_wav_to_text(wav_input)
+    symptoms_extracted = process_symptom_description(symptom_description)
+    print(json.dumps(symptoms_extracted))
+
 
 if __name__ == "__main__":
     main()
