@@ -5,4 +5,5 @@ joblib
 scikit-learn
 pandas
 python-multipart
-traceback
+python-dotenv
+SpeechRecognition
