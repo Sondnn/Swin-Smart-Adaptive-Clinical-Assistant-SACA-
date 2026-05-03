@@ -5,5 +5,10 @@ joblib
 scikit-learn
 pandas
 python-multipart
+<<<<<<< HEAD
 python-dotenv
 SpeechRecognition
+=======
+traceback
+xgboost
+>>>>>>> aa5bb90 (feature: adding xgboost to improve predicting overal precision)
