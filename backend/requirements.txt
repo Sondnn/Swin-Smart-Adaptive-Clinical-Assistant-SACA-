@@ -6,3 +6,4 @@ scikit-learn
 pandas
 python-multipart
 traceback
+xgboost

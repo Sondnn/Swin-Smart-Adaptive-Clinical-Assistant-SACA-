@@ -32,9 +32,11 @@ class MLService:
         self.model = None
         self.model_name = None
         self.feature_columns = None
+        self.label_encoder = None
 
     def load(self):
-        self.model = joblib.load(self.models_dir / "best_model.joblib")
+        self.model = joblib.load(self.models_dir / "ensemble.joblib")
+        self.label_encoder = joblib.load(self.models_dir / "label_encoder.joblib")
         self.model_name = (self.models_dir / "best_model_name.txt").read_text().strip()
         self.feature_columns = json.loads((self.models_dir / "feature_columns.json").read_text())
 
@@ -53,15 +55,17 @@ class MLService:
             symptoms=input_data.symptoms,
         )
 
-        prediction = int(self.model.predict(case_df)[0])
+        encoded_pred = self.model.predict(case_df)[0]
+        prediction = int(self.label_encoder.inverse_transform([encoded_pred])[0])
 
         # 1. Prediction probabilities (how confident the model is per category)
         probabilities = {}
         if hasattr(self.model, "predict_proba"):
             proba = self.model.predict_proba(case_df)[0]
+            original_classes = self.label_encoder.inverse_transform(self.model.classes_)
             probabilities = {
-                f"category_{i+1}": round(float(p), 4)
-                for i, p in enumerate(proba)
+                f"category_{int(cls)}": round(float(p), 4)
+                for cls, p in zip(original_classes, proba)
             }
 
         # 2. Confidence score (probability of the predicted class)
