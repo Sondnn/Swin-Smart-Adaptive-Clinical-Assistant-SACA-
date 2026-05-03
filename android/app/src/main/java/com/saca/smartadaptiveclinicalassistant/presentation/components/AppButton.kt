@@ -54,11 +54,11 @@ enum class AppButtonStyle(
     val textColor: Color
 ) {
     Brown(
-        backgroundColor = ColorOrange,
+        backgroundColor = ColorBrown,
         textColor = Color.White
     ),
     Orange(
-        backgroundColor = ColorBrown,
+        backgroundColor = ColorOrange,
         textColor = Color.White
     ),
 

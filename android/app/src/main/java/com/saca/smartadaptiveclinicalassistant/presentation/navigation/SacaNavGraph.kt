@@ -5,8 +5,10 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.saca.smartadaptiveclinicalassistant.domain.model.TriageForm
 import com.saca.smartadaptiveclinicalassistant.presentation.home.HomeScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.language.LanguageScreen
+import com.saca.smartadaptiveclinicalassistant.presentation.result.ResultScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.AgeQuestionScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.DurationQuestionScreen
@@ -14,12 +16,16 @@ import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.GenderQu
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.SeverityQuestionScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.SymptomQuestionScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.TriageFormViewModel
+import com.saca.smartadaptiveclinicalassistant.presentation.triage_result.LoadingScreen
+import com.saca.smartadaptiveclinicalassistant.presentation.triage_result.TriageResultViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SacaNavGraph(modifier: Modifier = Modifier) {
     val navController = rememberNavController()
     val triageFormViewModel: TriageFormViewModel = koinViewModel()
+    val sessionViewModel: SessionViewModel = koinViewModel()
+    val triageResultViewModel: TriageResultViewModel = koinViewModel()
 
     NavHost(
         navController = navController,
@@ -100,19 +106,42 @@ fun SacaNavGraph(modifier: Modifier = Modifier) {
                 onBackClick = {
                     navController.popBackStack()
                 },
-                onContinueClick = {
-                    navController.popBackStack()
-                },
-                triageFormViewModel = triageFormViewModel
+                onAssessClick = {
+                    navController.navigate(SacaDestinations.TRIAGE_RESULT_LOADING)
+                } ,
+                triageFormViewModel = triageFormViewModel,
             )
         }
 
         composable(SacaDestinations.TRIAGE_RESULT_LOADING) {
-            // Todo: Triage from loading
+            LoadingScreen(
+                formAnswers = triageFormViewModel.getFormAnswers(
+                    languageTag = sessionViewModel.languageTag
+                ),
+                onAnalysisSuccess = {
+                    navController.navigate(SacaDestinations.TRIAGE_RESULT) {
+                        popUpTo(SacaDestinations.TRIAGE_RESULT_LOADING) {
+                            inclusive = true
+                        }
+                    }
+                },
+                triageResultViewModel = triageResultViewModel
+            )
         }
 
         composable(SacaDestinations.TRIAGE_RESULT) {
-            // Todo: Triage from result
+            ResultScreen(
+                onOkClick = {
+                    triageFormViewModel.resetFormState()
+                    navController.navigate(SacaDestinations.HOME) {
+                        popUpTo(SacaDestinations.HOME) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                triageResultViewModel = triageResultViewModel
+            )
         }
     }
 

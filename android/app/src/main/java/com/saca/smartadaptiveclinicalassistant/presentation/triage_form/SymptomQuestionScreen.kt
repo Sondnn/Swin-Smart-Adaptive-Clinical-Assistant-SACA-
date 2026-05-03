@@ -50,11 +50,12 @@ import org.koin.androidx.compose.koinViewModel
 
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.data.local.VoiceRecorder
+import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButtonStyle
+import com.saca.smartadaptiveclinicalassistant.presentation.components.Title
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.ErrorMessage
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.FormQuestionImageOption
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.QuestionImageOption
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.QuestionTextInput
-import com.saca.smartadaptiveclinicalassistant.presentation.components.form.QuestionTitle
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.RecordButton
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
@@ -115,7 +116,7 @@ fun SymptomQuestionScreen(
         ) {
             Spacer(modifier = Modifier.height(54.dp))
 
-            QuestionTitle(
+            Title(
                 text = stringResource(R.string.triage_form_symptom_title)
             )
 
@@ -144,7 +145,7 @@ fun SymptomQuestionScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            QuestionTitle(
+            Title(
                 text = stringResource(R.string.triage_form_symptom_describe_title)
             )
 
@@ -215,7 +216,8 @@ fun SymptomQuestionScreen(
                 ErrorMessage(text = stringResource(messageResId))
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.weight(1f))
 
             QuestionBottomBar(
                 backButtonText = stringResource(R.string.triage_form_back_button),
@@ -276,8 +278,8 @@ fun ShowMoreButton(
             text = text,
             color = Brown,
             fontWeight = FontWeight.Bold,
-            fontSize = 12.sp,
-            lineHeight = 16.sp,
+            fontSize = 20.sp,
+            lineHeight = 32.sp,
             textAlign = TextAlign.Center,
         )
     }
@@ -300,8 +302,8 @@ private fun OrDivider(text: String) {
             text = text,
             color = Brown,
             fontWeight = FontWeight.Bold,
-            fontSize = 12.sp,
-            lineHeight = 16.sp,
+            fontSize = 20.sp,
+            lineHeight = 32.sp,
             modifier = Modifier.padding(horizontal = 16.dp),
         )
 

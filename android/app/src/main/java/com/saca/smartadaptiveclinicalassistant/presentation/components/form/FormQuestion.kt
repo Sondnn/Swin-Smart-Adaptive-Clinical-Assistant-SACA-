@@ -38,6 +38,7 @@ import com.saca.smartadaptiveclinicalassistant.presentation.components.ActionBar
 import com.saca.smartadaptiveclinicalassistant.presentation.components.AppBar
 import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButton
 import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButtonStyle
+import com.saca.smartadaptiveclinicalassistant.presentation.components.Title
 import com.saca.smartadaptiveclinicalassistant.ui.theme.AppBackground
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown20
@@ -85,7 +86,7 @@ fun FormQuestionScaffold(
         ) {
             Spacer(modifier = Modifier.height(54.dp))
 
-            QuestionTitle(
+            Title(
                 text = questionTitle
             )
 
@@ -111,20 +112,6 @@ fun FormQuestionScaffold(
             )
         }
     }
-}
-
-@Composable
-fun QuestionTitle(
-    text: String
-) {
-    Text(
-        text = text,
-        color = TextBrown,
-        fontWeight = FontWeight.Black,
-        fontSize = 24.sp,
-        lineHeight = 32.sp,
-        textAlign = TextAlign.Center
-    )
 }
 
 @Composable
@@ -208,6 +195,7 @@ fun QuestionOptionButton(
         Text(
             text = text,
             color = Brown,
+            fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
@@ -293,7 +281,7 @@ fun QuestionImageOptionButton(
                 text = stringResource(option.labelResourceId),
                 color = Color.Black,
                 fontWeight = FontWeight.Bold,
-                lineHeight = 11.sp,
+                fontSize = 14.sp,
                 textAlign = TextAlign.Center
             )
         }

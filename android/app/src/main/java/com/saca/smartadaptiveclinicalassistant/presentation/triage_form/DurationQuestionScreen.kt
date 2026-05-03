@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.saca.smartadaptiveclinicalassistant.R
+import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButtonStyle
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.FormQuestionOption
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.FormQuestionScaffold
 import org.koin.androidx.compose.koinViewModel
@@ -11,7 +12,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun DurationQuestionScreen(
     onBackClick: () -> Unit,
-    onContinueClick: () -> Unit,
+    onAssessClick: () -> Unit,
     modifier: Modifier = Modifier,
     triageFormViewModel: TriageFormViewModel = koinViewModel(),
 ) {
@@ -27,6 +28,7 @@ fun DurationQuestionScreen(
         questionTitle = stringResource(R.string.triage_form_duration_title),
         backButtonText = stringResource(R.string.triage_form_back_button),
         continueButtonText = stringResource(R.string.triage_form_assess_button),
+        continueButtonStyle = AppButtonStyle.Orange,
         backContentDescription = stringResource(R.string.app_bar_button_back_content_description),
         options = options,
         selectedOptionId = triageFormViewModel.selectedDurationOptionId,
@@ -34,7 +36,7 @@ fun DurationQuestionScreen(
         totalSteps = 5,
         onBackClick = onBackClick,
         onOptionClick = triageFormViewModel::onDurationOptionSelected,
-        onContinueClick = onContinueClick,
+        onContinueClick = onAssessClick,
         modifier = modifier,
     )
 }

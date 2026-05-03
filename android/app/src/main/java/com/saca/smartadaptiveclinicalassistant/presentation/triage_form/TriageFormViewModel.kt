@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.common.Constants.LANGUAGE_TAG_WALMAJARRI
+import com.saca.smartadaptiveclinicalassistant.domain.model.TriageForm
 import com.saca.smartadaptiveclinicalassistant.domain.use_case.ExtractSymptomsUseCase
 import com.saca.smartadaptiveclinicalassistant.domain.use_case.SpeechToTextUseCase
 import kotlinx.coroutines.launch
@@ -176,9 +177,42 @@ class TriageFormViewModel(
         selectedDurationOptionId = optionId
     }
 
-    fun getLanguageCode(languageTag: String): Int {
+    private fun getLanguageCode(languageTag: String): Int {
         return if (languageTag == LANGUAGE_TAG_WALMAJARRI) 0 else 1
     }
+
+    private fun getGenderCode(): Int {
+        return when (selectedGenderOptionId) {
+            "male" -> 1
+            "female" -> 0
+            else -> 0
+        }
+    }
+
+    private fun getAgeCode(): Int {
+        return if (selectedAgeOptionId == "over_older_adult") 1 else 0
+    }
+
+    private fun getSeverityCode(): Int {
+        return when (selectedSeverityOptionId) {
+            "mild" -> 1
+            "low" -> 2
+            "moderate" -> 3
+            "high" -> 4
+            "severe" -> 5
+            else -> 0
+        }
+    }
+
+    private fun getDurationCode(): Int? {
+        return when (selectedDurationOptionId) {
+            "less_than_day" -> 0
+            "more_than_day" -> 1
+            "unknown" -> null
+            else -> null
+        }
+    }
+
     fun transcribeRecordedAudio(audioFile: File, languageTag: String) {
         if (isTranscribing) {
             return
@@ -261,5 +295,38 @@ class TriageFormViewModel(
         } finally {
             isExtractingSymptoms = false
         }
+    }
+
+
+    fun getFormAnswers(languageTag: String): TriageForm {
+        val symptoms = extractedSymptomsFromBackend.ifEmpty {
+            selectedSymptomIds.toList()
+        }
+
+        return TriageForm(
+            language = getLanguageCode(languageTag),
+            symptoms = symptoms,
+            gender = getGenderCode(),
+            ageIsOver65 = getAgeCode(),
+            severity = getSeverityCode(),
+            duration = getDurationCode()
+        )
+    }
+
+    fun resetFormState() {
+        selectedGenderOptionId = null
+        selectedAgeOptionId = null
+        selectedSymptomIds = emptySet()
+        selectedSeverityOptionId = null
+        selectedDurationOptionId = null
+        symptomDescriptionText = ""
+        isSymptomOptionsExpanded = false
+        isTranscribing = false
+        isExtractingSymptoms = false
+        extractedSymptomsFromBackend = emptyList()
+        recordingErrorResId = null
+        extractSymptomsErrorResId = null
+        shouldShowSymptomError = false
+        shouldShowExtractSymptomsDialog = false
     }
 }
