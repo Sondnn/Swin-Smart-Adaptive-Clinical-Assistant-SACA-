@@ -25,6 +25,14 @@ class PredictRequest(BaseModel):
             }
         }
     }
+    
+class PredictResponse(BaseModel):
+    triage_category: int
+    triage_label: str
+    confidence: float
+    probabilities: dict
+    model_used: str
+    input_summary: dict
 
 class MLService:
     def __init__(self, models_dir: Path):
