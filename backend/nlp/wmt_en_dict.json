@@ -1,0 +1,23 @@
+{
+    "head": "tyurlu",
+    "eye": "mil",
+    "ear": "pina",
+    "mouth": "lirra",
+    "tooth": "katiti",
+    "chest": "ngamarna",
+    "stomach": ["munta", "jilpirti"],
+    "belly": ["munta", "jilpirti"],
+    "blood": "nungu",
+    "headache": "ngalak",
+    "back pain": "nginngirt",
+    "ache": ["parntarn", "parntarnmarnu", "tarntarn", "tiimarnu"],
+    "pain": ["wurlurl", "wurlurlmarnu"],
+    "cramps": "patanyja",
+    "diarrhea": "wurlarrwurlarr",
+    "sore": ["jangka", "jangkajartu"],
+    "itchy": ["jilyjily", "jurnpurr", "karrkarr"],
+    "cripple": ["jirtilyuku"],
+    "collapse": ["kapurrkapurrwantinyu", "kapurrwantinyu"],
+    "cold": ["kungkurrjarti"],
+    "cough": ["kuntulypungu"]
+}

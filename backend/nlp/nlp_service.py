@@ -18,12 +18,21 @@ except ImportError:
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 FEATURE_COLUMNS_FILE = BASE_DIR / "models" / "feature_columns.json"
+WMT_EN_DICT_FILE = Path(__file__).resolve().with_name("wmt_en_dict.json")
 
 # Maps language int (from API) to Google Speech API language code
 LANGUAGE_MAP = {
     1: "en-AU",
     0: "...",  # Replace with supported indigenous language code
 }
+
+def load_wmt_en_dict() -> dict:
+    try:
+        return json.loads(WMT_EN_DICT_FILE.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+WMT_EN_DICT = load_wmt_en_dict()
 
 FALLBACK_STOPWORDS = {
     "a", "an", "and", "are", "as", "at", "be", "by", "for", "from",
@@ -101,6 +110,24 @@ def normalize_text(text: str) -> str:
     text = re.sub(r"[^a-z0-9\s']", " ", text)
     return re.sub(r"\s+", " ", text)
 
+def translate_indigenous_to_english(text: str) -> str:
+    if not isinstance(text, str):
+        raise TypeError(f"Expected text to be str, got {type(text).__name__}")
+    if not WMT_EN_DICT:
+        return text
+
+    translated_text = text
+    for english_word, indigenous_words in WMT_EN_DICT.items():
+        candidates = indigenous_words if isinstance(indigenous_words, list) else [indigenous_words]
+        for indigenous_word in candidates:
+            translated_text = re.sub(
+                r"\b" + re.escape(indigenous_word) + r"\b",
+                english_word,
+                translated_text,
+                flags=re.IGNORECASE,
+            )
+
+    return translated_text
 
 def tokenize_with_spacy(nlp, text: str) -> list[str]:
     if nlp is None:
@@ -172,7 +199,12 @@ def process_symptom_description(symptom_description: str, language: int = 1) -> 
     if language not in LANGUAGE_MAP:
         raise ValueError(f"Unsupported language code: {language}. Use 1 (English) or 0 (Indigenous).")
 
-    normalized_text = normalize_text(symptom_description)
+    if language == 0:
+        text_to_process = translate_indigenous_to_english(symptom_description)
+    else:
+        text_to_process = symptom_description
+        
+    normalized_text = normalize_text(text_to_process)
 
     spacy_tokens = tokenize_with_spacy(_nlp, normalized_text)
     nltk_tokens = tokenize_with_nltk(_tokenizer, normalized_text)
@@ -183,6 +215,7 @@ def process_symptom_description(symptom_description: str, language: int = 1) -> 
 
     result = {
         "symptom_description": symptom_description,
+        "translated_text": text_to_process,
         "stemmed_tokens": list(combined_stems),
     }
 
@@ -235,9 +268,10 @@ def extract_symptoms(request: ExtractSymptomsRequest) -> ExtractSymptomsResponse
 
 
 def main() -> None:
-    wav_input = "/Users/jasperl/Downloads/test1.wav"
-    symptom_description = convert_wav_to_text(wav_input)
-    symptoms_extracted = process_symptom_description(symptom_description)
+    # wav_input = "/Users/jasperl/Downloads/test1.wav"
+    # symptom_description = convert_wav_to_text(wav_input)
+    symptom_description = "mil wurlurl"
+    symptoms_extracted = process_symptom_description(symptom_description, language=0)
     print(json.dumps(symptoms_extracted))
 
 
