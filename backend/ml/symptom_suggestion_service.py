@@ -9,22 +9,22 @@ from pydantic import BaseModel
 from ml.symptom_clusters import SCENARIOS
 
 SYMPTOM_PREFIX = "symptom__"
-MAX_SUGGESTIONS = 5
+MAX_SUGGESTIONS = 10
 EXCLUDED_SYMPTOMS = {"symptom__otherwise_well"}
 
 
 class SuggestSymptomsRequest(BaseModel):
-    chosen_symptom: str
+    chosen_symptom: List[str]
 
     model_config = {
         "json_schema_extra": {
-            "example": {"chosen_symptom": "chest_pain"}
+            "example": {"chosen_symptom": ["chest_pain", "breathing_difficulty"]}
         }
     }
 
 
 class SuggestSymptomsResponse(BaseModel):
-    chosen_symptom: str
+    chosen_symptom: List[str]
     suggested_symptoms: List[str]
 
 
@@ -44,6 +44,7 @@ class SymptomSuggestionService:
             if c.startswith(SYMPTOM_PREFIX) and c not in EXCLUDED_SYMPTOMS
         }
 
+        # For every cluster in `SCENARIOS`, every member maps to other members of every cluster it appears in.
         neighbours: Dict[str, Set[str]] = defaultdict(set)
         for cluster in SCENARIOS:
             members = [s for s in cluster if s in self.feature_columns]
@@ -54,6 +55,8 @@ class SymptomSuggestionService:
         self.cooccurrence = self._build_cooccurrence()
         self._loaded = True
 
+    # Listed of other symptoms ranked by how often they appear in the same training row
+    # The quality depend heavily on the quality of the training data, but it can capture relationships that cluster-based suggestions miss.
     def _build_cooccurrence(self) -> Dict[str, List[str]]:
         with self.training_csv.open(newline="") as f:
             reader = csv.reader(f)
@@ -77,29 +80,41 @@ class SymptomSuggestionService:
         if not self._loaded:
             self.load()
 
-        key = SYMPTOM_PREFIX + payload.chosen_symptom
-        if key not in self.feature_columns:
+        valid_keys = [
+            SYMPTOM_PREFIX + s for s in payload.chosen_symptom
+            if (SYMPTOM_PREFIX + s) in self.feature_columns
+        ]
+        if not valid_keys:
             return SuggestSymptomsResponse(
                 chosen_symptom=payload.chosen_symptom,
                 suggested_symptoms=[],
             )
 
         ordered: List[str] = []
-        seen: Set[str] = {key}
-        for s in self.cluster_neighbours.get(key, []):
-            if s not in seen:
-                ordered.append(s)
-                seen.add(s)
-                if len(ordered) >= MAX_SUGGESTIONS:
-                    break
+        seen: Set[str] = set(valid_keys)
 
-        if len(ordered) < MAX_SUGGESTIONS:
-            for s in self.cooccurrence.get(key, []):
+        # Pass 1: cluster mates from every input symptom
+        for key in valid_keys:
+            for s in self.cluster_neighbours.get(key, []):
                 if s not in seen:
                     ordered.append(s)
                     seen.add(s)
                     if len(ordered) >= MAX_SUGGESTIONS:
                         break
+            if len(ordered) >= MAX_SUGGESTIONS:
+                break
+
+        # Pass 2: co-occurrence top-up if clusters didn't fill
+        if len(ordered) < MAX_SUGGESTIONS:
+            for key in valid_keys:
+                for s in self.cooccurrence.get(key, []):
+                    if s not in seen:
+                        ordered.append(s)
+                        seen.add(s)
+                        if len(ordered) >= MAX_SUGGESTIONS:
+                            break
+                if len(ordered) >= MAX_SUGGESTIONS:
+                    break
 
         return SuggestSymptomsResponse(
             chosen_symptom=payload.chosen_symptom,
