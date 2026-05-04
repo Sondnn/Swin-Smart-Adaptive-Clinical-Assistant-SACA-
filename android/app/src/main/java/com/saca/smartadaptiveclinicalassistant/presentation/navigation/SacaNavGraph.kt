@@ -61,6 +61,15 @@ fun SacaNavGraph(modifier: Modifier = Modifier) {
                 onContinueClick = {
                     navController.navigate(SacaDestinations.TRIAGE_FORM_AGE)
                 },
+                onCancelClick = {
+                    triageFormViewModel.resetFormState()
+                    navController.navigate(SacaDestinations.HOME) {
+                        popUpTo(SacaDestinations.HOME) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
+                },
                 triageFormViewModel = triageFormViewModel
             )
         }
@@ -72,6 +81,15 @@ fun SacaNavGraph(modifier: Modifier = Modifier) {
                 },
                 onContinueClick = {
                     navController.navigate(SacaDestinations.TRIAGE_FORM_SYMPTOM)
+                },
+                onCancelClick = {
+                    triageFormViewModel.resetFormState()
+                    navController.navigate(SacaDestinations.HOME) {
+                        popUpTo(SacaDestinations.HOME) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
                 },
                 triageFormViewModel = triageFormViewModel
             )
@@ -85,6 +103,15 @@ fun SacaNavGraph(modifier: Modifier = Modifier) {
                 onContinueClick = {
                     navController.navigate(SacaDestinations.TRIAGE_FORM_SEVERITY)
                 },
+                onCancelClick = {
+                    triageFormViewModel.resetFormState()
+                    navController.navigate(SacaDestinations.HOME) {
+                        popUpTo(SacaDestinations.HOME) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
+                },
                 triageFormViewModel = triageFormViewModel
             )
         }
@@ -97,6 +124,15 @@ fun SacaNavGraph(modifier: Modifier = Modifier) {
                 onContinueClick = {
                     navController.navigate(SacaDestinations.TRIAGE_FORM_DURATION)
                 },
+                onCancelClick = {
+                    triageFormViewModel.resetFormState()
+                    navController.navigate(SacaDestinations.HOME) {
+                        popUpTo(SacaDestinations.HOME) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
+                },
                 triageFormViewModel = triageFormViewModel
             )
         }
@@ -108,7 +144,16 @@ fun SacaNavGraph(modifier: Modifier = Modifier) {
                 },
                 onAssessClick = {
                     navController.navigate(SacaDestinations.TRIAGE_RESULT_LOADING)
-                } ,
+                },
+                onCancelClick = {
+                    triageFormViewModel.resetFormState()
+                    navController.navigate(SacaDestinations.HOME) {
+                        popUpTo(SacaDestinations.HOME) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
+                },
                 triageFormViewModel = triageFormViewModel,
             )
         }

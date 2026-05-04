@@ -12,6 +12,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun DurationQuestionScreen(
     onBackClick: () -> Unit,
+    onCancelClick: () -> Unit,
     onAssessClick: () -> Unit,
     modifier: Modifier = Modifier,
     triageFormViewModel: TriageFormViewModel = koinViewModel(),
@@ -35,6 +36,7 @@ fun DurationQuestionScreen(
         currentStep = 5,
         totalSteps = 5,
         onBackClick = onBackClick,
+        onCancelClick = onCancelClick,
         onOptionClick = triageFormViewModel::onDurationOptionSelected,
         onContinueClick = onAssessClick,
         modifier = modifier,

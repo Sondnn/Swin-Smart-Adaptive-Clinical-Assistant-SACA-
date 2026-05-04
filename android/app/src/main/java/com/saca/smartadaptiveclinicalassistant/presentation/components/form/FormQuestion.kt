@@ -66,6 +66,7 @@ fun FormQuestionScaffold(
     selectedOptionId: String?,
     currentStep: Int,
     totalSteps: Int,
+    onCancelClick: () -> Unit = {},
     onBackClick: () -> Unit = {},
     onOptionClick: (String) -> Unit,
     onContinueClick: () -> Unit,
@@ -76,7 +77,7 @@ fun FormQuestionScaffold(
                 title = appBarTitle,
                 iconButton = ActionBarIconButton.BACK,
                 iconContentDescription = backContentDescription,
-                onIconButtonClick = onBackClick
+                onIconButtonClick = onCancelClick
             )
         },
         modifier = modifier.fillMaxWidth(),
@@ -351,13 +352,16 @@ fun QuestionBottomBar(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            AppButton(
-                text = backButtonText,
-                style = AppButtonStyle.Transparent,
-                enabled = currentStep > 1,
-                onClick = onBackClick,
-                modifier = Modifier.weight(1f),
-            )
+            if (currentStep > 1) {
+                AppButton(
+                    text = backButtonText,
+                    style = AppButtonStyle.Transparent,
+                    onClick = onBackClick,
+                    modifier = Modifier.weight(1f),
+                )
+            } else {
+                Spacer(modifier = Modifier.weight(1f))
+            }
 
             Spacer(modifier = Modifier.width(16.dp))
 

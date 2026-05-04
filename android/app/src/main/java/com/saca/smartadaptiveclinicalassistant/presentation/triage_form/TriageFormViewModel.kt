@@ -61,17 +61,17 @@ class TriageFormViewModel(
         val iconRes: Int
     ) {
         FEVER("fever", R.string.triage_form_symptom_fever, R.drawable.ic_symptom_fever),
-        DIARRHEA("diarrhea", R.string.triage_form_symptom_diarrhea, R.drawable.ic_symptom_diarrhea),
+        DIARRHOEA("diarrhoea", R.string.triage_form_symptom_diarrhoea, R.drawable.ic_symptom_diarrhoea),
         COUGH("cough", R.string.triage_form_symptom_cough, R.drawable.ic_symptom_cough),
         VOMITING("vomiting", R.string.triage_form_symptom_vomiting, R.drawable.ic_symptom_vomiting),
         DIZZINESS("dizziness", R.string.triage_form_symptom_dizziness, R.drawable.ic_symptom_dizzy),
-        RUNNY_NOSE("runny_nose", R.string.triage_form_symptom_runny_nose, R.drawable.ic_symptom_runny_nose),
+        NOSEBLEED("nosebleed", R.string.triage_form_symptom_nosebleed, R.drawable.ic_symptom_nosebleed),
         EYE_PAIN("eye_pain", R.string.triage_form_symptom_eye_pain, R.drawable.ic_symptom_eye_pain),
         SORE_THROAT("sore_throat", R.string.triage_form_symptom_sore_throat, R.drawable.ic_symptom_sore_throat),
         HEADACHE("headache", R.string.triage_form_symptom_headache, R.drawable.ic_symptom_headache),
         JOINT_PAIN("joint_pain", R.string.triage_form_symptom_joint_pain, R.drawable.ic_symptom_joint_pain),
         ABDOMINAL_PAIN("abdominal_pain", R.string.triage_form_symptom_abdominal_pain, R.drawable.ic_symptom_abdominal_pain),
-        BODY_PAIN("body_pain", R.string.triage_form_symptom_body_pain, R.drawable.ic_symptom_back_pain),
+        BACK_PAIN("back_pain", R.string.triage_form_symptom_back_pain, R.drawable.ic_symptom_back_pain),
     }
 
     var selectedGenderOptionId: String? by mutableStateOf(null)

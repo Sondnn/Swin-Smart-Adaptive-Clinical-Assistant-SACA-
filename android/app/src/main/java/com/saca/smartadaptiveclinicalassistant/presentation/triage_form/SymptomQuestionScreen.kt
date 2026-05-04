@@ -63,6 +63,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SymptomQuestionScreen(
     onBackClick: () -> Unit,
+    onCancelClick: () -> Unit,
     onContinueClick: () -> Unit,
     modifier: Modifier = Modifier,
     triageFormViewModel: TriageFormViewModel = koinViewModel(),
@@ -97,7 +98,7 @@ fun SymptomQuestionScreen(
                 title = stringResource(R.string.triage_form_action_bar_title),
                 iconButton = ActionBarIconButton.BACK,
                 iconContentDescription = stringResource(R.string.triage_form_action_bar_title),
-                onIconButtonClick = onBackClick
+                onIconButtonClick = onCancelClick
             )
         },
         modifier = modifier.fillMaxSize(),
