@@ -35,6 +35,13 @@ val Typography = Typography(
         lineHeight = 32.sp,
         letterSpacing = 0.sp
     ),
+    titleSmall = TextStyle(
+        fontFamily = LexendFontFamily,
+        fontWeight = FontWeight.Black,
+        fontSize = 24.sp,
+        lineHeight = 32.sp,
+        letterSpacing = 0.sp
+    ),
     bodyLarge = TextStyle(
         fontFamily = LexendFontFamily,
         fontWeight = FontWeight.Bold,

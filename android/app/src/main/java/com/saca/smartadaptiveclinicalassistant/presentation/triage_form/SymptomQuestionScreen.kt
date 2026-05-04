@@ -47,10 +47,8 @@ import com.saca.smartadaptiveclinicalassistant.presentation.components.form.Ques
 import com.saca.smartadaptiveclinicalassistant.ui.theme.AppBackground
 import org.koin.androidx.compose.koinViewModel
 
-
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.data.local.VoiceRecorder
-import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButtonStyle
 import com.saca.smartadaptiveclinicalassistant.presentation.components.Title
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.ErrorMessage
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.FormQuestionImageOption
@@ -60,7 +58,6 @@ import com.saca.smartadaptiveclinicalassistant.presentation.components.form.Reco
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown20
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -284,8 +281,8 @@ fun ShowMoreButton(
             color = Brown,
             fontWeight = FontWeight.Bold,
             fontSize = 20.sp,
-            lineHeight = 32.sp,
-            textAlign = TextAlign.Center,
+            lineHeight = 24.sp,
+            textAlign = TextAlign.Center
         )
     }
 }

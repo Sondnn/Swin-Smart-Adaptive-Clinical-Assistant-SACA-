@@ -17,8 +17,6 @@ val DrawerBackground = Color(0xFFF8F8F8)
 
 val AppBackgroundTeal = Color(0xFF174C4F)
 
-val AppBackgroundOrange = Color(0xFFFFDDB3)
-
 val Brown = Color(0xFFA25933)
 
 val Brown20 = Color(0xFFF9F1EB)

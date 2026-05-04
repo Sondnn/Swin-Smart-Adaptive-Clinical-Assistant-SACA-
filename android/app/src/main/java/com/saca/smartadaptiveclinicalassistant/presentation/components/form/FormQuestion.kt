@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.ButtonDefaults
@@ -35,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.presentation.components.ActionBarIconButton
 import com.saca.smartadaptiveclinicalassistant.presentation.components.AppBar
 import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButton
@@ -44,6 +47,7 @@ import com.saca.smartadaptiveclinicalassistant.ui.theme.AppBackground
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown20
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Gray40
+import com.saca.smartadaptiveclinicalassistant.ui.theme.LexendFontFamily
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Orange
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Orange40
 import com.saca.smartadaptiveclinicalassistant.ui.theme.TextBrown
@@ -244,6 +248,23 @@ fun QuestionImageOption(
     }
 }
 
+
+@Composable
+private fun SelectedCheckMark(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .size(30.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Image(
+            painter = painterResource(R.drawable.ic_cicle_check),
+            contentDescription = null,
+            modifier = Modifier
+                .size(30.dp)
+        )
+    }
+}
+
 @Composable
 fun QuestionImageOptionButton(
     option: FormQuestionImageOption,
@@ -256,32 +277,47 @@ fun QuestionImageOptionButton(
 
     Box(
         modifier = modifier
-            .height(100.dp)
-            .clip(RoundedCornerShape(6.dp))
-            .background(backgroundColor)
-            .border(BorderStroke(2.dp, borderColor), RoundedCornerShape(6.dp))
-            .clickable(onClick = onClick)
-            .padding(horizontal = 4.dp, vertical = 6.dp)
+            .height(120.dp)
     ) {
-        Column(
-            modifier = Modifier.align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally,
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clip(RoundedCornerShape(6.dp))
+                .background(backgroundColor)
+                .border(
+                    BorderStroke(2.dp, borderColor),
+                    RoundedCornerShape(6.dp))
+                .clickable(onClick = onClick)
+                .padding(horizontal = 4.dp, vertical = 8.dp)
         ) {
+            Column(
+                modifier = Modifier.align(Alignment.Center),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Image(
+                    painter = painterResource(option.iconResourceId),
+                    contentDescription = stringResource(option.labelResourceId),
+                    contentScale = ContentScale.Fit,
+                    modifier = Modifier.size(50.dp)
+                )
 
-            Image(
-                painter = painterResource(option.iconResourceId),
-                contentDescription = stringResource(option.labelResourceId),
-                contentScale = ContentScale.Fit,
-                modifier = Modifier.size(36.dp)
-            )
+                Spacer(modifier = Modifier.height(8.dp))
 
-            Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = stringResource(option.labelResourceId),
+                    style = MaterialTheme.typography.labelLarge,
+                    lineHeight = 18.sp,
+                    color = Color.Black,
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
 
-            Text(
-                text = stringResource(option.labelResourceId),
-                style = MaterialTheme.typography.labelLarge,
-                color = Color.Black,
-                textAlign = TextAlign.Center
+        if (selected) {
+            SelectedCheckMark(
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = 3.dp, y = (-5).dp)
             )
         }
     }
