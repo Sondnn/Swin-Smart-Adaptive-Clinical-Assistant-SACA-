@@ -219,6 +219,16 @@ fun SymptomQuestionScreen(
                 ErrorMessage(text = stringResource(messageResId))
             }
 
+            triageFormViewModel.extractSymptomsErrorResId?.let { messageResId ->
+                Spacer(modifier = Modifier.height(10.dp))
+                ErrorMessage(text = stringResource(messageResId))
+            }
+
+            if (triageFormViewModel.shouldShowSymptomError) {
+                Spacer(modifier = Modifier.height(10.dp))
+                ErrorMessage(text = stringResource(R.string.triage_form_symptom_validation_error))
+            }
+
             Spacer(modifier = Modifier.height(18.dp))
             Spacer(modifier = Modifier.weight(1f))
 
@@ -238,23 +248,6 @@ fun SymptomQuestionScreen(
                         }
                     }
                 },
-            )
-        }
-
-        if (triageFormViewModel.shouldShowExtractSymptomsDialog) {
-            AlertDialog(
-                onDismissRequest = triageFormViewModel::dismissExtractSymptomsDialog,
-                title = {
-                    Text(text = stringResource(R.string.triage_form_symptom_extract_empty_title))
-                },
-                text = {
-                    Text(text = stringResource(R.string.triage_form_symptom_extract_empty_message))
-                },
-                confirmButton = {
-                    TextButton(onClick = triageFormViewModel::dismissExtractSymptomsDialog) {
-                        Text(text = stringResource(R.string.triage_form_symptom_extract_empty_confirm))
-                    }
-                }
             )
         }
     }

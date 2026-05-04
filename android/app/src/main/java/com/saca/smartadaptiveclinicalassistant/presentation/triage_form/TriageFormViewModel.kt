@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saca.smartadaptiveclinicalassistant.R
@@ -103,9 +104,6 @@ class TriageFormViewModel(
     var extractSymptomsErrorResId: Int? by mutableStateOf(null)
         private set
 
-    var shouldShowExtractSymptomsDialog: Boolean by mutableStateOf(false)
-        private set
-
     private var extractedSymptomsFromBackend: List<String> by mutableStateOf(emptyList())
 
     var selectedSeverityOptionId: String? by mutableStateOf(null)
@@ -156,11 +154,6 @@ class TriageFormViewModel(
 
     fun clearExtractSymptomsError() {
         extractSymptomsErrorResId = null
-    }
-
-    fun dismissExtractSymptomsDialog() {
-        shouldShowExtractSymptomsDialog = false
-        clearExtractSymptomsError()
     }
 
     fun hideSymptomErrorIfExists() {
@@ -264,7 +257,6 @@ class TriageFormViewModel(
         }
 
         isExtractingSymptoms = true
-        dismissExtractSymptomsDialog()
 
         return try {
             val result = extractSymptomsUseCase(
@@ -276,7 +268,7 @@ class TriageFormViewModel(
             result.fold(
                 onSuccess = { extractedSymptoms ->
                     if (extractedSymptoms.isEmpty()) {
-                        shouldShowExtractSymptomsDialog = true
+                        extractSymptomsErrorResId = R.string.triage_form_symptom_extract_empty_message
                         return@fold false
                     }
 
@@ -327,6 +319,5 @@ class TriageFormViewModel(
         recordingErrorResId = null
         extractSymptomsErrorResId = null
         shouldShowSymptomError = false
-        shouldShowExtractSymptomsDialog = false
     }
 }
