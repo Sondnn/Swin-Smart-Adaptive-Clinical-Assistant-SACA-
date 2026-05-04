@@ -245,7 +245,7 @@ class TriageFormViewModel(
                 recordingErrorResId = R.string.triage_form_symptom_transcription_failed_message
             } finally {
                 isTranscribing = false
-                audioFile.delete()
+                //audioFile.delete()
             }
         }
     }

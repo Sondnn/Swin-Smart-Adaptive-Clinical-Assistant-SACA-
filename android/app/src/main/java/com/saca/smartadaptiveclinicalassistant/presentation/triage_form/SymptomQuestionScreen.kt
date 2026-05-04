@@ -161,15 +161,20 @@ fun SymptomQuestionScreen(
 
             RecordButton(
                 text = when {
+                    triageFormViewModel.isTranscribing -> {
+                        stringResource(R.string.triage_form_symptom_transcribing)
+                    }
+
                     isRecordButtonPressed -> {
                         stringResource(R.string.triage_form_symptom_recording)
                     }
+
                     else -> {
                         stringResource(R.string.triage_form_symptom_hold_to_record)
                     }
                 },
                 isRecording = isRecordButtonPressed,
-                isEnabled = true,
+                isEnabled = !triageFormViewModel.isTranscribing,
                 onPress = {
                     if (!hasRecordAudioPermission(context)) {
                         requestRecordAudioPermission.launch(Manifest.permission.RECORD_AUDIO)
@@ -190,7 +195,7 @@ fun SymptomQuestionScreen(
                     isRecordButtonPressed = false
 
                     if (!didReleasePress) {
-                        voiceRecorder.cancelRecoding()
+                        voiceRecorder.cancelRecording()
                         return@RecordButton
                     }
 
