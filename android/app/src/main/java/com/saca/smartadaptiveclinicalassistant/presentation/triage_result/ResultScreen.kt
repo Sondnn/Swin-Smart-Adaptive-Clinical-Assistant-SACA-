@@ -1,4 +1,4 @@
-package com.saca.smartadaptiveclinicalassistant.presentation.result
+package com.saca.smartadaptiveclinicalassistant.presentation.triage_result
 
 import android.util.Log
 import androidx.annotation.DrawableRes
@@ -36,8 +36,6 @@ import com.saca.smartadaptiveclinicalassistant.presentation.components.AppBar
 import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButton
 import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButtonStyle
 import com.saca.smartadaptiveclinicalassistant.presentation.components.Title
-import com.saca.smartadaptiveclinicalassistant.presentation.triage_result.TriageResultUIState
-import com.saca.smartadaptiveclinicalassistant.presentation.triage_result.TriageResultViewModel
 import com.saca.smartadaptiveclinicalassistant.ui.theme.AppBackground
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown20
@@ -51,14 +49,6 @@ fun ResultScreen(
     triageResultViewModel: TriageResultViewModel = koinViewModel(),
 ) {
     val uiState = triageResultViewModel.uiState
-    val result = if (uiState is TriageResultUIState.Success) {
-        uiState.triageResult
-    } else {
-        TriageResult(
-            triageCategory = TriageCategory.A,
-            symptoms = listOf()
-        )
-    }
 
     Scaffold(
         topBar = {
@@ -81,15 +71,28 @@ fun ResultScreen(
         ) {
             Spacer(modifier = Modifier.height(42.dp))
 
-            Title(text = stringResource(R.string.triage_result_title))
-
-            Spacer(modifier = Modifier.height(28.dp))
-
-            ResultCard(result = result)
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            SymptomsSummary(result.symptoms)
+            when (uiState) {
+                is TriageResultUIState.Success -> {
+                    val result = uiState.triageResult
+                    Title(text = stringResource(R.string.triage_result_title))
+                    Spacer(modifier = Modifier.height(28.dp))
+                    ResultCard(result = result)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SymptomsSummary(result.symptoms)
+                }
+                is TriageResultUIState.Error -> {
+                    Title(text = stringResource(R.string.triage_result_error_title))
+                    Spacer(modifier = Modifier.height(28.dp))
+                    ErrorCard()
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SymptomsSummary(uiState.symptoms)
+                }
+                else -> {
+                    Title(text = stringResource(R.string.triage_result_error_title))
+                    Spacer(modifier = Modifier.height(28.dp))
+                    ErrorCard()
+                }
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -234,5 +237,24 @@ private fun SymptomsSummary(symptoms: List<String>) {
                 )
             }
         }
+    }
+}
+
+
+@Composable
+private fun ErrorCard() {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(8.dp))
+            .background(Brown20)
+            .padding(24.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.triage_result_error_message),
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.SemiBold,
+            color = TextDarkBrown,
+        )
     }
 }

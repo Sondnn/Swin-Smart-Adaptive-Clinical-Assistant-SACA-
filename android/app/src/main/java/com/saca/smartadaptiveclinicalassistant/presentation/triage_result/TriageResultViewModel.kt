@@ -30,7 +30,10 @@ class TriageResultViewModel(
                     TriageResultUIState.Success(triageResult)
                 },
                 onFailure = { error ->
-                    TriageResultUIState.Error(error.message ?: "Analysis failed")
+                    TriageResultUIState.Error(
+                        message = error.message ?: "Analysis failed",
+                        symptoms = formAnswer.symptoms
+                    )
                 }
             )
         }

@@ -30,7 +30,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun LoadingScreen(
     formAnswers: TriageForm,
-    onAnalysisSuccess: () -> Unit,
+    onAnalysisComplete: () -> Unit,
     modifier: Modifier = Modifier,
     triageResultViewModel: TriageResultViewModel = koinViewModel()
 ) {
@@ -41,8 +41,8 @@ fun LoadingScreen(
     }
 
     LaunchedEffect(uiState) {
-        if (uiState is TriageResultUIState.Success) {
-            onAnalysisSuccess()
+        if (uiState is TriageResultUIState.Success || uiState is TriageResultUIState.Error) {
+            onAnalysisComplete()
         }
     }
 

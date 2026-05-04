@@ -90,8 +90,7 @@
     <string name="triage_result_save_button">Save the Result</string>
     <string name="triage_result_save_success_message">Result saved to gallery</string>
     <string name="triage_result_save_failed_message">Could not save result on this device</string>
+    <string name="triage_result_error_title">Further Review Needed</string>
+    <string name="triage_result_error_message">Sorry, our system is unable to analysis these symptoms. Please speak to a professional healthcare worker for further assessment.</string>
     <string name="triage_result_ok_button">OK</string>
-
-
-
 </resources>

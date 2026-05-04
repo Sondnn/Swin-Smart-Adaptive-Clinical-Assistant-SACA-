@@ -5,10 +5,9 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.saca.smartadaptiveclinicalassistant.domain.model.TriageForm
 import com.saca.smartadaptiveclinicalassistant.presentation.home.HomeScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.language.LanguageScreen
-import com.saca.smartadaptiveclinicalassistant.presentation.result.ResultScreen
+import com.saca.smartadaptiveclinicalassistant.presentation.triage_result.ResultScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.AgeQuestionScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.DurationQuestionScreen
@@ -163,7 +162,7 @@ fun SacaNavGraph(modifier: Modifier = Modifier) {
                 formAnswers = triageFormViewModel.getFormAnswers(
                     languageTag = sessionViewModel.languageTag
                 ),
-                onAnalysisSuccess = {
+                onAnalysisComplete = {
                     navController.navigate(SacaDestinations.TRIAGE_RESULT) {
                         popUpTo(SacaDestinations.TRIAGE_RESULT_LOADING) {
                             inclusive = true

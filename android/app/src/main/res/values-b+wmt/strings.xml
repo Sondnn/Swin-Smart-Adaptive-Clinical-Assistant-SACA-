@@ -91,5 +91,7 @@
     <string name="triage_result_save_button">(WMT) Save the Result</string>
     <string name="triage_result_save_success_message">(WMT) Result saved to gallery</string>
     <string name="triage_result_save_failed_message">(WMT) Could not save result on this device</string>
+    <string name="triage_result_error_title">(WMT) Further Review Needed</string>
+    <string name="triage_result_error_message">(WMT) Sorry, our system is unable to analysis these symptoms. Please speak to a professional healthcare worker for further assessment.</string>
     <string name="triage_result_ok_button">(WMT) OK</string>
 </resources>
