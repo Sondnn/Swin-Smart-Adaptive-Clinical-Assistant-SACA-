@@ -1,83 +1,56 @@
-from fastapi import APIRouter, UploadFile, File, Form
-from pydantic import BaseModel, Field
-from typing import List
+import traceback
+
+from fastapi import APIRouter, File, Form, UploadFile
+from fastapi.responses import JSONResponse
+
 from config import MODEL_DIR
 from ml.ml_service import MLService
-import traceback
-import os
-import shutil
-import tempfile
 from nlp import nlp_service
+from nlp.nlp_service import ExtractSymptomsRequest, ExtractSymptomsResponse
 
 router = APIRouter()
 ml_service = MLService(MODEL_DIR)
+
 
 @router.get("/")
 def root():
     return {"message": "SACA Backend API is running"}
 
+
 @router.post("/predict")
 def analyze_symptoms(payload: dict):
-    result = ml_service.predict(payload)
-    return result
+    return ml_service.predict(payload)
 
-# API endpoint: POST /speech-to-text
-# Request body: multipart/form-data with fields "language" (int) and "files" (WAV file)
-# Response: JSON object with field "symptoms_description" containing the extracted text from the audio file, or an error message if the conversion fails
+
 @router.post("/speech-to-text")
 async def speech_to_text(
     language: int = Form(...),
-    files: UploadFile = File(...)
+    files: UploadFile = File(...),
 ):
-    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
-        shutil.copyfileobj(files.file, tmp)
-        tmp_path = tmp.name
-
     try:
-        # Pass language int through to the method
-        result_text = nlp_service.convert_wav_to_text(tmp_path, language=language)
+        result_text = nlp_service.transcribe_upload(files.file, language=language)
         return {"symptoms_description": result_text}
     except Exception as e:
-        return {
-        "error": str(e),
-        "type": type(e).name,        # the exception class
-        "traceback": traceback.format_exc()  # exact line it failed on
-    }
-    finally:
-        os.unlink(tmp_path)
-
-# API endpoint: POST /extract-symptoms
-# Request body: JSON object with fields "symptoms_description" (string), "language" (int), and "symptoms" (list of strings)
-# Response: JSON object with fields "symptoms_description" (original input), "extracted_symptoms" (list of symptoms extracted), 
-# "negated_symptoms" (list of negated symptoms), and "symptoms" (combined list of original and extracted symptoms)
-@router.post("/extract-symptoms")
-async def extract_symptoms(payload: dict):
-    try:
-        nlp, stopwords = nlp_service.load_spacy_components()
-        tokenizer, stemmer = nlp_service.load_nltk_components()
-
-        processed = nlp_service.process_symptom_description(
-            payload.get("symptoms_description", ""),
-            nlp,
-            stopwords,
-            tokenizer,
-            stemmer,
-            language=payload.get("language", 1),
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": str(e),
+                "type": type(e).__name__,
+                "traceback": traceback.format_exc(),
+            }
         )
 
-        extracted_symptoms = processed.get("extracted_symptoms", [])
-        all_symptoms = list(dict.fromkeys(payload.get("symptoms", []) + extracted_symptoms))
 
-        return {
-            "symptoms_description": payload.get("symptoms_description", ""),
-            "extracted_symptoms": extracted_symptoms,
-            "negated_symptoms": processed.get("negated_symptoms", []),
-            "symptoms": all_symptoms
-        }
+@router.post("/extract-symptoms", response_model=ExtractSymptomsResponse)
+async def extract_symptoms(payload: ExtractSymptomsRequest):
+    try:
+        return nlp_service.extract_symptoms(payload)
     except Exception as e:
-        return {
-            "error": str(e),
-            "type": type(e).__name__,
-            "traceback": traceback.format_exc()
-        }
-        
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": str(e),
+                "type": type(e).__name__,
+                "traceback": traceback.format_exc(),
+            }
+        )
