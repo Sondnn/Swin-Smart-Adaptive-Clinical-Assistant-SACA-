@@ -8,16 +8,60 @@
     "stomach": ["munta", "jilpirti"],
     "belly": ["munta", "jilpirti"],
     "blood": "nungu",
-    "headache": "ngalak",
-    "back pain": "nginngirt",
-    "ache": ["parntarn", "parntarnmarnu", "tarntarn", "tiimarnu"],
+
+    "headache": ["ngalak"],
+    "back pain": ["nginngirt", "nujnuj"],
+
+    "ache": ["parntarn", "parntarnmarnu", "tarntarn", "tiimarnu", "lirrij", "lirrijparnu"],
     "pain": ["wurlurl", "wurlurlmarnu"],
-    "cramps": "patanyja",
-    "diarrhea": "wurlarrwurlarr",
-    "sore": ["jangka", "jangkajartu"],
-    "itchy": ["jilyjily", "jurnpurr", "karrkarr"],
-    "cripple": ["jirtilyuku"],
+
+    "cramps": ["patanyja", "palyjaly"],
+    "diarrhea": ["wurlarrwurlarr"],
+
+    "sore": ["jangka", "jangkajartu", "mimi"],
+    "itchy": ["jilyjily", "jurnpurr", "karrkarr", "jajap"],
+    "itch": ["jajapjarrinyu"],
+    "make itchy": ["jajappungu"],
+
+    "cripple": ["jirtilyuku", "nyirnilya"],
     "collapse": ["kapurrkapurrwantinyu", "kapurrwantinyu"],
+
     "cold": ["kungkurrjarti"],
-    "cough": ["kuntulypungu"]
+    "cough": ["kuntulypungu"],
+
+    "sick": ["mimijarti", "jangkajartu"],
+    "sickness": ["mimi"],
+    "bad sickness": ["jikila"],
+
+    "boil": ["jara"],
+    "pus": ["kamurru", "kampirn", "kapirn", "ngaali"],
+
+    "throbbing pain": ["lirrijlirrij"],
+    "feel pain": ["wurlurlmarnu", "tiimarnu"],
+    "ache (verb)": ["lirrijparnu", "parntarnmarnu"],
+
+    "belly pain": ["munta junganu"],
+    "doubled up pain": ["parntakarra"],
+
+    "become cramped": ["patanyjajarrinyu"],
+
+    "worms": ["kiwilkiwil"],
+
+    "mucus": ["kungkurr"],
+    "cold (mucus illness)": ["kungkurrjarti"],
+
+    "infected hair": ["kirilyirri"],
+    "wound": ["liyimi"],
+
+    "eye discharge": ["kampirn", "kapirn", "ngaali"],
+
+    "nausea": ["kurninykangu"],
+
+    "weak / poor health": ["ngarla", "ngartara", "ngawu"],
+
+    "sit weak/sick": ["lalkirrarnu"],
+
+    "medicine man": ["maparn", "jalngangurru"],
+    "heal / massage": ["milymanu", "jalngamanu"]
+
 }
