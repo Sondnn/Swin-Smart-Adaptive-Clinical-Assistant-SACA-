@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -136,8 +137,8 @@ fun QuestionTextInput(
             Box(modifier = Modifier.fillMaxWidth()) {
                 if (text.isEmpty()) {
                     Text(
-
                         text = placeholder,
+                        style = MaterialTheme.typography.bodySmall,
                         color = Color.Gray,
                     )
                 }
@@ -195,8 +196,7 @@ fun QuestionOptionButton(
         Text(
             text = text,
             color = Brown,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.bodyMedium,
             textAlign = TextAlign.Center
         )
     }
@@ -279,9 +279,8 @@ fun QuestionImageOptionButton(
 
             Text(
                 text = stringResource(option.labelResourceId),
+                style = MaterialTheme.typography.labelLarge,
                 color = Color.Black,
-                fontWeight = FontWeight.Bold,
-                fontSize = 14.sp,
                 textAlign = TextAlign.Center
             )
         }

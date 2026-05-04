@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,6 +43,7 @@ import com.saca.smartadaptiveclinicalassistant.presentation.triage_result.Triage
 import com.saca.smartadaptiveclinicalassistant.ui.theme.AppBackground
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown20
+import com.saca.smartadaptiveclinicalassistant.ui.theme.TextDarkBrown
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -64,7 +66,7 @@ fun ResultScreen(
         topBar = {
             AppBar(
                 title = stringResource(R.string.home_action_bar_title),
-                iconButton = ActionBarIconButton.MENU,
+                iconButton = ActionBarIconButton.BACK,
                 onIconButtonClick = onOkClick,
                 iconContentDescription = stringResource(R.string.home_action_bar_title),
             )
@@ -163,17 +165,16 @@ private fun ResultCard(result: TriageResult) {
             Column(modifier = Modifier.padding(start = 14.dp)) {
                 Text(
                     text = stringResource(R.string.triage_result_severity_label),
-                    color = Color.Black,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = TextDarkBrown,
                 )
 
                 Text(
                     text = categoryTitle,
-                    color = Color.Black,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = TextDarkBrown,
                     fontSize = 30.sp,
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = 32.sp
+                    fontWeight = FontWeight.SemiBold,
                 )
             }
         }
@@ -182,19 +183,16 @@ private fun ResultCard(result: TriageResult) {
 
         Text(
             text = stringResource(R.string.triage_result_recommendation_title),
-            color = Color.Black,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextDarkBrown
         )
 
         Spacer(modifier = Modifier.height(6.dp))
 
         Text(
             text = categoryRecommendation,
-            color = Color.Black,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Medium,
-            lineHeight = 24.sp
+            style = MaterialTheme.typography.bodySmall,
+            color = TextDarkBrown
         )
     }
 }
@@ -208,10 +206,8 @@ private fun SymptomsSummary(symptoms: List<String>) {
     ) {
         Text(
             text = stringResource(R.string.triage_result_symptoms_summary_title),
-            color = Color.Black,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            lineHeight = 32.sp
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextDarkBrown
         )
 
         Spacer(modifier = Modifier.height(6.dp))
@@ -234,10 +230,8 @@ private fun SymptomsSummary(symptoms: List<String>) {
 
                 Text(
                     text = symptom,
-                    color = Color.Black,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    lineHeight = 24.sp,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = TextDarkBrown,
                     modifier = Modifier.padding(start = 12.dp)
                 )
             }

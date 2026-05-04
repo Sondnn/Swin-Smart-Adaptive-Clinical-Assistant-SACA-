@@ -108,7 +108,7 @@ fun HomeContent(
     modifier: Modifier
 ) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(AppBackground),
     ) {
@@ -132,35 +132,36 @@ fun HomeContent(
         )
 
         Column(
-            modifier = modifier
+            modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .fillMaxWidth()
-                .padding(start = 32.dp, end = 32.dp, bottom = 60.dp),
+                .padding(vertical = 60.dp, horizontal = 60.dp)
+                .fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 text = stringResource(R.string.welcome_title),
-                fontWeight = FontWeight.Black,
                 color = TextBrown,
-                fontSize = 28.sp,
+                style = MaterialTheme.typography.titleMedium,
                 textAlign = TextAlign.Center
             )
+
+            Spacer(modifier = Modifier.height(24.dp))
 
             Text(
                 text = stringResource(R.string.welcome_body),
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.labelLarge,
                 color = TextBrown,
-                fontSize = 16.sp,
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(80.dp))
 
             AppButton(
                 text = stringResource(R.string.welcome_get_started),
                 style = AppButtonStyle.Orange,
                 onClick = onGetStarted
             )
+
         }
     }
 }

@@ -56,8 +56,7 @@ fun AppBar(
             Text(
                 text = title,
                 color = TextBrown,
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
+                style = MaterialTheme.typography.bodyLarge,
             )
         }
     }

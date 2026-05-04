@@ -75,9 +75,7 @@ fun LanguageScreen(
             Text(
                 text = stringResource(R.string.language_title),
                 color = AppBackground,
-                style = MaterialTheme.typography.headlineMedium,
-                fontSize = 36.sp,
-                fontWeight = FontWeight.Black,
+                style = MaterialTheme.typography.titleLarge,
                 textAlign = TextAlign.Center
             )
 
@@ -86,10 +84,8 @@ fun LanguageScreen(
             Text(
                 text = stringResource(R.string.language_subtitle),
                 color = AppBackground,
+                style = MaterialTheme.typography.titleMedium,
                 fontSize = 24.sp,
-                fontWeight = FontWeight.Black,
-                lineHeight = 32.sp,
-                style = MaterialTheme.typography.bodyLarge,
             )
         }
 

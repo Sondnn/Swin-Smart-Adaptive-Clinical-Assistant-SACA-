@@ -277,7 +277,7 @@ fun ShowMoreButton(
         shape = RoundedCornerShape(2.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .height(32.dp)
+            .height(40.dp)
     ) {
         Text(
             text = text,

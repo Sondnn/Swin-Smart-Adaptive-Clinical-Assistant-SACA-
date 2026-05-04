@@ -1,5 +1,6 @@
 package com.saca.smartadaptiveclinicalassistant.presentation.components
 
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.text.font.FontWeight
@@ -15,9 +16,7 @@ fun Title(
     Text(
         text = text,
         color = TextBrown,
-        fontWeight = FontWeight.Black,
-        fontSize = 28.sp,
-        lineHeight = 32.sp,
+        style = MaterialTheme.typography.titleMedium,
         textAlign = TextAlign.Center
     )
 }
