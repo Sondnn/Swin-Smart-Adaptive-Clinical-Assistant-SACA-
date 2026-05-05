@@ -121,7 +121,16 @@
       "PredictRequest": {
         "example": {
           "age_over_65": 0,
+          "chronic_conditions": [
+            "hypertension",
+            "type2_diabetes"
+          ],
+          "escalation_triggers": [
+            "chest_pain"
+          ],
           "gender": 1,
+          "had_contact": 1,
+          "had_symptoms_before": 0,
           "symptom_severity": 3,
           "symptoms": [
             "chest_pain",
@@ -131,11 +140,51 @@
         },
         "properties": {
           "age_over_65": {
+            "default": 2,
+            "description": "Tri-state: 0=no, 1=yes, 2=unknown (skipped).",
+            "maximum": 2.0,
+            "minimum": 0.0,
             "title": "Age Over 65",
             "type": "integer"
           },
+          "chronic_conditions": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Chronic Conditions",
+            "type": "array"
+          },
+          "escalation_triggers": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Escalation Triggers",
+            "type": "array"
+          },
           "gender": {
+            "default": 2,
+            "description": "Tri-state: 0=no, 1=yes, 2=unknown (skipped).",
+            "maximum": 2.0,
+            "minimum": 0.0,
             "title": "Gender",
+            "type": "integer"
+          },
+          "had_contact": {
+            "default": 2,
+            "description": "Tri-state: 0=no, 1=yes, 2=unknown (skipped).",
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Had Contact",
+            "type": "integer"
+          },
+          "had_symptoms_before": {
+            "default": 2,
+            "description": "Tri-state: 0=no, 1=yes, 2=unknown (skipped).",
+            "maximum": 2.0,
+            "minimum": 0.0,
+            "title": "Had Symptoms Before",
             "type": "integer"
           },
           "symptom_severity": {
@@ -155,8 +204,6 @@
           }
         },
         "required": [
-          "gender",
-          "age_over_65",
           "symptom_severity",
           "symptoms_duration",
           "symptoms"

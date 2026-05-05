@@ -272,5 +272,17 @@
   "symptom__burning_pain",
   "symptom__radiating_pain",
   "symptom__cramping_pain",
-  "symptom__otherwise_well"
+  "symptom__otherwise_well",
+  "had_symptoms_before",
+  "had_contact",
+  "chronic__hypertension",
+  "chronic__type2_diabetes",
+  "chronic__heart_disease",
+  "chronic__asthma_copd",
+  "chronic__depression_anxiety",
+  "escalation__chest_pain",
+  "escalation__breathing_difficulty_at_rest",
+  "escalation__sudden_confusion_or_loc",
+  "escalation__sudden_weakness_one_side",
+  "escalation__severe_allergic_reaction"
 ]

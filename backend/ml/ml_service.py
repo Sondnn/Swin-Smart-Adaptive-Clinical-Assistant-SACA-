@@ -3,16 +3,24 @@ import joblib
 from pathlib import Path
 from typing import List
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from ml.preprocess import make_single_case_dataframe
 
+# Tri-state encoding for skippable yes/no questions: 0=no, 1=yes, 2=unknown.
+TRISTATE_DESCRIPTION = "Tri-state: 0=no, 1=yes, 2=unknown (skipped)."
+
+
 class PredictRequest(BaseModel):
-    gender: int
-    age_over_65: int
+    gender: int = Field(default=2, ge=0, le=2, description=TRISTATE_DESCRIPTION)
+    age_over_65: int = Field(default=2, ge=0, le=2, description=TRISTATE_DESCRIPTION)
     symptom_severity: int
     symptoms_duration: int
     symptoms: List[str]
+    chronic_conditions: List[str] = []
+    escalation_triggers: List[str] = []
+    had_symptoms_before: int = Field(default=2, ge=0, le=2, description=TRISTATE_DESCRIPTION)
+    had_contact: int = Field(default=2, ge=0, le=2, description=TRISTATE_DESCRIPTION)
 
     model_config = {
         "json_schema_extra": {
@@ -22,6 +30,10 @@ class PredictRequest(BaseModel):
                 "symptom_severity": 3,
                 "symptoms_duration": 2,
                 "symptoms": ["chest_pain", "breathing_difficulty"],
+                "chronic_conditions": ["hypertension", "type2_diabetes"],
+                "escalation_triggers": ["chest_pain"],
+                "had_symptoms_before": 0,
+                "had_contact": 1,
             }
         }
     }
@@ -61,6 +73,10 @@ class MLService:
             symptom_severity=input_data.symptom_severity,
             symptoms_duration=input_data.symptoms_duration,
             symptoms=input_data.symptoms,
+            chronic_conditions=input_data.chronic_conditions,
+            escalation_triggers=input_data.escalation_triggers,
+            had_symptoms_before=input_data.had_symptoms_before,
+            had_contact=input_data.had_contact,
         )
 
         encoded_pred = self.model.predict(case_df)[0]
@@ -103,5 +119,9 @@ class MLService:
                 "symptom_severity": input_data.symptom_severity,
                 "symptoms_duration": input_data.symptoms_duration,
                 "symptoms": input_data.symptoms,
+                "chronic_conditions": input_data.chronic_conditions,
+                "escalation_triggers": input_data.escalation_triggers,
+                "had_symptoms_before": input_data.had_symptoms_before,
+                "had_contact": input_data.had_contact,
             },
         }

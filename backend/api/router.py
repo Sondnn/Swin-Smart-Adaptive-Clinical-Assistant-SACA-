@@ -91,6 +91,7 @@ async def speech_to_text(
         )
 
 
+# ⚠️ need to rename this to distinguish from `/speech-to-text` which is a more general endpoint for transcribing any audio file, while this one is specifically for the all question in the intake form and may use a different prompt or model configuration in the future.
 @router.post(
     "/speech-to-text-page",
     tags=["Natural Language Processing"],

@@ -2,13 +2,11 @@ import json
 import random
 import csv
 from collections import Counter
-from collections import Counter
 from pathlib import Path
 
-from ml.symptom_clusters import SCENARIOS
+from symptom_clusters import SCENARIOS
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-OUTPUT_FILE = BASE_DIR / "models" / "training_data.csv"
 OUTPUT_FILE = BASE_DIR / "models" / "training_data.csv"
 FEATURE_COLUMNS_FILE = BASE_DIR / "models" / "feature_columns.json"
 
@@ -16,14 +14,55 @@ SEED = 42
 N_ROWS = 5000
 SCENARIO_PROBABILITY = 0.25
 
-SEED = 42
-N_ROWS = 5000
-SCENARIO_PROBABILITY = 0.25
+EXISTING_FEATURE_COLUMNS = json.loads(FEATURE_COLUMNS_FILE.read_text())
 
-feature_columns = json.loads(FEATURE_COLUMNS_FILE.read_text())
-HEADER = feature_columns + ["triage_category"]
+# New tri-state base fields beyond {gender, age_over_65, symptom_severity, symptoms_duration}.
+NEW_BASE_COLUMNS = ["had_symptoms_before", "had_contact"]
 
-# Symptoms eligible for random sampling — exclude flag-only fields
+CHRONIC_COLS = [
+    "chronic__hypertension",
+    "chronic__type2_diabetes",
+    "chronic__heart_disease",
+    "chronic__asthma_copd",
+    "chronic__depression_anxiety",
+]
+
+ESCALATION_COLS = [
+    "escalation__chest_pain",
+    "escalation__breathing_difficulty_at_rest",
+    "escalation__sudden_confusion_or_loc",
+    "escalation__sudden_weakness_one_side",
+    "escalation__severe_allergic_reaction",
+]
+
+# Escalation triggers correlate with the listed symptom; if the symptom is set, the trigger has high probability — this mirrors how a patient who reports chest_pain in Q3-Q4 will usually also tick the chest-pain escalation in Q7.
+ESCALATION_SYMPTOM_MAP = {
+    "escalation__chest_pain": "symptom__chest_pain",
+    "escalation__breathing_difficulty_at_rest": "symptom__breathing_difficulty",
+    "escalation__sudden_confusion_or_loc": "symptom__altered_consciousness",
+    "escalation__sudden_weakness_one_side": "symptom__one_sided_weakness",
+    "escalation__severe_allergic_reaction": "symptom__anaphylaxis",
+}
+
+ESCALATION_FORCE_CAT1 = {"escalation__severe_allergic_reaction", "escalation__sudden_confusion_or_loc"}
+ESCALATION_FORCE_CAT2 = {"escalation__chest_pain", "escalation__breathing_difficulty_at_rest", "escalation__sudden_weakness_one_side"}
+
+# Symptoms whose acuity gets bumped up when the patient also has a cardio/resp chronic.
+CARDIO_RESP_SYMPTOMS = {
+    "symptom__chest_pain", "symptom__breathing_difficulty",
+    "symptom__radiating_chest_pain", "symptom__rapid_breathing",
+    "symptom__pain_when_breathing", "symptom__chest_pressure",
+}
+
+# Idempotent column union — running the generator after train.py rewrites
+# feature_columns.json must still produce the same HEADER.
+NEW_FEATURE_COLUMNS = NEW_BASE_COLUMNS + CHRONIC_COLS + ESCALATION_COLS
+ALL_FEATURE_COLUMNS = EXISTING_FEATURE_COLUMNS + [
+    c for c in NEW_FEATURE_COLUMNS if c not in EXISTING_FEATURE_COLUMNS
+]
+HEADER = ALL_FEATURE_COLUMNS + ["triage_category"]
+
+# Symptoms eligible for random sampling — exclude flag-only fields and non-symptom columns
 SYMPTOM_COLS = [
     c for c in HEADER
     if c.startswith("symptom__") and c != "symptom__otherwise_well"
@@ -104,9 +143,11 @@ CAT5_SYMPTOMS = [
 RULE_SYMPTOMS = (
     set(CAT1_SYMPTOMS) | set(CAT2_SYMPTOMS) | set(CAT3_SYMPTOMS)
     | set(CAT4_SYMPTOMS) | set(CAT5_SYMPTOMS)
-    | {"symptom__otherwise_well", "symptom__severe_pain"} 
+    | {"symptom__otherwise_well", "symptom__severe_pain"}
+    | set(ESCALATION_SYMPTOM_MAP.values())
+    | CARDIO_RESP_SYMPTOMS
 )
-_missing = RULE_SYMPTOMS - set(feature_columns)
+_missing = RULE_SYMPTOMS - set(ALL_FEATURE_COLUMNS)
 if _missing:
     raise ValueError(
         f"Rules reference symptoms not in feature_columns.json: {sorted(_missing)}. "
@@ -115,21 +156,39 @@ if _missing:
 
 
 def assign_triage(row):
+    # Escalation triggers are the strongest override.
+    if any(row.get(s, 0) == 1 for s in ESCALATION_FORCE_CAT1):
+        return 1
     if any(row.get(s, 0) == 1 for s in CAT1_SYMPTOMS):
         return 1
+    if any(row.get(s, 0) == 1 for s in ESCALATION_FORCE_CAT2):
+        return 2
     if any(row.get(s, 0) == 1 for s in CAT2_SYMPTOMS):
         return 2
+
     if any(row.get(s, 0) == 1 for s in CAT3_SYMPTOMS) or row.get("symptom_severity", 0) >= 4:
-        return 3
-    if any(row.get(s, 0) == 1 for s in CAT4_SYMPTOMS):
-        return 4
-    if any(row.get(s, 0) == 1 for s in CAT5_SYMPTOMS):
-        return 5
-    return 6
+        cat = 3
+    elif any(row.get(s, 0) == 1 for s in CAT4_SYMPTOMS):
+        cat = 4
+    elif any(row.get(s, 0) == 1 for s in CAT5_SYMPTOMS):
+        cat = 5
+    else:
+        cat = 6
+
+    # Cardio/resp chronic + cardio/resp symptom: bump acuity by 1 (capped at 2 — escalation territory).
+    cardio_chronic = (row.get("chronic__heart_disease") == 1 or row.get("chronic__asthma_copd") == 1)
+    has_cardio_resp_symptom = any(row.get(s, 0) == 1 for s in CARDIO_RESP_SYMPTOMS)
+    if cardio_chronic and has_cardio_resp_symptom and cat >= 3:
+        cat = max(cat - 1, 2)
+
+    # Recurrent low-acuity issue → de-escalate one step.
+    if row.get("had_symptoms_before") == 1 and cat in (4, 5):
+        cat = min(cat + 1, 6)
+
+    return cat
 
 
 def pick_symptoms():
-    # Return a list of symptom column names for one synthetic case.
     if random.random() < SCENARIO_PROBABILITY:
         scenario = random.choice(SCENARIOS)
         chosen = list(scenario)
@@ -144,10 +203,15 @@ def pick_symptoms():
 def generate_case():
     row = {col: 0 for col in HEADER}
 
-    row["gender"] = random.choice([0, 1])
-    row["age_over_65"] = random.choices([0, 1], weights=[85, 15])[0]
+    # Tri-state demographics (0=no/female, 1=yes/male, 2=unknown).
+    row["gender"] = random.choices([0, 1, 2], weights=[49, 49, 2])[0]
+    row["age_over_65"] = random.choices([0, 1, 2], weights=[75, 15, 10])[0]
     row["symptom_severity"] = random.randint(1, 5)
     row["symptoms_duration"] = random.choice([1, 2, 4, 6, 12, 24, 48, 72])
+
+    # Tri-state history flags.
+    row["had_symptoms_before"] = random.choices([0, 1, 2], weights=[40, 35, 25])[0]
+    row["had_contact"] = random.choices([0, 1, 2], weights=[40, 20, 40])[0]
 
     for s in pick_symptoms():
         if s in row:
@@ -157,6 +221,23 @@ def generate_case():
         row["symptom_severity"] = random.choice([4, 5])
 
     row["symptom__otherwise_well"] = 1 if row["symptom_severity"] <= 2 else 0
+
+    # Chronic conditions: independent draws, age_over_65 boosts prevalence.
+    chronic_base = 0.10
+    chronic_age_boost = 0.20 if row["age_over_65"] == 1 else 0.0
+    for c in CHRONIC_COLS:
+        if random.random() < chronic_base + chronic_age_boost:
+            row[c] = 1
+
+    # Escalation triggers: high prob when associated symptom is set, low baseline noise otherwise.
+    for esc, sym in ESCALATION_SYMPTOM_MAP.items():
+        if row.get(sym, 0) == 1:
+            if random.random() < 0.80:
+                row[esc] = 1
+        else:
+            if random.random() < 0.02:
+                row[esc] = 1
+
     row["triage_category"] = assign_triage(row)
     return row
 
