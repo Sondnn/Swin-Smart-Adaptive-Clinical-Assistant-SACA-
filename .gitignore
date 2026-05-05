@@ -12,4 +12,3 @@ __pycache__/
 
 # Training model
 backend/models/*.joblib
-backend/models/training_data_v1.csv

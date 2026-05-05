@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -29,6 +32,8 @@ import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButton
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import com.saca.smartadaptiveclinicalassistant.ui.theme.AppBackground
 import com.saca.smartadaptiveclinicalassistant.ui.theme.AppBackgroundTeal
+import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
+import com.saca.smartadaptiveclinicalassistant.ui.theme.Orange
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -70,7 +75,9 @@ fun LanguageScreen(
             Text(
                 text = stringResource(R.string.language_title),
                 color = AppBackground,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.headlineMedium,
+                fontSize = 36.sp,
+                fontWeight = FontWeight.Black,
                 textAlign = TextAlign.Center
             )
 
@@ -79,8 +86,10 @@ fun LanguageScreen(
             Text(
                 text = stringResource(R.string.language_subtitle),
                 color = AppBackground,
-                style = MaterialTheme.typography.titleMedium,
                 fontSize = 24.sp,
+                fontWeight = FontWeight.Black,
+                lineHeight = 32.sp,
+                style = MaterialTheme.typography.bodyLarge,
             )
         }
 

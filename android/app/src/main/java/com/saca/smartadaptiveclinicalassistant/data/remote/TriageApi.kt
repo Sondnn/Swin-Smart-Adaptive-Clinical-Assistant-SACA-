@@ -8,12 +8,10 @@ import com.saca.smartadaptiveclinicalassistant.data.remote.dto.SpeechToTextRespo
 import okhttp3.MultipartBody
 import retrofit2.Response
 import retrofit2.http.Body
-import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.Part
 
 interface TriageApi {
-    @Multipart
     @POST("speech-to-text")
     suspend fun speechToText(
         @Part("language") language: Int,
@@ -25,7 +23,7 @@ interface TriageApi {
        @Body request: ExtractSymptomsRequest
     ): Response<ExtractSymptomsResponse>
 
-    @POST("predict")
+    @POST("analysis-symptoms")
     suspend fun analysisSymptoms(
         @Body request: AnalysisSymptomsRequest
     ): Response<AnalysisSymptomsResponse>
