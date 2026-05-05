@@ -9,7 +9,8 @@ def normalize_symptom_names(symptoms: Iterable[str], feature_columns: Iterable[s
     normalized = []
     invalid = []
     for symptom in symptoms:
-        s = symptom.strip().lower()
+        # Normalize with normal wording symptoms
+        s = symptom.strip().lower().replace(" ", "_")
         if not s:
             continue
         candidate = s if s.startswith("symptom__") else f"symptom__{s}"

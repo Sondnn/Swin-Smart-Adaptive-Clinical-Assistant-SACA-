@@ -1,8 +1,30 @@
 import json
 import joblib
 from pathlib import Path
+from typing import List
+
+from pydantic import BaseModel
 
 from ml.preprocess import make_single_case_dataframe
+
+class PredictRequest(BaseModel):
+    gender: int
+    age_over_65: int
+    symptom_severity: int
+    symptoms_duration: int
+    symptoms: List[str]
+
+    model_config = {
+        "json_schema_extra": {
+            "example": {
+                "gender": 1,
+                "age_over_65": 0,
+                "symptom_severity": 3,
+                "symptoms_duration": 2,
+                "symptoms": ["chest_pain", "breathing_difficulty"],
+            }
+        }
+    }
 
 class MLService:
     def __init__(self, models_dir: Path):
@@ -16,26 +38,19 @@ class MLService:
         self.model_name = (self.models_dir / "best_model_name.txt").read_text().strip()
         self.feature_columns = json.loads((self.models_dir / "feature_columns.json").read_text())
 
-    @staticmethod
-    def validate_input(input_data: dict) -> None:
-        required = {"gender", "age_over_65", "symptom_severity", "symptoms_duration", "symptoms"}
-        missing = required - input_data.keys()
-        if missing:
-            raise ValueError(f"Missing required fields: {', '.join(missing)}")
 
-    def predict(self, input_data: dict):
-        self.validate_input(input_data)
+    def predict(self, input_data: PredictRequest):
 
         if self.model is None:
             self.load()
 
         case_df = make_single_case_dataframe(
             feature_columns=self.feature_columns,
-            gender=input_data["gender"],
-            age_over_65=input_data["age_over_65"],
-            symptom_severity=input_data["symptom_severity"],
-            symptoms_duration=input_data["symptoms_duration"],
-            symptoms=input_data.get("symptoms", []),
+            gender=input_data.gender,
+            age_over_65=input_data.age_over_65,
+            symptom_severity=input_data.symptom_severity,
+            symptoms_duration=input_data.symptoms_duration,
+            symptoms=input_data.symptoms,
         )
 
         prediction = int(self.model.predict(case_df)[0])
@@ -71,10 +86,10 @@ class MLService:
             "probabilities": probabilities,
             "model_used": self.model_name,
             "input_summary": {
-                "gender": input_data["gender"],
-                "age_over_65": input_data["age_over_65"],
-                "symptom_severity": input_data["symptom_severity"],
-                "symptoms_duration": input_data["symptoms_duration"],
-                "symptoms": input_data.get("symptoms", []),
+                "gender": input_data.gender,
+                "age_over_65": input_data.age_over_65,
+                "symptom_severity": input_data.symptom_severity,
+                "symptoms_duration": input_data.symptoms_duration,
+                "symptoms": input_data.symptoms,
             },
         }
