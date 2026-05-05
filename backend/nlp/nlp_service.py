@@ -18,12 +18,21 @@ except ImportError:
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 FEATURE_COLUMNS_FILE = BASE_DIR / "models" / "feature_columns.json"
+WMT_EN_DICT_FILE = Path(__file__).resolve().with_name("wmt_en_dict.json")
 
 # Maps language int (from API) to Google Speech API language code
 LANGUAGE_MAP = {
     1: "en-AU",
     0: "...",  # Replace with supported indigenous language code
 }
+
+def load_wmt_en_dict() -> dict:
+    try:
+        return json.loads(WMT_EN_DICT_FILE.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+WMT_EN_DICT = load_wmt_en_dict()
 
 FALLBACK_STOPWORDS = {
     "a", "an", "and", "are", "as", "at", "be", "by", "for", "from",
@@ -101,6 +110,24 @@ def normalize_text(text: str) -> str:
     text = re.sub(r"[^a-z0-9\s']", " ", text)
     return re.sub(r"\s+", " ", text)
 
+def translate_indigenous_to_english(text: str) -> str:
+    if not isinstance(text, str):
+        raise TypeError(f"Expected text to be str, got {type(text).__name__}")
+    if not WMT_EN_DICT:
+        return text
+
+    translated_text = text
+    for english_word, indigenous_words in WMT_EN_DICT.items():
+        candidates = indigenous_words if isinstance(indigenous_words, list) else [indigenous_words]
+        for indigenous_word in candidates:
+            translated_text = re.sub(
+                r"\b" + re.escape(indigenous_word) + r"\b",
+                english_word,
+                translated_text,
+                flags=re.IGNORECASE,
+            )
+
+    return translated_text
 
 def tokenize_with_spacy(nlp, text: str) -> list[str]:
     if nlp is None:
@@ -172,7 +199,12 @@ def process_symptom_description(symptom_description: str, language: int = 1) -> 
     if language not in LANGUAGE_MAP:
         raise ValueError(f"Unsupported language code: {language}. Use 1 (English) or 0 (Indigenous).")
 
-    normalized_text = normalize_text(symptom_description)
+    if language == 0:
+        text_to_process = translate_indigenous_to_english(symptom_description)
+    else:
+        text_to_process = symptom_description
+        
+    normalized_text = normalize_text(text_to_process)
 
     spacy_tokens = tokenize_with_spacy(_nlp, normalized_text)
     nltk_tokens = tokenize_with_nltk(_tokenizer, normalized_text)
@@ -183,6 +215,7 @@ def process_symptom_description(symptom_description: str, language: int = 1) -> 
 
     result = {
         "symptom_description": symptom_description,
+        "translated_text": text_to_process,
         "stemmed_tokens": list(combined_stems),
     }
 
@@ -224,8 +257,7 @@ def process_symptom_description(symptom_description: str, language: int = 1) -> 
 def extract_symptoms(request: ExtractSymptomsRequest) -> ExtractSymptomsResponse:
     processed = process_symptom_description(request.symptoms_description, language=request.language)
     extracted = processed.get("extracted_symptoms", [])
-    normalized_input_symptoms = [s.strip().lower().replace(" ", "_") for s in request.symptoms ]
-    all_symptoms = list(dict.fromkeys(normalized_input_symptoms + extracted))
+    all_symptoms = list(dict.fromkeys(request.symptoms + extracted))
 
     return ExtractSymptomsResponse(
         symptoms_description=request.symptoms_description,
@@ -234,12 +266,98 @@ def extract_symptoms(request: ExtractSymptomsRequest) -> ExtractSymptomsResponse
         symptoms=all_symptoms,
     )
 
+def _parse_gender(transcript: str) -> dict | None:
+    if "female" in transcript:
+        return {"gender": "0"}
+    if "male" in transcript or "mail" in transcript:
+        return {"gender": "1"}
+    return None
+
+
+def _parse_age(transcript: str) -> dict | None:
+    has_65 = "65" in transcript or "sixty-five" in transcript or "sixty five" in transcript
+    if not has_65:
+        return None
+    over_words = {"older", "over", "above", "more", "greater"}
+    under_words = {"younger", "under", "below", "less", "fewer"}
+    if any(w in transcript for w in over_words):
+        return {"age_is_over_65": "1"}
+    if any(w in transcript for w in under_words):
+        return {"age_is_over_65": "0"}
+    return None
+
+def _parse_severity(transript: str) -> dict | None:
+    if "mild" in transript:
+        return {"severity": "1"}
+    if "low" in transript:
+        return {"severity": "2"}
+    if "moderate" in transript:
+        return {"severity": "3"}
+    if "high" in transript:
+        return {"severity": "4"}
+    if "severe" in transript:
+        return {"severity": "5"}
+    return None
+
+def _parse_duration(transcript: str) -> dict | None:
+    has_day = "a day" in transcript
+    if not has_day:
+        return None
+    over_words = {"longer", "over", "more", "greater"}
+    under_words = {"shorter", "under", "less", "fewer"}
+    if any(w in transcript for w in over_words):
+        return {"duration": "1"}
+    if any(w in transcript for w in under_words):
+        return {"duration": "0"}
+    return None
+
+def _parse_had_symptoms_before(transcript: str) -> dict | None:
+    if "yes" in transcript:
+        return {"had_symptoms_before": "1"}
+    if "no" in transcript:
+        return {"had_symptoms_before": "0"}
+    return None
+
+def _parse_had_contact(transcript: str) -> dict | None:
+    if "yes" in transcript:
+        return {"had_contact": "1"}
+    if "no" in transcript:
+        return {"had_contact": "0"}
+    return None
+
+_QUESTION_PARSERS = {
+    1: _parse_gender,
+    2: _parse_age,
+    3: _parse_severity,
+    4: _parse_duration,
+    5: _parse_had_symptoms_before,
+    6: _parse_had_contact,
+}
+
+def process_audio_response(file_obj, language: int = 1, question_id: int = None) -> dict | None:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+        shutil.copyfileobj(file_obj, tmp)
+        tmp_path = tmp.name
+
+    try:
+        transcript = convert_wav_to_text(tmp_path, language=language)
+        transcript = transcript.lower().strip()
+        parser = _QUESTION_PARSERS.get(question_id)
+        if parser:
+            return parser(transcript)
+        return None
+    finally:
+        os.unlink(tmp_path)
 
 def main() -> None:
-    wav_input = "/Users/jasperl/Downloads/test1.wav"
-    symptom_description = convert_wav_to_text(wav_input)
-    symptoms_extracted = process_symptom_description(symptom_description)
-    print(json.dumps(symptoms_extracted))
+    # wav_input = "/Users/jasperl/Downloads/test1.wav"
+    # symptom_description = convert_wav_to_text(wav_input)
+    # symptom_description = "mil wurlurl"
+    # symptoms_extracted = process_symptom_description(symptom_description, language=0)
+    # print(json.dumps(symptoms_extracted))
+    
+    test = process_audio_response(open("/Users/jasperl/Downloads/audio/under65.wav", "rb"), language=1, question_id=2)
+    print(test)
 
 
 if __name__ == "__main__":

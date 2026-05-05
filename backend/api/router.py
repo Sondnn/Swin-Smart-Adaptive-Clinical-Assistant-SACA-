@@ -4,7 +4,7 @@ from fastapi import APIRouter, File, Form, UploadFile
 from fastapi.responses import JSONResponse
 
 from config import MODEL_DIR
-from ml.ml_service import MLService, PredictRequest
+from ml.ml_service import MLService
 from nlp import nlp_service
 from nlp.nlp_service import ExtractSymptomsRequest, ExtractSymptomsResponse
 
@@ -18,18 +18,8 @@ def root():
 
 
 @router.post("/predict")
-async def analyze_symptoms(payload: PredictRequest):
-    try:
-        return ml_service.predict(payload)
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content={
-                "error": str(e),
-                "type": type(e).__name__,
-                "traceback": traceback.format_exc(),
-            }
-        )
+def analyze_symptoms(payload: dict):
+    return ml_service.predict(payload)
 
 
 @router.post("/speech-to-text")
@@ -50,6 +40,25 @@ async def speech_to_text(
             }
         )
 
+@router.post("/speech-to-text-page")
+async def speech_to_text_page(
+    language: int = Form(...),
+    question_id: int = Form(...),
+    files: UploadFile = File(...),
+):
+    try:
+        result_text = nlp_service.process_audio_response(files.file, language=language, question_id=question_id)
+        return {"question_id": question_id, 
+                "audio_response": result_text}
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": str(e),
+                "type": type(e).__name__,
+                "traceback": traceback.format_exc(),
+            }
+        )
 
 @router.post("/extract-symptoms", response_model=ExtractSymptomsResponse)
 async def extract_symptoms(payload: ExtractSymptomsRequest):
