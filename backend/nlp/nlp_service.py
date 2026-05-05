@@ -266,13 +266,56 @@ def extract_symptoms(request: ExtractSymptomsRequest) -> ExtractSymptomsResponse
         symptoms=all_symptoms,
     )
 
+def _parse_gender(transcript: str) -> dict | None:
+    if "female" in transcript:
+        return {"gender": "0"}
+    if "male" in transcript or "mail" in transcript:
+        return {"gender": "1"}
+    return None
+
+
+def _parse_age(transcript: str) -> dict | None:
+    has_65 = "65" in transcript or "sixty-five" in transcript or "sixty five" in transcript
+    if not has_65:
+        return None
+    over_words = {"older", "over", "above", "more", "greater"}
+    under_words = {"younger", "under", "below", "less", "fewer"}
+    if any(w in transcript for w in over_words):
+        return {"age_is_over_65": "1"}
+    if any(w in transcript for w in under_words):
+        return {"age_is_over_65": "0"}
+    return None
+
+
+_QUESTION_PARSERS = {
+    1: _parse_gender,
+    2: _parse_age,
+}
+
+def process_audio_response(file_obj, language: int = 1, question_id: int = None) -> dict | None:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+        shutil.copyfileobj(file_obj, tmp)
+        tmp_path = tmp.name
+
+    try:
+        transcript = convert_wav_to_text(tmp_path, language=language)
+        transcript = transcript.lower().strip()
+        parser = _QUESTION_PARSERS.get(question_id)
+        if parser:
+            return parser(transcript)
+        return None
+    finally:
+        os.unlink(tmp_path)
 
 def main() -> None:
     # wav_input = "/Users/jasperl/Downloads/test1.wav"
     # symptom_description = convert_wav_to_text(wav_input)
-    symptom_description = "mil wurlurl"
-    symptoms_extracted = process_symptom_description(symptom_description, language=0)
-    print(json.dumps(symptoms_extracted))
+    # symptom_description = "mil wurlurl"
+    # symptoms_extracted = process_symptom_description(symptom_description, language=0)
+    # print(json.dumps(symptoms_extracted))
+    
+    test = process_audio_response(open("/Users/jasperl/Downloads/audio/under65.wav", "rb"), language=1, question_id=2)
+    print(test)
 
 
 if __name__ == "__main__":
