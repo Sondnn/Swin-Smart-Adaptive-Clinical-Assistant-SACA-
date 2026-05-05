@@ -47,24 +47,23 @@ import com.saca.smartadaptiveclinicalassistant.presentation.components.form.Ques
 import com.saca.smartadaptiveclinicalassistant.ui.theme.AppBackground
 import org.koin.androidx.compose.koinViewModel
 
-
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.data.local.VoiceRecorder
+import com.saca.smartadaptiveclinicalassistant.presentation.components.Title
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.ErrorMessage
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.FormQuestionImageOption
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.QuestionImageOption
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.QuestionTextInput
-import com.saca.smartadaptiveclinicalassistant.presentation.components.form.QuestionTitle
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.RecordButton
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown20
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
 fun SymptomQuestionScreen(
     onBackClick: () -> Unit,
+    onCancelClick: () -> Unit,
     onContinueClick: () -> Unit,
     modifier: Modifier = Modifier,
     triageFormViewModel: TriageFormViewModel = koinViewModel(),
@@ -99,7 +98,7 @@ fun SymptomQuestionScreen(
                 title = stringResource(R.string.triage_form_action_bar_title),
                 iconButton = ActionBarIconButton.BACK,
                 iconContentDescription = stringResource(R.string.triage_form_action_bar_title),
-                onIconButtonClick = onBackClick
+                onIconButtonClick = onCancelClick
             )
         },
         modifier = modifier.fillMaxSize(),
@@ -115,7 +114,7 @@ fun SymptomQuestionScreen(
         ) {
             Spacer(modifier = Modifier.height(54.dp))
 
-            QuestionTitle(
+            Title(
                 text = stringResource(R.string.triage_form_symptom_title)
             )
 
@@ -144,7 +143,7 @@ fun SymptomQuestionScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            QuestionTitle(
+            Title(
                 text = stringResource(R.string.triage_form_symptom_describe_title)
             )
 
@@ -160,15 +159,20 @@ fun SymptomQuestionScreen(
 
             RecordButton(
                 text = when {
+                    triageFormViewModel.isTranscribing -> {
+                        stringResource(R.string.triage_form_symptom_transcribing)
+                    }
+
                     isRecordButtonPressed -> {
                         stringResource(R.string.triage_form_symptom_recording)
                     }
+
                     else -> {
                         stringResource(R.string.triage_form_symptom_hold_to_record)
                     }
                 },
                 isRecording = isRecordButtonPressed,
-                isEnabled = true,
+                isEnabled = !triageFormViewModel.isTranscribing,
                 onPress = {
                     if (!hasRecordAudioPermission(context)) {
                         requestRecordAudioPermission.launch(Manifest.permission.RECORD_AUDIO)
@@ -189,7 +193,7 @@ fun SymptomQuestionScreen(
                     isRecordButtonPressed = false
 
                     if (!didReleasePress) {
-                        voiceRecorder.cancelRecoding()
+                        voiceRecorder.cancelRecording()
                         return@RecordButton
                     }
 
@@ -215,7 +219,18 @@ fun SymptomQuestionScreen(
                 ErrorMessage(text = stringResource(messageResId))
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            triageFormViewModel.extractSymptomsErrorResId?.let { messageResId ->
+                Spacer(modifier = Modifier.height(10.dp))
+                ErrorMessage(text = stringResource(messageResId))
+            }
+
+            if (triageFormViewModel.shouldShowSymptomError) {
+                Spacer(modifier = Modifier.height(10.dp))
+                ErrorMessage(text = stringResource(R.string.triage_form_symptom_validation_error))
+            }
+
+            Spacer(modifier = Modifier.height(18.dp))
+            Spacer(modifier = Modifier.weight(1f))
 
             QuestionBottomBar(
                 backButtonText = stringResource(R.string.triage_form_back_button),
@@ -233,23 +248,6 @@ fun SymptomQuestionScreen(
                         }
                     }
                 },
-            )
-        }
-
-        if (triageFormViewModel.shouldShowExtractSymptomsDialog) {
-            AlertDialog(
-                onDismissRequest = triageFormViewModel::dismissExtractSymptomsDialog,
-                title = {
-                    Text(text = stringResource(R.string.triage_form_symptom_extract_empty_title))
-                },
-                text = {
-                    Text(text = stringResource(R.string.triage_form_symptom_extract_empty_message))
-                },
-                confirmButton = {
-                    TextButton(onClick = triageFormViewModel::dismissExtractSymptomsDialog) {
-                        Text(text = stringResource(R.string.triage_form_symptom_extract_empty_confirm))
-                    }
-                }
             )
         }
     }
@@ -270,15 +268,15 @@ fun ShowMoreButton(
         shape = RoundedCornerShape(2.dp),
         modifier = Modifier
             .fillMaxWidth()
-            .height(32.dp)
+            .height(40.dp)
     ) {
         Text(
             text = text,
             color = Brown,
             fontWeight = FontWeight.Bold,
-            fontSize = 12.sp,
-            lineHeight = 16.sp,
-            textAlign = TextAlign.Center,
+            fontSize = 20.sp,
+            lineHeight = 24.sp,
+            textAlign = TextAlign.Center
         )
     }
 }
@@ -300,8 +298,8 @@ private fun OrDivider(text: String) {
             text = text,
             color = Brown,
             fontWeight = FontWeight.Bold,
-            fontSize = 12.sp,
-            lineHeight = 16.sp,
+            fontSize = 20.sp,
+            lineHeight = 32.sp,
             modifier = Modifier.padding(horizontal = 16.dp),
         )
 

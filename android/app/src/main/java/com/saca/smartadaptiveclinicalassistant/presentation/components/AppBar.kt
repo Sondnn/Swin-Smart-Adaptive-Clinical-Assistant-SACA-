@@ -16,9 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.ui.theme.TextBrown
 
@@ -56,8 +54,7 @@ fun AppBar(
             Text(
                 text = title,
                 color = TextBrown,
-                fontWeight = FontWeight.Bold,
-                fontSize = 20.sp
+                style = MaterialTheme.typography.bodyLarge,
             )
         }
     }
@@ -66,6 +63,6 @@ fun AppBar(
 enum class ActionBarIconButton(
     @param:DrawableRes val iconResourceId: Int,
 ) {
-    MENU(R.drawable.button),
-    BACK(R.drawable.chevron_left)
+    MENU(R.drawable.button_menu),
+    BACK(R.drawable.button_back)
 }

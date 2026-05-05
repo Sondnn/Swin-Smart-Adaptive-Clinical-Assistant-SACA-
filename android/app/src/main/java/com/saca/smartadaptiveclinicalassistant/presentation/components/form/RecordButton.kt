@@ -5,12 +5,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.PressGestureScope
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.saca.smartadaptiveclinicalassistant.R
@@ -38,7 +42,7 @@ fun RecordButton(
         else -> Brown
     }
 
-    Row(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
             .height(52.dp)
@@ -47,27 +51,26 @@ fun RecordButton(
             .pointerInput(isEnabled) {
                 detectTapGestures(
                     onPress = {
-                        if (isEnabled) {
-                            onPress()
-                        }
+                        if (isEnabled) onPress()
                     }
                 )
             }.padding(horizontal = 16.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
         Text(
             text = text,
             color = Color.White,
-            fontWeight = FontWeight.Black,
-            fontSize = 12.sp,
-            lineHeight = 16.sp
+            style = MaterialTheme.typography.bodyMedium,
+            modifier = Modifier.align(Alignment.Center),
+            textAlign = TextAlign.Center
         )
+
 
         Image(
             painter = painterResource(id = R.drawable.ic_mic),
             contentDescription = text,
-            modifier = Modifier.size(24.dp)
+            modifier = Modifier
+                .size(24.dp)
+                .align(Alignment.CenterEnd)
         )
     }
 }
