@@ -1,5 +1,5 @@
 {
-  "trained_at": "2026-05-06T02:16:43",
+  "trained_at": "2026-05-06T09:28:59",
   "cv_accuracy_mean": 0.9092500000000001,
   "cv_accuracy_std": 0.010386289038920488,
   "cv_macro_f1_mean": 0.8680050141227206,
@@ -69,10 +69,10 @@
   "n_train": 4000,
   "n_test": 1000,
   "timing_seconds": {
-    "random_forest_fit": 1.1,
-    "extra_trees_fit": 2.36,
-    "xgb_randomized_cv": 40.9,
-    "ensemble_cv_fit": 9.91,
-    "total": 54.26
+    "random_forest_fit": 1.08,
+    "extra_trees_fit": 2.32,
+    "xgb_randomized_cv": 40.14,
+    "ensemble_cv_fit": 9.13,
+    "total": 52.67
   }
 }
