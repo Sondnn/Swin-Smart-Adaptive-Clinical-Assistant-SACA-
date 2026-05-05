@@ -286,10 +286,52 @@ def _parse_age(transcript: str) -> dict | None:
         return {"age_is_over_65": "0"}
     return None
 
+def _parse_severity(transript: str) -> dict | None:
+    if "mild" in transript:
+        return {"severity": "1"}
+    if "low" in transript:
+        return {"severity": "2"}
+    if "moderate" in transript:
+        return {"severity": "3"}
+    if "high" in transript:
+        return {"severity": "4"}
+    if "severe" in transript:
+        return {"severity": "5"}
+    return None
+
+def _parse_duration(transcript: str) -> dict | None:
+    has_day = "a day" in transcript
+    if not has_day:
+        return None
+    over_words = {"longer", "over", "more", "greater"}
+    under_words = {"shorter", "under", "less", "fewer"}
+    if any(w in transcript for w in over_words):
+        return {"duration": "1"}
+    if any(w in transcript for w in under_words):
+        return {"duration": "0"}
+    return None
+
+def _parse_had_symptoms_before(transcript: str) -> dict | None:
+    if "yes" in transcript:
+        return {"had_symptoms_before": "1"}
+    if "no" in transcript:
+        return {"had_symptoms_before": "0"}
+    return None
+
+def _parse_had_contact(transcript: str) -> dict | None:
+    if "yes" in transcript:
+        return {"had_contact": "1"}
+    if "no" in transcript:
+        return {"had_contact": "0"}
+    return None
 
 _QUESTION_PARSERS = {
     1: _parse_gender,
     2: _parse_age,
+    3: _parse_severity,
+    4: _parse_duration,
+    5: _parse_had_symptoms_before,
+    6: _parse_had_contact,
 }
 
 def process_audio_response(file_obj, language: int = 1, question_id: int = None) -> dict | None:
