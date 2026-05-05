@@ -33,7 +33,7 @@ fun SeverityQuestionScreen(
         options = options,
         selectedOptionId = triageFormViewModel.selectedSeverityOptionId,
         currentStep = 4,
-        totalSteps = 5,
+        totalSteps = 8,
         onBackClick = onBackClick,
         onCancelClick = onCancelClick,
         onOptionClick = triageFormViewModel::onSeverityOptionSelected,

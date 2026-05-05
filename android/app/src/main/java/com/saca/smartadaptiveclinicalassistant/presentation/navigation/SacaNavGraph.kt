@@ -10,10 +10,13 @@ import com.saca.smartadaptiveclinicalassistant.presentation.language.LanguageScr
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_result.ResultScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.AgeQuestionScreen
+import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.ChronicConditionsQuestionScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.DurationQuestionScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.GenderQuestionScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.SeverityQuestionScreen
+import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.SickContactHistoryQuestionScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.SymptomQuestionScreen
+import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.SymptomsBeforeQuestionScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.TriageFormViewModel
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_result.LoadingScreen
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_result.TriageResultViewModel
@@ -138,6 +141,69 @@ fun SacaNavGraph(modifier: Modifier = Modifier) {
 
         composable(SacaDestinations.TRIAGE_FORM_DURATION) {
             DurationQuestionScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onContinueClick = {
+                    navController.navigate(SacaDestinations.TRIAGE_FORM_SYMPTOMS_BEFORE)
+                },
+                onCancelClick = {
+                    triageFormViewModel.resetFormState()
+                    navController.navigate(SacaDestinations.HOME) {
+                        popUpTo(SacaDestinations.HOME) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                triageFormViewModel = triageFormViewModel,
+            )
+        }
+
+        composable(SacaDestinations.TRIAGE_FORM_SYMPTOMS_BEFORE) {
+            SymptomsBeforeQuestionScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onContinueClick = {
+                    navController.navigate(SacaDestinations.TRIAGE_FORM_CHRONIC_CONDITIONS)
+                },
+                onCancelClick = {
+                    triageFormViewModel.resetFormState()
+                    navController.navigate(SacaDestinations.HOME) {
+                        popUpTo(SacaDestinations.HOME) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                triageFormViewModel = triageFormViewModel,
+            )
+        }
+
+        composable(SacaDestinations.TRIAGE_FORM_CHRONIC_CONDITIONS) {
+            ChronicConditionsQuestionScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                onContinueClick = {
+                    navController.navigate(SacaDestinations.TRIAGE_FORM_SICK_CONTACT_HISTORY)
+                },
+                onCancelClick = {
+                    triageFormViewModel.resetFormState()
+                    navController.navigate(SacaDestinations.HOME) {
+                        popUpTo(SacaDestinations.HOME) {
+                            inclusive = false
+                        }
+                        launchSingleTop = true
+                    }
+                },
+                triageFormViewModel = triageFormViewModel,
+            )
+        }
+
+        composable(SacaDestinations.TRIAGE_FORM_SICK_CONTACT_HISTORY) {
+            SickContactHistoryQuestionScreen(
                 onBackClick = {
                     navController.popBackStack()
                 },

@@ -75,6 +75,33 @@ class TriageFormViewModel(
         BACK_PAIN("back_pain", R.string.triage_form_symptom_back_pain, R.drawable.ic_symptom_back_pain),
     }
 
+    enum class SymptomsBeforeOption(
+        val value: String,
+        val labelRes: Int
+    ) {
+        YES("yes", R.string.triage_form_symptoms_before_option_yes),
+        NO("no", R.string.triage_form_symptoms_before_option_no),
+        UNKNOWN("unknown", R.string.triage_form_symptoms_before_option_unknown),
+    }
+
+    enum class ChronicConditionsOption(
+        val value: String,
+        val labelRes: Int
+    ) {
+        MENTAL_CONDITIONS("mental_and_behavioural_conditions", R.string.triage_form_chronic_conditions_option_mental_conditions),
+        BACK_PROBLEMS("back_problems", R.string.triage_form_chronic_conditions_option_back_problems),
+        DIABETES("diabetes", R.string.triage_form_chronic_conditions_option_diabetes),
+    }
+
+    enum class SickContactHistoryOption(
+        val value: String,
+        val labelRes: Int
+    ) {
+        YES("yes", R.string.triage_form_sick_contact_history_option_yes),
+        NO("no", R.string.triage_form_sick_contact_history_option_no),
+        UNKNOWN("unknown", R.string.triage_form_sick_contact_history_option_unknown),
+    }
+
     var selectedGenderOptionId: String? by mutableStateOf(null)
         private set
 
@@ -110,6 +137,15 @@ class TriageFormViewModel(
         private set
 
     var selectedDurationOptionId: String? by mutableStateOf(null)
+        private set
+
+    var selectedSymptomsBeforeOptionId: String? by mutableStateOf(null)
+        private set
+
+    var selectedChronicConditionsOptionIds: Set<String> by mutableStateOf(emptySet())
+        private set
+
+    var selectedSickContactHistoryOptionId: String? by mutableStateOf(null)
         private set
 
     fun onGenderOptionSelected(optionId: String) {
@@ -168,6 +204,22 @@ class TriageFormViewModel(
 
     fun onDurationOptionSelected(optionId: String) {
         selectedDurationOptionId = optionId
+    }
+
+    fun onSymptomsBeforeOptionSelected(optionId: String) {
+        selectedSymptomsBeforeOptionId = optionId
+    }
+
+    fun onSickContactHistoryOptionSelected(optionId: String) {
+        selectedSickContactHistoryOptionId = optionId
+    }
+
+    fun onChronicConditionsOptionSelected(optionId: String) {
+        selectedChronicConditionsOptionIds = if (selectedChronicConditionsOptionIds.contains(optionId)) {
+            selectedChronicConditionsOptionIds - optionId
+        } else {
+            selectedChronicConditionsOptionIds + optionId
+        }
     }
 
     private fun getLanguageCode(languageTag: String): Int {
@@ -311,6 +363,9 @@ class TriageFormViewModel(
         selectedSymptomIds = emptySet()
         selectedSeverityOptionId = null
         selectedDurationOptionId = null
+        selectedChronicConditionsOptionIds = emptySet()
+        selectedSickContactHistoryOptionId = null
+        selectedSymptomsBeforeOptionId = null
         symptomDescriptionText = ""
         isSymptomOptionsExpanded = false
         isTranscribing = false

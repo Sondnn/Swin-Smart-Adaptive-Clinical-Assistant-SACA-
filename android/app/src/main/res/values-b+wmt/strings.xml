@@ -66,7 +66,18 @@
     <string name="triage_form_duration_option_less_than_day">(WMT) Less than a day</string>
     <string name="triage_form_duration_option_more_than_day">(WMT) More than a day</string>
     <string name="triage_form_duration_option_unknown">(WMT) Unknown</string>
-
+    <string name="triage_form_symptoms_before_title">(WMT) Have you had these symptoms Before?</string>
+    <string name="triage_form_symptoms_before_option_yes">(WMT) Yes</string>
+    <string name="triage_form_symptoms_before_option_no">(WMT) No</string>
+    <string name="triage_form_symptoms_before_option_unknown">(WMT) Unknown</string>
+    <string name="triage_form_sick_contact_history_title">(WMT) Have you been in contact with anyone who is sick recently?</string>
+    <string name="triage_form_sick_contact_history_option_yes">(WMT) Yes</string>
+    <string name="triage_form_sick_contact_history_option_no">(WMT) No</string>
+    <string name="triage_form_sick_contact_history_option_unknown">(WMT) Unknown</string>
+    <string name="triage_form_chronic_conditions_history_title">(WMT) Do you have any chronic conditions?</string>
+    <string name="triage_form_chronic_conditions_option_mental_conditions">(WMT) Mental Conditions</string>
+    <string name="triage_form_chronic_conditions_option_back_problems">(WMT) Back Problems</string>
+    <string name="triage_form_chronic_conditions_option_diabetes">(WMT) Diabetes</string>
     <string name="triage_result_analyzing">(WMT) Analyzing symptoms</string>
     <string name="triage_result_title">(WMT) Triage Result</string>
     <string name="triage_result_severity_label">(WMT) Severity Level</string>
