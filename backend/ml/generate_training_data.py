@@ -2,13 +2,19 @@ import json
 import random
 import csv
 from collections import Counter
+from collections import Counter
 from pathlib import Path
 
 from ml.symptom_clusters import SCENARIOS
 
 BASE_DIR = Path(__file__).resolve().parents[1]
 OUTPUT_FILE = BASE_DIR / "models" / "training_data.csv"
+OUTPUT_FILE = BASE_DIR / "models" / "training_data.csv"
 FEATURE_COLUMNS_FILE = BASE_DIR / "models" / "feature_columns.json"
+
+SEED = 42
+N_ROWS = 5000
+SCENARIO_PROBABILITY = 0.25
 
 SEED = 42
 N_ROWS = 5000
