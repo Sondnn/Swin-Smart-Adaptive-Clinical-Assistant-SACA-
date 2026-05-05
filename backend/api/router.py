@@ -40,6 +40,25 @@ async def speech_to_text(
             }
         )
 
+@router.post("/speech-to-text-page")
+async def speech_to_text_page(
+    language: int = Form(...),
+    question_id: int = Form(...),
+    files: UploadFile = File(...),
+):
+    try:
+        result_text = nlp_service.process_audio_response(files.file, language=language, question_id=question_id)
+        return {"question_id": question_id, 
+                "audio_response": result_text}
+    except Exception as e:
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": str(e),
+                "type": type(e).__name__,
+                "traceback": traceback.format_exc(),
+            }
+        )
 
 @router.post("/extract-symptoms", response_model=ExtractSymptomsResponse)
 async def extract_symptoms(payload: ExtractSymptomsRequest):
