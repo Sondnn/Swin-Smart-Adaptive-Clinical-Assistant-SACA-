@@ -1,0 +1,548 @@
+{
+  "components": {
+    "schemas": {
+      "Body_speech_to_text_page_speech_to_text_page_post": {
+        "properties": {
+          "files": {
+            "format": "binary",
+            "title": "Files",
+            "type": "string"
+          },
+          "language": {
+            "title": "Language",
+            "type": "integer"
+          },
+          "question_id": {
+            "title": "Question Id",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "language",
+          "question_id",
+          "files"
+        ],
+        "title": "Body_speech_to_text_page_speech_to_text_page_post",
+        "type": "object"
+      },
+      "Body_speech_to_text_speech_to_text_post": {
+        "properties": {
+          "files": {
+            "format": "binary",
+            "title": "Files",
+            "type": "string"
+          },
+          "language": {
+            "title": "Language",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "language",
+          "files"
+        ],
+        "title": "Body_speech_to_text_speech_to_text_post",
+        "type": "object"
+      },
+      "ExtractSymptomsRequest": {
+        "properties": {
+          "language": {
+            "default": 1,
+            "title": "Language",
+            "type": "integer"
+          },
+          "symptoms": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Symptoms",
+            "type": "array"
+          },
+          "symptoms_description": {
+            "default": "",
+            "title": "Symptoms Description",
+            "type": "string"
+          }
+        },
+        "title": "ExtractSymptomsRequest",
+        "type": "object"
+      },
+      "ExtractSymptomsResponse": {
+        "properties": {
+          "extracted_symptoms": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Extracted Symptoms",
+            "type": "array"
+          },
+          "negated_symptoms": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Negated Symptoms",
+            "type": "array"
+          },
+          "symptoms": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Symptoms",
+            "type": "array"
+          },
+          "symptoms_description": {
+            "title": "Symptoms Description",
+            "type": "string"
+          }
+        },
+        "required": [
+          "symptoms_description",
+          "extracted_symptoms",
+          "negated_symptoms",
+          "symptoms"
+        ],
+        "title": "ExtractSymptomsResponse",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "PredictRequest": {
+        "example": {
+          "age_over_65": 0,
+          "gender": 1,
+          "symptom_severity": 3,
+          "symptoms": [
+            "chest_pain",
+            "breathing_difficulty"
+          ],
+          "symptoms_duration": 2
+        },
+        "properties": {
+          "age_over_65": {
+            "title": "Age Over 65",
+            "type": "integer"
+          },
+          "gender": {
+            "title": "Gender",
+            "type": "integer"
+          },
+          "symptom_severity": {
+            "title": "Symptom Severity",
+            "type": "integer"
+          },
+          "symptoms": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Symptoms",
+            "type": "array"
+          },
+          "symptoms_duration": {
+            "title": "Symptoms Duration",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "gender",
+          "age_over_65",
+          "symptom_severity",
+          "symptoms_duration",
+          "symptoms"
+        ],
+        "title": "PredictRequest",
+        "type": "object"
+      },
+      "PredictResponse": {
+        "properties": {
+          "confidence": {
+            "title": "Confidence",
+            "type": "number"
+          },
+          "input_summary": {
+            "additionalProperties": true,
+            "title": "Input Summary",
+            "type": "object"
+          },
+          "model_used": {
+            "title": "Model Used",
+            "type": "string"
+          },
+          "probabilities": {
+            "additionalProperties": true,
+            "title": "Probabilities",
+            "type": "object"
+          },
+          "triage_category": {
+            "title": "Triage Category",
+            "type": "integer"
+          },
+          "triage_label": {
+            "title": "Triage Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "triage_category",
+          "triage_label",
+          "confidence",
+          "probabilities",
+          "model_used",
+          "input_summary"
+        ],
+        "title": "PredictResponse",
+        "type": "object"
+      },
+      "SuggestSymptomsRequest": {
+        "example": {
+          "chosen_symptom": [
+            "chest_pain",
+            "breathing_difficulty"
+          ]
+        },
+        "properties": {
+          "chosen_symptom": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Chosen Symptom",
+            "type": "array"
+          }
+        },
+        "required": [
+          "chosen_symptom"
+        ],
+        "title": "SuggestSymptomsRequest",
+        "type": "object"
+      },
+      "SuggestSymptomsResponse": {
+        "properties": {
+          "chosen_symptom": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Chosen Symptom",
+            "type": "array"
+          },
+          "suggested_symptoms": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Suggested Symptoms",
+            "type": "array"
+          }
+        },
+        "required": [
+          "chosen_symptom",
+          "suggested_symptoms"
+        ],
+        "title": "SuggestSymptomsResponse",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Smart Adaptive Clinical Assistant (SACA) backend API.\n\n Endpoints cover triage prediction, symptom suggestion, audio transcription, and free-text symptom extraction. Interactive docs are at `/docs` and `/redoc`; the machine-readable spec is at `/openapi.json` and a versioned snapshot is checked in at `backend/openapi.json`.",
+    "title": "SACA API",
+    "version": "0.2.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/": {
+      "get": {
+        "description": "Returns a static message confirming the API is running.",
+        "operationId": "root__get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Liveness check",
+        "tags": [
+          "Backend"
+        ]
+      }
+    },
+    "/extract-symptoms": {
+      "post": {
+        "operationId": "extract_symptoms_extract_symptoms_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExtractSymptomsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ExtractSymptomsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "500": {
+            "description": "Unhandled server error. Body has shape `{error: str, type: str, traceback: str}`."
+          }
+        },
+        "summary": "Extract structured symptoms from text input",
+        "tags": [
+          "Natural Language Processing"
+        ]
+      }
+    },
+    "/predict": {
+      "post": {
+        "description": "Runs the ensemble triage model against the structured intake form payload and returns a triage category (1=Immediate ... 6=Referred), human-readable label, predicted-class confidence, full per-class probability map, the model name used, and an `input_summary` echo of the request for traceability.",
+        "operationId": "analyze_symptoms_predict_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PredictRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PredictResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "500": {
+            "description": "Unhandled server error. Body has shape `{error: str, type: str, traceback: str}`."
+          }
+        },
+        "summary": "Predict triage category",
+        "tags": [
+          "Machine Learning"
+        ]
+      }
+    },
+    "/speech-to-text": {
+      "post": {
+        "operationId": "speech_to_text_speech_to_text_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_speech_to_text_speech_to_text_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "500": {
+            "description": "Unhandled server error. Body has shape `{error: str, type: str, traceback: str}`."
+          }
+        },
+        "summary": "Transcribe an audio file to free text",
+        "tags": [
+          "Natural Language Processing"
+        ]
+      }
+    },
+    "/speech-to-text-page": {
+      "post": {
+        "operationId": "speech_to_text_page_speech_to_text_page_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_speech_to_text_page_speech_to_text_page_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "500": {
+            "description": "Unhandled server error. Body has shape `{error: str, type: str, traceback: str}`."
+          }
+        },
+        "summary": "Transcribe an audio answer for a specific intake question",
+        "tags": [
+          "Natural Language Processing"
+        ]
+      }
+    },
+    "/suggest-symptoms": {
+      "post": {
+        "description": "Given the symptoms the user has already selected, returns up to ten related suggestions ranked first by clinical-cluster co-membership and then by training-set co-occurrence.",
+        "operationId": "suggest_symptoms_suggest_symptoms_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SuggestSymptomsRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuggestSymptomsResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          },
+          "500": {
+            "description": "Unhandled server error. Body has shape `{error: str, type: str, traceback: str}`."
+          }
+        },
+        "summary": "Suggest related symptoms for an already-chosen set",
+        "tags": [
+          "Machine Learning"
+        ]
+      }
+    }
+  },
+  "tags": [
+    {
+      "description": "Service health and liveness checks.",
+      "name": "Backend"
+    },
+    {
+      "description": "Triage prediction & symptom suggestion endpoints.",
+      "name": "Machine Learning"
+    },
+    {
+      "description": "Audio transcription and free-text symptom extraction.",
+      "name": "Natural Language Processing"
+    }
+  ]
+}
