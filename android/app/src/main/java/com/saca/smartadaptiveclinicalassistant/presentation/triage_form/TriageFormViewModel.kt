@@ -236,8 +236,12 @@ class TriageFormViewModel(
         }
     }
 
-    private fun getAgeCode(): Int {
-        return if (selectedAgeOptionId == "over_older_adult") 1 else 0
+    private fun getAgeOver65Code(): Int {
+        return when (selectedAgeOptionId) {
+            "older_adult_or_younger" -> 0
+            "over_older_adult" -> 1
+            else -> 2
+        }
     }
 
     private fun getSeverityCode(): Int {
@@ -372,7 +376,7 @@ class TriageFormViewModel(
             language = getLanguageCode(languageTag),
             symptoms = symptoms,
             gender = getGenderCode(),
-            ageIsOver65 = getAgeCode(),
+            ageIsOver65 = getAgeOver65Code(),
             severity = getSeverityCode(),
             duration = getDurationCode(),
             chronicConditions = selectedChronicConditionsOptionIds.toList(),
