@@ -202,7 +202,8 @@ fun SymptomQuestionScreen(
                     val stopResult = voiceRecorder.stopRecording()
                     stopResult.fold(
                         onSuccess = { audioFile ->
-                            triageFormViewModel.transcribeRecordedAudio(
+                            triageFormViewModel.transcribeAnswer(
+                                questionId = TriageFormViewModel.TriageQuestionId.SYMPTOM.value,
                                 audioFile = audioFile,
                                 languageTag = sessionViewModel.languageTag
                             )

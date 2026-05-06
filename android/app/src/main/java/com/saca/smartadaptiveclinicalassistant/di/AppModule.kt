@@ -7,6 +7,7 @@ import com.saca.smartadaptiveclinicalassistant.domain.repository.TriageRepositor
 import com.saca.smartadaptiveclinicalassistant.domain.use_case.AnalyzeSymptomsUseCase
 import com.saca.smartadaptiveclinicalassistant.domain.use_case.ExtractSymptomsUseCase
 import com.saca.smartadaptiveclinicalassistant.domain.use_case.SpeechToTextUseCase
+import com.saca.smartadaptiveclinicalassistant.domain.use_case.SpeechToTextV2UseCase
 import com.saca.smartadaptiveclinicalassistant.presentation.home.HomeViewModel
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.TriageFormViewModel
@@ -41,6 +42,7 @@ val appModule = module {
     single<TriageRepository> { TriageRepositoryImpl(get()) }
 
     single { SpeechToTextUseCase(get()) }
+    single { SpeechToTextV2UseCase(get()) }
     single { ExtractSymptomsUseCase(get()) }
     single { AnalyzeSymptomsUseCase(get()) }
 

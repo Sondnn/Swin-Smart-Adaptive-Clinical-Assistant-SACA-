@@ -7,6 +7,7 @@ import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButtonStyle
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.FormQuestionOption
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.FormQuestionScaffold
+import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -16,6 +17,7 @@ fun SickContactHistoryQuestionScreen(
     onAssessClick: () -> Unit,
     modifier: Modifier = Modifier,
     triageFormViewModel: TriageFormViewModel = koinViewModel(),
+    sessionViewModel: SessionViewModel = koinViewModel(),
 ) {
     val options = TriageFormViewModel.SickContactHistoryOption.entries.map {
         FormQuestionOption(
@@ -40,5 +42,15 @@ fun SickContactHistoryQuestionScreen(
         onCancelClick = onCancelClick,
         onContinueClick = onAssessClick,
         modifier = modifier,
+        voiceQuestionId = TriageFormViewModel.TriageQuestionId.SICK_CONTACT_HISTORY.value,
+        isTranscribing = triageFormViewModel.isTranscribing,
+        recordingErrorResId = triageFormViewModel.recordingErrorResId,
+        onTranscribeAudio = { audioFile ->
+            triageFormViewModel.transcribeAnswer(
+                questionId = TriageFormViewModel.TriageQuestionId.SICK_CONTACT_HISTORY.value,
+                audioFile = audioFile,
+                languageTag = sessionViewModel.languageTag,
+            )
+        },
     )
 }

@@ -10,6 +10,8 @@ import java.io.File
 interface TriageRepository {
     suspend fun speechToText(language: Int, audioFile: File): Result<SpeechToTextResponse>
 
+    suspend fun speechToTextV2(language: Int, questionId: Int, audioFile: File): Result<SpeechToTextResponse>
+
     suspend fun extractSymptoms(request: ExtractSymptomsRequest): Result<ExtractSymptomsResponse>
 
     suspend fun analysisSymptoms(request: AnalysisSymptomsRequest): Result<AnalysisSymptomsResponse>

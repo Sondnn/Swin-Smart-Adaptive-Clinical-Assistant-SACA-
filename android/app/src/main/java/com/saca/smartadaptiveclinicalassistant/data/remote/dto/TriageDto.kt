@@ -6,6 +6,17 @@ data class SpeechToTextResponse(
     @SerializedName("symptoms_description") val symptomsDescription: String
 )
 
+data class SpeechToTextV2Response(
+    @SerializedName("gender") val gender: Int? = null,
+    @SerializedName("age_over_65") val ageOver65: Int? = null,
+    @SerializedName("symptoms") val symptoms: String? = null,
+    @SerializedName("symptom_severity") val symptomSeverity: Int? = null,
+    @SerializedName("symptoms_duration") val symptomsDuration: Int? = null,
+    @SerializedName("chronic_conditions") val chronicConditions: List<String>? = null,
+    @SerializedName("had_symptoms_before") val hadSymptomsBefore: Int? = null,
+    @SerializedName("had_contact") val hadContact: Int? = null,
+)
+
 data class ExtractSymptomsRequest(
     val language: Int,
     @SerializedName("symptoms_description") val symptomsDescription: String,

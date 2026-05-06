@@ -8,16 +8,27 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.common.Constants.LANGUAGE_TAG_WALMAJARRI
+import com.saca.smartadaptiveclinicalassistant.data.remote.dto.SpeechToTextV2Response
 import com.saca.smartadaptiveclinicalassistant.domain.model.TriageForm
 import com.saca.smartadaptiveclinicalassistant.domain.use_case.ExtractSymptomsUseCase
-import com.saca.smartadaptiveclinicalassistant.domain.use_case.SpeechToTextUseCase
+import com.saca.smartadaptiveclinicalassistant.domain.use_case.SpeechToTextV2UseCase
 import kotlinx.coroutines.launch
 import java.io.File
 
 class TriageFormViewModel(
-    private val speechToTextUseCase: SpeechToTextUseCase,
+    private val speechToTextUseCase: SpeechToTextV2UseCase,
     private val extractSymptomsUseCase: ExtractSymptomsUseCase
 ): ViewModel() {
+    enum class TriageQuestionId(val value: Int) {
+        GENDER(1),
+        AGE(2),
+        SYMPTOM(3),
+        SEVERITY(4),
+        DURATION(5),
+        CHRONIC_CONDITIONS(6),
+        SYMPTOMS_BEFORE(8),
+        SICK_CONTACT_HISTORY(9),
+    }
     enum class GenderOption(
         val value: String,
         val labelRes: Int
@@ -283,7 +294,7 @@ class TriageFormViewModel(
         }
     }
 
-    fun transcribeRecordedAudio(audioFile: File, languageTag: String) {
+    fun transcribeAnswer(questionId: Int, audioFile: File, languageTag: String) {
         if (isTranscribing) {
             return
         }
@@ -295,17 +306,16 @@ class TriageFormViewModel(
             try {
                 val result = speechToTextUseCase(
                     language = getLanguageCode(languageTag),
+                    questionId = questionId,
                     audioFile = audioFile,
                 )
 
                 result.fold(
-                    onSuccess = { transcribedText ->
-                        if (transcribedText.isBlank()) {
+                    onSuccess = { response ->
+                        val applied = applyVoiceAnswer(questionId, response)
+                        if (!applied) {
                             recordingErrorResId = R.string.triage_form_symptom_transcription_failed_message
-                            return@fold
                         }
-
-                        symptomDescriptionText += transcribedText
                     },
                     onFailure = {
                         recordingErrorResId = R.string.triage_form_symptom_transcription_failed_message
@@ -317,6 +327,128 @@ class TriageFormViewModel(
                 isTranscribing = false
                 //audioFile.delete()
             }
+        }
+    }
+
+    private fun applyVoiceAnswer(questionId: Int, response: SpeechToTextV2Response): Boolean {
+        return when (questionId) {
+            TriageQuestionId.GENDER.value -> {
+                val optionId = when (response.gender) {
+                    0 -> "female"
+                    1 -> "male"
+                    2 -> "prefer_not_to_say"
+                    else -> null
+                }
+                if (optionId != null) {
+                    selectedGenderOptionId = optionId
+                    true
+                } else {
+                    false
+                }
+            }
+
+            TriageQuestionId.AGE.value -> {
+                val optionId = when (response.ageOver65) {
+                    0 -> "older_adult_or_younger"
+                    1 -> "over_older_adult"
+                    2 -> "prefer_not_to_say"
+                    else -> null
+                }
+                if (optionId != null) {
+                    selectedAgeOptionId = optionId
+                    true
+                } else {
+                    false
+                }
+            }
+
+            TriageQuestionId.SYMPTOM.value -> {
+                val text = response.symptoms
+                if (!text.isNullOrBlank()) {
+                    symptomDescriptionText = text
+                    clearExtractSymptomsError()
+                    hideSymptomErrorIfExists()
+                    true
+                } else {
+                    false
+                }
+            }
+
+            TriageQuestionId.SEVERITY.value -> {
+                val optionId = when (response.symptomSeverity) {
+                    1 -> "mild"
+                    2 -> "low"
+                    3 -> "moderate"
+                    4 -> "high"
+                    5 -> "severe"
+                    else -> null
+                }
+                if (optionId != null) {
+                    selectedSeverityOptionId = optionId
+                    true
+                } else {
+                    false
+                }
+            }
+
+            TriageQuestionId.DURATION.value -> {
+                // API: 0 = less than a day, 1 = more than a day, 2 = unknown
+                val optionId = when (response.symptomsDuration) {
+                    0 -> "less_than_day"
+                    1 -> "more_than_day"
+                    2 -> "unknown"
+                    else -> null
+                }
+                if (optionId != null) {
+                    selectedDurationOptionId = optionId
+                    true
+                } else {
+                    false
+                }
+            }
+
+            TriageQuestionId.CHRONIC_CONDITIONS.value -> {
+                val conditions = response.chronicConditions
+                if (conditions != null) {
+                    // Replace the current selection with whatever the voice detected.
+                    selectedChronicConditionsOptionIds = conditions.toSet()
+                    true
+                } else {
+                    false
+                }
+            }
+
+            TriageQuestionId.SYMPTOMS_BEFORE.value -> {
+                val optionId = when (response.hadSymptomsBefore) {
+                    0 -> "no"
+                    1 -> "yes"
+                    2 -> "unknown"
+                    else -> null
+                }
+                if (optionId != null) {
+                    selectedSymptomsBeforeOptionId = optionId
+                    true
+                } else {
+                    false
+                }
+            }
+
+            TriageQuestionId.SICK_CONTACT_HISTORY.value -> {
+                val optionId = when (response.hadContact) {
+                    0 -> "no"
+                    1 -> "yes"
+                    2 -> "unknown"
+                    else -> null
+                }
+                if (optionId != null) {
+                    selectedSickContactHistoryOptionId = optionId
+                    true
+                } else {
+                    false
+                }
+            }
+
+            else -> false
         }
     }
 
