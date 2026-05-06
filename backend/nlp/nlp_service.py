@@ -266,13 +266,98 @@ def extract_symptoms(request: ExtractSymptomsRequest) -> ExtractSymptomsResponse
         symptoms=all_symptoms,
     )
 
+def _parse_gender(transcript: str) -> dict | None:
+    if "female" in transcript:
+        return {"gender": "0"}
+    if "male" in transcript or "mail" in transcript:
+        return {"gender": "1"}
+    return None
+
+
+def _parse_age(transcript: str) -> dict | None:
+    has_65 = "65" in transcript or "sixty-five" in transcript or "sixty five" in transcript
+    if not has_65:
+        return None
+    over_words = {"older", "over", "above", "more", "greater"}
+    under_words = {"younger", "under", "below", "less", "fewer"}
+    if any(w in transcript for w in over_words):
+        return {"age_is_over_65": "1"}
+    if any(w in transcript for w in under_words):
+        return {"age_is_over_65": "0"}
+    return None
+
+def _parse_severity(transript: str) -> dict | None:
+    if "mild" in transript:
+        return {"severity": "1"}
+    if "low" in transript:
+        return {"severity": "2"}
+    if "moderate" in transript:
+        return {"severity": "3"}
+    if "high" in transript:
+        return {"severity": "4"}
+    if "severe" in transript:
+        return {"severity": "5"}
+    return None
+
+def _parse_duration(transcript: str) -> dict | None:
+    has_day = "a day" in transcript
+    if not has_day:
+        return None
+    over_words = {"longer", "over", "more", "greater"}
+    under_words = {"shorter", "under", "less", "fewer"}
+    if any(w in transcript for w in over_words):
+        return {"duration": "1"}
+    if any(w in transcript for w in under_words):
+        return {"duration": "0"}
+    return None
+
+def _parse_had_symptoms_before(transcript: str) -> dict | None:
+    if "yes" in transcript:
+        return {"had_symptoms_before": "1"}
+    if "no" in transcript:
+        return {"had_symptoms_before": "0"}
+    return None
+
+def _parse_had_contact(transcript: str) -> dict | None:
+    if "yes" in transcript:
+        return {"had_contact": "1"}
+    if "no" in transcript:
+        return {"had_contact": "0"}
+    return None
+
+_QUESTION_PARSERS = {
+    1: _parse_gender,
+    2: _parse_age,
+    3: _parse_severity,
+    4: _parse_duration,
+    5: _parse_had_symptoms_before,
+    6: _parse_had_contact,
+}
+
+def process_audio_response(file_obj, language: int = 1, question_id: int = None) -> dict | None:
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
+        shutil.copyfileobj(file_obj, tmp)
+        tmp_path = tmp.name
+
+    try:
+        transcript = convert_wav_to_text(tmp_path, language=language)
+        transcript = transcript.lower().strip()
+        parser = _QUESTION_PARSERS.get(question_id)
+        if parser:
+            return parser(transcript)
+        return None
+    finally:
+        os.unlink(tmp_path)
 
 def main() -> None:
     # wav_input = "/Users/jasperl/Downloads/test1.wav"
     # symptom_description = convert_wav_to_text(wav_input)
-    symptom_description = "mil wurlurl"
-    symptoms_extracted = process_symptom_description(symptom_description, language=0)
-    print(json.dumps(symptoms_extracted))
+    # symptom_description = "mil wurlurl"
+    # symptoms_extracted = process_symptom_description(symptom_description, language=0)
+    # print(json.dumps(symptoms_extracted))
+    
+    test = process_audio_response(open("/Users/jasperl/Downloads/audio/under65.wav", "rb"), language=1, question_id=2)
+    print(test)
 
 
 if __name__ == "__main__":
