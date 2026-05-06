@@ -1,8 +1,9 @@
 <resources>
-    <string name="app_name">(WMT) Smart Adaptive Clinical Assistant</string>
+    <string name="app_name">Smart Adaptive Clinical Assistant</string>
 
     <string name="app_bar_button_back_content_description">Kujarra</string>
 
+    <string name="language_title">Smart Adaptive Clinical Assistant</string>
     <string name="language_subtitle">Kaya!</string>
     <string name="language_option_english">Ingkirriji</string>
     <string name="language_option_walmajarri">Walmajarri</string>
@@ -35,7 +36,7 @@
     <string name="triage_form_symptom_describe_title">Karlarra Yirrarni-rna</string>
     <string name="triage_form_symptom_details_placeholder">Yimi-rna...</string>
     <string name="triage_form_symptom_hold_to_record">Jijirr-ma Yirrarni-ku</string>
-    <string name="triage_form_symptom_recording">Yirrarni-rna...</string>
+    <string name="triage_form_symptom_recording">Yirrarni-rna…</string>
     <string name="triage_form_symptom_transcribing">Yimi Yirrarni-rna...</string>
     <string name="triage_form_symptom_mic_label">Yimi-rna</string>
 
