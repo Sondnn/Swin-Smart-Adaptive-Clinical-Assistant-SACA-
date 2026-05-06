@@ -58,6 +58,7 @@ import com.saca.smartadaptiveclinicalassistant.presentation.components.form.Reco
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown20
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -197,6 +198,7 @@ fun SymptomQuestionScreen(
                         return@RecordButton
                     }
 
+                    delay(200)
                     val stopResult = voiceRecorder.stopRecording()
                     stopResult.fold(
                         onSuccess = { audioFile ->

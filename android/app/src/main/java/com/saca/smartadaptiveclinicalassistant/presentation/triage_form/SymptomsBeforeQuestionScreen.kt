@@ -9,14 +9,14 @@ import com.saca.smartadaptiveclinicalassistant.presentation.components.form.Form
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
-fun AgeQuestionScreen(
+fun SymptomsBeforeQuestionScreen(
     onBackClick: () -> Unit,
     onCancelClick: () -> Unit,
     onContinueClick: () -> Unit,
     modifier: Modifier = Modifier,
     triageFormViewModel: TriageFormViewModel = koinViewModel(),
 ) {
-    val options = TriageFormViewModel.AgeOption.entries.map {
+    val options = TriageFormViewModel.SymptomsBeforeOption.entries.map {
         FormQuestionOption(
             id = it.value,
             labelResourceId = it.labelRes
@@ -25,16 +25,16 @@ fun AgeQuestionScreen(
 
     FormQuestionScaffold(
         appBarTitle = stringResource(R.string.triage_form_action_bar_title),
-        questionTitle = stringResource(R.string.triage_form_age_title),
+        questionTitle = stringResource(R.string.triage_form_symptoms_before_title),
         backButtonText = stringResource(R.string.triage_form_back_button),
         continueButtonText = stringResource(R.string.triage_form_continue_button),
         backContentDescription = stringResource(R.string.app_bar_button_back_content_description),
         options = options,
-        selectedOptionId = triageFormViewModel.selectedAgeOptionId,
-        currentStep = 2,
+        selectedOptionId = triageFormViewModel.selectedSymptomsBeforeOptionId,
+        currentStep = 6,
         totalSteps = 8,
         onBackClick = onBackClick,
-        onOptionClick = triageFormViewModel::onAgeOptionSelected,
+        onOptionClick = triageFormViewModel::onSymptomsBeforeOptionSelected,
         onCancelClick = onCancelClick,
         onContinueClick = onContinueClick,
         modifier = modifier,

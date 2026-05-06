@@ -63,7 +63,8 @@ fun FormQuestionScaffold(
     continueButtonStyle: AppButtonStyle = AppButtonStyle.Brown,
     backButtonText: String,
     options: List<FormQuestionOption>,
-    selectedOptionId: String?,
+    selectedOptionId: String? = null,
+    selectedOptionIds: Set<String>? = emptySet(),
     currentStep: Int,
     totalSteps: Int,
     onCancelClick: () -> Unit = {},
@@ -101,6 +102,7 @@ fun FormQuestionScaffold(
             QuestionOptions(
                 options = options,
                 selectedOptionId = selectedOptionId,
+                selectedOptionIds = selectedOptionIds,
                 onOptionClick = onOptionClick
             )
 
@@ -112,7 +114,7 @@ fun FormQuestionScaffold(
                 continueButtonStyle = continueButtonStyle,
                 currentStep = currentStep,
                 totalSteps = totalSteps,
-                canContinue = selectedOptionId != null,
+                canContinue = selectedOptionId != null || !selectedOptionIds.isNullOrEmpty(),
                 onBackClick = onBackClick,
                 onContinueClick = onContinueClick,
             )
@@ -158,6 +160,7 @@ fun QuestionTextInput(
 private fun QuestionOptions(
     options: List<FormQuestionOption>,
     selectedOptionId: String?,
+    selectedOptionIds: Set<String>?,
     onOptionClick: (String) -> Unit,
 ) {
     Column(
@@ -165,9 +168,11 @@ private fun QuestionOptions(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         for (option in options) {
+            val isSelected = option.id == selectedOptionId || selectedOptionIds?.contains(option.id) == true
+
             QuestionOptionButton(
                 text = stringResource(option.labelResourceId),
-                selected = option.id == selectedOptionId,
+                selected = isSelected,
                 onClick = {
                     onOptionClick(option.id)
                 }

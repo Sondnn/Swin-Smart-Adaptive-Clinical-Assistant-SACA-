@@ -13,7 +13,7 @@ import org.koin.androidx.compose.koinViewModel
 fun DurationQuestionScreen(
     onBackClick: () -> Unit,
     onCancelClick: () -> Unit,
-    onAssessClick: () -> Unit,
+    onContinueClick: () -> Unit,
     modifier: Modifier = Modifier,
     triageFormViewModel: TriageFormViewModel = koinViewModel(),
 ) {
@@ -28,17 +28,16 @@ fun DurationQuestionScreen(
         appBarTitle = stringResource(R.string.triage_form_action_bar_title),
         questionTitle = stringResource(R.string.triage_form_duration_title),
         backButtonText = stringResource(R.string.triage_form_back_button),
-        continueButtonText = stringResource(R.string.triage_form_assess_button),
-        continueButtonStyle = AppButtonStyle.Orange,
+        continueButtonText = stringResource(R.string.triage_form_continue_button),
         backContentDescription = stringResource(R.string.app_bar_button_back_content_description),
         options = options,
         selectedOptionId = triageFormViewModel.selectedDurationOptionId,
         currentStep = 5,
-        totalSteps = 5,
+        totalSteps = 8,
         onBackClick = onBackClick,
         onCancelClick = onCancelClick,
         onOptionClick = triageFormViewModel::onDurationOptionSelected,
-        onContinueClick = onAssessClick,
+        onContinueClick = onContinueClick,
         modifier = modifier,
     )
 }

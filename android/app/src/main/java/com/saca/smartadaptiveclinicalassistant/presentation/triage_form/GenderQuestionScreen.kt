@@ -32,7 +32,7 @@ fun GenderQuestionScreen(
         options = options,
         selectedOptionId = triageFormViewModel.selectedGenderOptionId,
         currentStep = 1,
-        totalSteps = 5,
+        totalSteps = 8,
         onBackClick = onBackClick,
         onCancelClick = onCancelClick,
         onOptionClick = triageFormViewModel::onGenderOptionSelected,

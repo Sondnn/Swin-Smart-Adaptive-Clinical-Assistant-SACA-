@@ -5,9 +5,7 @@ import android.content.Context
 import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
-import android.util.Log
 import java.io.File
-import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.io.RandomAccessFile
 import java.nio.ByteBuffer
@@ -20,28 +18,21 @@ class VoiceRecorder {
     @Volatile
     private var isRecording = false
     private var activeOutputFile: File? = null
-    private val sampleRate = 40000
+    private val sampleRate = 16000
     private val channelConfig = AudioFormat.CHANNEL_IN_MONO
-    private val audioFormat = AudioFormat.ENCODING_PCM_32BIT
-
+    private val audioFormat = AudioFormat.ENCODING_PCM_16BIT
     private val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
-
 
     @SuppressLint("MissingPermission")
     fun startRecording(context: Context): Result<Unit> {
-        if (isRecording) {
-            return Result.failure(IllegalStateException("Recording is already in progress"))
-        }
+        if (isRecording) return Result.failure(IllegalStateException("Already recording"))
 
-        val outputFile = File(
-            context.cacheDir,
-            "symptom_recording_${System.currentTimeMillis()}.wav"
-        )
+        val outputFile = File(context.cacheDir, "recording_${System.currentTimeMillis()}.wav")
         activeOutputFile = outputFile
 
         return try {
             audioRecord = AudioRecord(
-                MediaRecorder.AudioSource.VOICE_RECOGNITION,
+                MediaRecorder.AudioSource.MIC,
                 sampleRate,
                 channelConfig,
                 audioFormat,
@@ -49,7 +40,7 @@ class VoiceRecorder {
             )
 
             if (audioRecord?.state != AudioRecord.STATE_INITIALIZED) {
-                return Result.failure(Exception("AudioRecord failed to initialize"))
+                return Result.failure(Exception("Failed to initialize recorder"))
             }
 
             audioRecord?.startRecording()
@@ -58,10 +49,8 @@ class VoiceRecorder {
             recordingThread = thread(start = true) {
                 writeAudioDataToFile(outputFile)
             }
-
             Result.success(Unit)
         } catch (e: Exception) {
-            stopRecording()
             Result.failure(e)
         }
     }
@@ -80,18 +69,14 @@ class VoiceRecorder {
         }
 
         outputStream.close()
-
         updateWavHeader(file)
-
-        verifyFileHeader(file)
     }
 
     private fun updateWavHeader(file: File) {
         val raf = RandomAccessFile(file, "rw")
         val totalAudioLen = file.length() - 44
         val totalDataLen = totalAudioLen + 36
-        val bytesPerSample = 4
-        val byteRate = sampleRate * bytesPerSample
+        val byteRate = sampleRate * 2 // 16-bit Mono = 2 bytes per sample
 
         val header = ByteArray(44)
         val buffer = ByteBuffer.wrap(header).order(ByteOrder.LITTLE_ENDIAN)
@@ -100,13 +85,13 @@ class VoiceRecorder {
         buffer.putInt(totalDataLen.toInt())
         buffer.put("WAVE".toByteArray())
         buffer.put("fmt ".toByteArray())
-        buffer.putInt(16)
-        buffer.putShort(1.toShort())
-        buffer.putShort(1.toShort())
+        buffer.putInt(16) // Size of format chunk
+        buffer.putShort(1.toShort()) // PCM format
+        buffer.putShort(1.toShort()) // Mono
         buffer.putInt(sampleRate)
         buffer.putInt(byteRate)
-        buffer.putShort(bytesPerSample.toShort())
-        buffer.putShort(32.toShort())
+        buffer.putShort(2.toShort()) // Block align (1 channel * 2 bytes)
+        buffer.putShort(16.toShort()) // 16 bits per sample
         buffer.put("data".toByteArray())
         buffer.putInt(totalAudioLen.toInt())
 
@@ -115,35 +100,13 @@ class VoiceRecorder {
         raf.close()
     }
 
-    private fun verifyFileHeader(file: File) {
-        try {
-            val inputStream = FileInputStream(file)
-            val header = ByteArray(44)
-            inputStream.read(header)
-            inputStream.close()
-
-            // Clean up the header to show only letters/numbers
-            val headerText = String(header.filter { it in 32..126 }.toByteArray())
-
-            Log.d("VoiceRecorder", "--- ANDROID SIDE CONFIRMATION ---")
-            Log.d("VoiceRecorder", "1. Path: ${file.absolutePath}")
-            Log.d("VoiceRecorder", "2. Size: ${file.length()} bytes")
-            Log.d("VoiceRecorder", "3. Header Content: $headerText")
-            Log.d("VoiceRecorder", "--------------------------------")
-        } catch (e: Exception) {
-            Log.e("VoiceRecorder", "Could not verify header: ${e.message}")
-        }
-    }
-
     fun stopRecording(): Result<File> {
         isRecording = false
         recordingThread?.join()
         recordingThread = null
 
         audioRecord?.apply {
-            if (state == AudioRecord.STATE_INITIALIZED) {
-                stop()
-            }
+            if (state == AudioRecord.STATE_INITIALIZED) stop()
             release()
         }
         audioRecord = null
@@ -152,13 +115,15 @@ class VoiceRecorder {
         return if (file != null && file.exists()) {
             Result.success(file)
         } else {
-            Result.failure(IllegalStateException("Recorded WAV file missing"))
+            Result.failure(IllegalStateException("File missing"))
         }
     }
 
     fun cancelRecording() {
-        stopRecording()
+        isRecording = false
+        recordingThread?.join()
         activeOutputFile?.delete()
-        activeOutputFile = null
+        audioRecord?.release()
+        audioRecord = null
     }
 }

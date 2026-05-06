@@ -22,7 +22,10 @@ data class AnalysisSymptomsRequest(
     val gender: Int,
     @SerializedName("age_over_65") val ageIsOver65: Int,
     @SerializedName("symptom_severity") val symptomsSeverity: Int,
-    @SerializedName("symptoms_duration") val symptomsDuration: Int?,
+    @SerializedName("symptoms_duration") val symptomsDuration: Int,
+    @SerializedName("chronic_conditions") val chronicConditions: List<String>,
+    @SerializedName("had_symptoms_before") val hadSymptomsBefore: Int,
+    @SerializedName("had_contact") val hadSickContact: Int?,
 )
 
 data class AnalysisSymptomsResponse(

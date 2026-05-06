@@ -4,7 +4,6 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saca.smartadaptiveclinicalassistant.R
@@ -33,7 +32,8 @@ class TriageFormViewModel(
         val labelRes: Int
     ) {
         OVER_OLDER_ADULT("over_older_adult", R.string.triage_form_age_option_over_older_adult),
-        OLDER_ADULT_OR_YOUNGER("older_adult_or_younger", R.string.triage_form_age_option_older_adult_or_younger)
+        OLDER_ADULT_OR_YOUNGER("older_adult_or_younger", R.string.triage_form_age_option_older_adult_or_younger),
+        PREFER_NOT_TO_SAY("prefer_not_to_say", R.string.triage_form_gender_option_prefer_not_to_say)
     }
 
     enum class SeverityOption(
@@ -75,6 +75,35 @@ class TriageFormViewModel(
         BACK_PAIN("back_pain", R.string.triage_form_symptom_back_pain, R.drawable.ic_symptom_back_pain),
     }
 
+    enum class SymptomsBeforeOption(
+        val value: String,
+        val labelRes: Int
+    ) {
+        YES("yes", R.string.triage_form_symptoms_before_option_yes),
+        NO("no", R.string.triage_form_symptoms_before_option_no),
+        UNKNOWN("unknown", R.string.triage_form_symptoms_before_option_unknown),
+    }
+
+    enum class ChronicConditionsOption(
+        val value: String,
+        val labelRes: Int
+    ) {
+        HYPERTENSION("hypertension", R.string.triage_form_chronic_conditions_option_hypertension),
+        TYPE_2_DIABETES("type2_diabetes", R.string.triage_form_chronic_conditions_option_type2_diabetes),
+        HEART_DISEASE("heart_disease", R.string.triage_form_chronic_conditions_option_heart_disease),
+        ASTHMA_COPD("asthma_copd", R.string.triage_form_chronic_conditions_option_asthma_copds),
+        DEPRESSION_ANXIETY("depression_anxiety", R.string.triage_form_chronic_conditions_option_depression_anxiety),
+    }
+
+    enum class SickContactHistoryOption(
+        val value: String,
+        val labelRes: Int
+    ) {
+        YES("yes", R.string.triage_form_sick_contact_history_option_yes),
+        NO("no", R.string.triage_form_sick_contact_history_option_no),
+        UNKNOWN("unknown", R.string.triage_form_sick_contact_history_option_unknown),
+    }
+
     var selectedGenderOptionId: String? by mutableStateOf(null)
         private set
 
@@ -110,6 +139,15 @@ class TriageFormViewModel(
         private set
 
     var selectedDurationOptionId: String? by mutableStateOf(null)
+        private set
+
+    var selectedSymptomsBeforeOptionId: String? by mutableStateOf(null)
+        private set
+
+    var selectedChronicConditionsOptionIds: Set<String> by mutableStateOf(emptySet())
+        private set
+
+    var selectedSickContactHistoryOptionId: String? by mutableStateOf(null)
         private set
 
     fun onGenderOptionSelected(optionId: String) {
@@ -170,6 +208,22 @@ class TriageFormViewModel(
         selectedDurationOptionId = optionId
     }
 
+    fun onSymptomsBeforeOptionSelected(optionId: String) {
+        selectedSymptomsBeforeOptionId = optionId
+    }
+
+    fun onSickContactHistoryOptionSelected(optionId: String) {
+        selectedSickContactHistoryOptionId = optionId
+    }
+
+    fun onChronicConditionsOptionSelected(optionId: String) {
+        selectedChronicConditionsOptionIds = if (selectedChronicConditionsOptionIds.contains(optionId)) {
+            selectedChronicConditionsOptionIds - optionId
+        } else {
+            selectedChronicConditionsOptionIds + optionId
+        }
+    }
+
     private fun getLanguageCode(languageTag: String): Int {
         return if (languageTag == LANGUAGE_TAG_WALMAJARRI) 0 else 1
     }
@@ -178,12 +232,16 @@ class TriageFormViewModel(
         return when (selectedGenderOptionId) {
             "male" -> 1
             "female" -> 0
-            else -> 0
+            else -> 2
         }
     }
 
-    private fun getAgeCode(): Int {
-        return if (selectedAgeOptionId == "over_older_adult") 1 else 0
+    private fun getAgeOver65Code(): Int {
+        return when (selectedAgeOptionId) {
+            "older_adult_or_younger" -> 0
+            "over_older_adult" -> 1
+            else -> 2
+        }
     }
 
     private fun getSeverityCode(): Int {
@@ -197,12 +255,31 @@ class TriageFormViewModel(
         }
     }
 
-    private fun getDurationCode(): Int? {
+    private fun getDurationCode(): Int {
         return when (selectedDurationOptionId) {
             "less_than_day" -> 0
             "more_than_day" -> 1
-            "unknown" -> null
-            else -> null
+            "unknown" -> 2
+            else -> 2
+        }
+    }
+
+
+    private fun getSymptomsBeforeCode(): Int {
+        return when (selectedSymptomsBeforeOptionId) {
+            "no" -> 0
+            "yes" -> 1
+            "unknown" -> 2
+            else -> 2
+        }
+    }
+
+    private fun getHadSickContactCode(): Int {
+        return when (selectedSickContactHistoryOptionId) {
+            "no" -> 0
+            "yes" -> 1
+            "unknown" -> 2
+            else -> 2
         }
     }
 
@@ -299,9 +376,12 @@ class TriageFormViewModel(
             language = getLanguageCode(languageTag),
             symptoms = symptoms,
             gender = getGenderCode(),
-            ageIsOver65 = getAgeCode(),
+            ageIsOver65 = getAgeOver65Code(),
             severity = getSeverityCode(),
-            duration = getDurationCode()
+            duration = getDurationCode(),
+            chronicConditions = selectedChronicConditionsOptionIds.toList(),
+            hadSymptomsBefore = getSymptomsBeforeCode(),
+            hadSickContact = getHadSickContactCode(),
         )
     }
 
@@ -311,6 +391,9 @@ class TriageFormViewModel(
         selectedSymptomIds = emptySet()
         selectedSeverityOptionId = null
         selectedDurationOptionId = null
+        selectedChronicConditionsOptionIds = emptySet()
+        selectedSickContactHistoryOptionId = null
+        selectedSymptomsBeforeOptionId = null
         symptomDescriptionText = ""
         isSymptomOptionsExpanded = false
         isTranscribing = false
