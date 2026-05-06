@@ -75,9 +75,11 @@
     <string name="triage_form_sick_contact_history_option_no">No</string>
     <string name="triage_form_sick_contact_history_option_unknown">Unknown</string>
     <string name="triage_form_chronic_conditions_history_title">Do you have any chronic conditions?</string>
-    <string name="triage_form_chronic_conditions_option_mental_conditions">Mental Conditions</string>
-    <string name="triage_form_chronic_conditions_option_back_problems">Back Problems</string>
-    <string name="triage_form_chronic_conditions_option_diabetes">Diabetes</string>
+    <string name="triage_form_chronic_conditions_option_hypertension">Hypertension</string>
+    <string name="triage_form_chronic_conditions_option_type2_diabetes">Type 2 Diabetes</string>
+    <string name="triage_form_chronic_conditions_option_heart_disease">Heart Disease</string>
+    <string name="triage_form_chronic_conditions_option_asthma_copds">Asthma COPDS</string>
+    <string name="triage_form_chronic_conditions_option_depression_anxiety">Depression Anxiety</string>
     <string name="triage_result_analyzing">Analyzing symptoms</string>
     <string name="triage_result_title">Triage Result</string>
     <string name="triage_result_severity_label">Severity Level</string>

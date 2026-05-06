@@ -17,7 +17,10 @@ class AnalyzeSymptomsUseCase(
             gender = form.gender,
             ageIsOver65 = form.ageIsOver65,
             symptomsDuration = form.duration,
-            symptomsSeverity = form.severity
+            symptomsSeverity = form.severity,
+            chronicConditions = form.chronicConditions,
+            hadSymptomsBefore = form.hadSymptomsBefore,
+            hadSickContact = form.hadSickContact
         )
 
         return triageRepository.analysisSymptoms(request).map { response ->

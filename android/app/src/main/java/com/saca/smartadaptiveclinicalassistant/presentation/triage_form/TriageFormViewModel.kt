@@ -4,7 +4,6 @@ import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saca.smartadaptiveclinicalassistant.R
@@ -33,7 +32,8 @@ class TriageFormViewModel(
         val labelRes: Int
     ) {
         OVER_OLDER_ADULT("over_older_adult", R.string.triage_form_age_option_over_older_adult),
-        OLDER_ADULT_OR_YOUNGER("older_adult_or_younger", R.string.triage_form_age_option_older_adult_or_younger)
+        OLDER_ADULT_OR_YOUNGER("older_adult_or_younger", R.string.triage_form_age_option_older_adult_or_younger),
+        PREFER_NOT_TO_SAY("prefer_not_to_say", R.string.triage_form_gender_option_prefer_not_to_say)
     }
 
     enum class SeverityOption(
@@ -88,9 +88,11 @@ class TriageFormViewModel(
         val value: String,
         val labelRes: Int
     ) {
-        MENTAL_CONDITIONS("mental_and_behavioural_conditions", R.string.triage_form_chronic_conditions_option_mental_conditions),
-        BACK_PROBLEMS("back_problems", R.string.triage_form_chronic_conditions_option_back_problems),
-        DIABETES("diabetes", R.string.triage_form_chronic_conditions_option_diabetes),
+        HYPERTENSION("hypertension", R.string.triage_form_chronic_conditions_option_hypertension),
+        TYPE_2_DIABETES("type2_diabetes", R.string.triage_form_chronic_conditions_option_type2_diabetes),
+        HEART_DISEASE("heart_disease", R.string.triage_form_chronic_conditions_option_heart_disease),
+        ASTHMA_COPD("asthma_copd", R.string.triage_form_chronic_conditions_option_asthma_copds),
+        DEPRESSION_ANXIETY("depression_anxiety", R.string.triage_form_chronic_conditions_option_depression_anxiety),
     }
 
     enum class SickContactHistoryOption(
@@ -230,7 +232,7 @@ class TriageFormViewModel(
         return when (selectedGenderOptionId) {
             "male" -> 1
             "female" -> 0
-            else -> 0
+            else -> 2
         }
     }
 
@@ -249,12 +251,31 @@ class TriageFormViewModel(
         }
     }
 
-    private fun getDurationCode(): Int? {
+    private fun getDurationCode(): Int {
         return when (selectedDurationOptionId) {
             "less_than_day" -> 0
             "more_than_day" -> 1
-            "unknown" -> null
-            else -> null
+            "unknown" -> 2
+            else -> 2
+        }
+    }
+
+
+    private fun getSymptomsBeforeCode(): Int {
+        return when (selectedSymptomsBeforeOptionId) {
+            "no" -> 0
+            "yes" -> 1
+            "unknown" -> 2
+            else -> 2
+        }
+    }
+
+    private fun getHadSickContactCode(): Int {
+        return when (selectedSickContactHistoryOptionId) {
+            "no" -> 0
+            "yes" -> 1
+            "unknown" -> 2
+            else -> 2
         }
     }
 
@@ -353,7 +374,10 @@ class TriageFormViewModel(
             gender = getGenderCode(),
             ageIsOver65 = getAgeCode(),
             severity = getSeverityCode(),
-            duration = getDurationCode()
+            duration = getDurationCode(),
+            chronicConditions = selectedChronicConditionsOptionIds.toList(),
+            hadSymptomsBefore = getSymptomsBeforeCode(),
+            hadSickContact = getHadSickContactCode(),
         )
     }
 

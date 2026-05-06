@@ -1,5 +1,6 @@
 package com.saca.smartadaptiveclinicalassistant.presentation.triage_result
 
+import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -35,6 +36,8 @@ fun LoadingScreen(
     triageResultViewModel: TriageResultViewModel = koinViewModel()
 ) {
     val uiState = triageResultViewModel.uiState
+
+    Log.d("formAnswers", formAnswers.toString())
 
     LaunchedEffect(formAnswers) {
         triageResultViewModel.analyzeSymptoms(formAnswers)
