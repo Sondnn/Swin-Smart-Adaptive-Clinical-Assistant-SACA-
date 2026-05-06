@@ -55,7 +55,7 @@
     <string name="triage_form_symptom_headache">Headache</string>
     <string name="triage_form_symptom_joint_pain">Joint Pain</string>
     <string name="triage_form_symptom_abdominal_pain">Abdominal Pain</string>
-    <string name="triage_form_symptom_back_pain">Body Pain</string>
+    <string name="triage_form_symptom_back_pain">Back Pain</string>
     <string name="triage_form_severity_title">Severity of Symptoms</string>
     <string name="triage_form_severity_option_mild">Mild</string>
     <string name="triage_form_severity_option_low">Low</string>
