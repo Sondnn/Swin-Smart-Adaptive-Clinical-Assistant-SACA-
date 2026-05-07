@@ -26,12 +26,37 @@ namespace SACA.WindowsApp.Controls
 
         public string LastRecordingPath => _recordingPath;
 
+        public static readonly DependencyProperty QuestionIdProperty = DependencyProperty.Register(
+            nameof(QuestionId),
+            typeof(int),
+            typeof(VoiceRecorderControl),
+            new PropertyMetadata(0));
+
+        public static readonly DependencyProperty LabelProperty = DependencyProperty.Register(
+            nameof(Label),
+            typeof(string),
+            typeof(VoiceRecorderControl),
+            new PropertyMetadata("Voice Recording", OnLabelChanged));
+
+        public int QuestionId
+        {
+            get => (int)GetValue(QuestionIdProperty);
+            set => SetValue(QuestionIdProperty, value);
+        }
+
+        public string Label
+        {
+            get => (string)GetValue(LabelProperty);
+            set => SetValue(LabelProperty, value);
+        }
+
         [DllImport("winmm.dll", CharSet = CharSet.Auto)]
         private static extern int mciSendString(string command, StringBuilder? returnValue, int returnLength, IntPtr winHandle);
 
         public VoiceRecorderControl()
         {
             InitializeComponent();
+            TitleTextBlock.Text = Label;
         }
 
         public void Configure(Func<int> getLanguageCode)
@@ -130,32 +155,49 @@ namespace SACA.WindowsApp.Controls
 
         private async Task ConvertRecordingToTextAsync(string audioFilePath)
         {
+            if (QuestionId <= 0)
+            {
+                RecordingStatusTextBlock.Text = "Question is not configured";
+                MessageBox.Show("This voice recorder does not have a question ID configured.");
+                return;
+            }
+
             _isTranscribing = true;
             RecordButton.IsEnabled = false;
-            RecordingStatusTextBlock.Text = "Converting speech to text...";
+            RecordingStatusTextBlock.Text = "Processing voice answer...";
 
             try
             {
-                string transcript = await _triageApiService.ConvertSpeechToTextAsync(audioFilePath, _getLanguageCode());
+                SpeechToTextPageResult result = await _triageApiService.ConvertSpeechToTextPageAsync(audioFilePath, _getLanguageCode(), QuestionId);
 
-                if (string.IsNullOrWhiteSpace(transcript))
+                if (string.IsNullOrWhiteSpace(result.DisplayText))
                 {
-                    RecordingStatusTextBlock.Text = "No speech text returned";
+                    RecordingStatusTextBlock.Text = "Voice answer was not valid";
                     return;
                 }
 
-                RecordingStatusTextBlock.Text = $"Text: {transcript.Trim()}";
-                TranscriptReceived?.Invoke(this, new VoiceTranscribedEventArgs(transcript.Trim(), audioFilePath));
+                RecordingStatusTextBlock.Text = $"Accepted: {result.DisplayText}";
+                TranscriptReceived?.Invoke(
+                    this,
+                    new VoiceTranscribedEventArgs(result.QuestionId, result.DisplayText, audioFilePath, result.ParsedResponseJson));
             }
             catch (Exception ex)
             {
-                RecordingStatusTextBlock.Text = "Speech-to-text failed";
-                MessageBox.Show($"Could not convert the recording to text: {ex.Message}");
+                RecordingStatusTextBlock.Text = "Voice answer failed";
+                MessageBox.Show($"Could not process the voice answer: {ex.Message}");
             }
             finally
             {
                 _isTranscribing = false;
                 RecordButton.IsEnabled = true;
+            }
+        }
+
+        private static void OnLabelChanged(DependencyObject dependencyObject, DependencyPropertyChangedEventArgs e)
+        {
+            if (dependencyObject is VoiceRecorderControl control && control.TitleTextBlock != null)
+            {
+                control.TitleTextBlock.Text = e.NewValue?.ToString() ?? "Voice Recording";
             }
         }
 

@@ -1,6 +1,7 @@
 using System;
 using System.Windows;
 using System.Windows.Controls;
+using SACA.WindowsApp.Services;
 
 namespace SACA.WindowsApp.Pages
 {
@@ -10,6 +11,7 @@ namespace SACA.WindowsApp.Pages
     public partial class SickContactPage : UserControl
     {
         private readonly MainWindow _mainWindow;
+        private string _recordedValue = "";
 
         public SickContactPage(MainWindow mainWindow)
         {
@@ -30,7 +32,12 @@ namespace SACA.WindowsApp.Pages
 
             if (string.IsNullOrWhiteSpace(selectedValue))
             {
-                MessageBox.Show("Please select whether you have been in contact with someone sick recently.");
+                selectedValue = _recordedValue;
+            }
+
+            if (string.IsNullOrWhiteSpace(selectedValue))
+            {
+                MessageBox.Show("Please select whether you have been in contact with someone sick recently, or answer using voice.");
                 return;
             }
 
@@ -40,16 +47,18 @@ namespace SACA.WindowsApp.Pages
 
         private void VoiceRecorder_TranscriptReceived(object? sender, Controls.VoiceTranscribedEventArgs e)
         {
+            _recordedValue = ParsedResponseReader.ReadSingleValue(e.ParsedResponseJson);
+            SelectRadioValue(_recordedValue);
             _mainWindow.CurrentRequest.AudioRecordingPath = e.RecordingPath;
             _mainWindow.CurrentRequest.AudioRecordingPaths.Add(e.RecordingPath);
-            _mainWindow.CurrentRequest.VoiceTranscripts.Add($"Sick contact: {e.Transcript}");
+            _mainWindow.CurrentRequest.VoiceTranscripts.Add($"Question {e.QuestionId}: {e.Transcript}");
         }
 
         private int GetSpeechToTextLanguageCode()
         {
             return _mainWindow.CurrentRequest.Language.Equals("English", StringComparison.OrdinalIgnoreCase)
                 ? 1
-                : 2;
+                : 0;
         }
 
         private string GetSelectedValue()
@@ -70,6 +79,13 @@ namespace SACA.WindowsApp.Pages
             }
 
             return "";
+        }
+
+        private void SelectRadioValue(string value)
+        {
+            YesRadioButton.IsChecked = value.Contains("yes", StringComparison.OrdinalIgnoreCase);
+            NoRadioButton.IsChecked = value.Contains("no", StringComparison.OrdinalIgnoreCase);
+            UnknownRadioButton.IsChecked = value.Contains("unknown", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

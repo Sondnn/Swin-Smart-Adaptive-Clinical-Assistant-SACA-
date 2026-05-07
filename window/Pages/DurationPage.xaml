@@ -22,7 +22,9 @@
                 <ComboBoxItem Content="Unknown"/>
             </ComboBox>
 
-            <controls:VoiceRecorderControl x:Name="VoiceRecorder"/>
+            <controls:VoiceRecorderControl x:Name="VoiceRecorder"
+                                           QuestionId="6"
+                                           Label="Voice answer for duration"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="Back"

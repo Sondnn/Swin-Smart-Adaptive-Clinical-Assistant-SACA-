@@ -24,7 +24,9 @@
                           Checked="UnknownCheckBox_Checked"/>
             </StackPanel>
 
-            <controls:VoiceRecorderControl x:Name="VoiceRecorder"/>
+            <controls:VoiceRecorderControl x:Name="VoiceRecorder"
+                                           QuestionId="8"
+                                           Label="Voice answer for chronic conditions"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="Back"
