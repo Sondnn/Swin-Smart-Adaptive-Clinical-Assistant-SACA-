@@ -60,6 +60,7 @@ fun FormQuestionScaffold(
     questionTitle: String,
     backContentDescription: String,
     continueButtonText: String,
+    isContinueAlwaysAllowed: Boolean = false,
     continueButtonStyle: AppButtonStyle = AppButtonStyle.Brown,
     backButtonText: String,
     options: List<FormQuestionOption>,
@@ -114,7 +115,7 @@ fun FormQuestionScaffold(
                 continueButtonStyle = continueButtonStyle,
                 currentStep = currentStep,
                 totalSteps = totalSteps,
-                canContinue = selectedOptionId != null || !selectedOptionIds.isNullOrEmpty(),
+                canContinue = selectedOptionId != null || !selectedOptionIds.isNullOrEmpty() || isContinueAlwaysAllowed,
                 onBackClick = onBackClick,
                 onContinueClick = onContinueClick,
             )
