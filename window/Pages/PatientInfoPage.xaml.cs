@@ -27,6 +27,8 @@ namespace SACA.WindowsApp.Pages
         {
             InitializeComponent();
             _mainWindow = mainWindow;
+            VoiceRecorder.Configure(GetSpeechToTextLanguageCode);
+            VoiceRecorder.TranscriptReceived += VoiceRecorder_TranscriptReceived;
         }
 
         private void GenderComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -59,6 +61,20 @@ namespace SACA.WindowsApp.Pages
             _mainWindow.CurrentRequest.AgeGroup = age;
 
             _mainWindow.NavigateToSymptoms();
+        }
+
+        private void VoiceRecorder_TranscriptReceived(object? sender, Controls.VoiceTranscribedEventArgs e)
+        {
+            _mainWindow.CurrentRequest.AudioRecordingPath = e.RecordingPath;
+            _mainWindow.CurrentRequest.AudioRecordingPaths.Add(e.RecordingPath);
+            _mainWindow.CurrentRequest.VoiceTranscripts.Add($"Patient details: {e.Transcript}");
+        }
+
+        private int GetSpeechToTextLanguageCode()
+        {
+            return _mainWindow.CurrentRequest.Language.Equals("English", StringComparison.OrdinalIgnoreCase)
+                ? 1
+                : 2;
         }
 
         private string GetComboBoxValue(ComboBox comboBox)

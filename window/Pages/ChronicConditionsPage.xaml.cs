@@ -8,13 +8,13 @@ using System.Windows.Media;
 namespace SACA.WindowsApp.Pages
 {
     /// <summary>
-    /// Interaction logic for SymptomsPage.xaml
+    /// Interaction logic for ChronicConditionsPage.xaml
     /// </summary>
-    public partial class SymptomsPage : UserControl
+    public partial class ChronicConditionsPage : UserControl
     {
         private readonly MainWindow _mainWindow;
 
-        public SymptomsPage(MainWindow mainWindow)
+        public ChronicConditionsPage(MainWindow mainWindow)
         {
             InitializeComponent();
             _mainWindow = mainWindow;
@@ -24,34 +24,28 @@ namespace SACA.WindowsApp.Pages
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            _mainWindow.NavigateToPatientInfo();
+            _mainWindow.NavigateToSymptomsHistory();
         }
 
         private void Continue_Click(object sender, RoutedEventArgs e)
         {
-            var symptoms = GetSelectedSymptoms();
-            string severity = GetComboBoxValue(SeverityComboBox);
+            List<string> selectedConditions = GetSelectedConditions();
 
-            if (!symptoms.Any() || string.IsNullOrWhiteSpace(severity))
+            if (!selectedConditions.Any())
             {
-                MessageBox.Show("Please select at least one symptom and severity level.");
+                MessageBox.Show("Please select any chronic conditions, or choose Unknown / None.");
                 return;
             }
 
-            _mainWindow.CurrentRequest.Symptoms = symptoms;
-            _mainWindow.CurrentRequest.Severity = severity;
-            _mainWindow.CurrentRequest.Description = DescriptionTextBox.Text.Trim();
-            _mainWindow.CurrentRequest.AudioRecordingPath = VoiceRecorder.LastRecordingPath;
-
-            _mainWindow.NavigateToDuration();
+            _mainWindow.CurrentRequest.ChronicConditions = selectedConditions;
+            _mainWindow.NavigateToSickContact();
         }
 
         private void VoiceRecorder_TranscriptReceived(object? sender, Controls.VoiceTranscribedEventArgs e)
         {
-            DescriptionTextBox.Text = e.Transcript;
             _mainWindow.CurrentRequest.AudioRecordingPath = e.RecordingPath;
             _mainWindow.CurrentRequest.AudioRecordingPaths.Add(e.RecordingPath);
-            _mainWindow.CurrentRequest.VoiceTranscripts.Add($"Describe symptoms: {e.Transcript}");
+            _mainWindow.CurrentRequest.VoiceTranscripts.Add($"Chronic conditions: {e.Transcript}");
         }
 
         private int GetSpeechToTextLanguageCode()
@@ -61,29 +55,38 @@ namespace SACA.WindowsApp.Pages
                 : 2;
         }
 
-        private List<string> GetSelectedSymptoms()
+        private void UnknownCheckBox_Checked(object sender, RoutedEventArgs e)
         {
-            var symptoms = new List<string>();
+            foreach (CheckBox checkBox in FindVisualChildren<CheckBox>(this))
+            {
+                if (checkBox != UnknownCheckBox)
+                {
+                    checkBox.IsChecked = false;
+                }
+            }
+        }
 
-            foreach (var checkBox in FindVisualChildren<CheckBox>(this))
+        private void ConditionCheckBox_Checked(object sender, RoutedEventArgs e)
+        {
+            if (sender != UnknownCheckBox)
+            {
+                UnknownCheckBox.IsChecked = false;
+            }
+        }
+
+        private List<string> GetSelectedConditions()
+        {
+            var conditions = new List<string>();
+
+            foreach (CheckBox checkBox in FindVisualChildren<CheckBox>(this))
             {
                 if (checkBox.IsChecked == true && checkBox.Content != null)
                 {
-                    symptoms.Add(checkBox.Content.ToString() ?? "");
+                    conditions.Add(checkBox.Content.ToString() ?? "");
                 }
             }
 
-            return symptoms;
-        }
-
-        private string GetComboBoxValue(ComboBox comboBox)
-        {
-            if (comboBox.SelectedItem is ComboBoxItem item)
-            {
-                return item.Content?.ToString() ?? "";
-            }
-
-            return "";
+            return conditions;
         }
 
         private static IEnumerable<T> FindVisualChildren<T>(DependencyObject parent)
