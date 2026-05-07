@@ -1,89 +1,124 @@
 <resources>
-    <string name="app_name">(WMT) Smart Adaptive Clinical Assistant</string>
+    <string name="app_name">Smart Adaptive Clinical Assistant</string>
 
-    <string name="app_bar_button_back_content_description">Back</string>
+    <string name="app_bar_button_back_content_description">Kujarra</string>
 
-    <string name="language_title">(WMT) Smart Adaptive Clinical Assistant</string>
-    <string name="language_subtitle">(WMT) Welcome!</string>
-    <string name="language_option_english">(WMT) English</string>
-    <string name="language_option_walmajarri">(WMT) Walmajarri</string>
+    <string name="language_title">Smart Adaptive Clinical Assistant</string>
+    <string name="language_subtitle">Kaya!</string>
+    <string name="language_option_english">Ingkirriji</string>
+    <string name="language_option_walmajarri">Walmajarri</string>
 
-    <string name="welcome_title">(WMT) Triage Assessment</string>
-    <string name="welcome_body">(WMT) This assessment will help you check how severe your symptoms are and help you know what to do next quickly.</string>
-    <string name="welcome_get_started">(WMT) Get Started</string>
+    <string name="welcome_title">Karlarra Nyurra Yirrarni</string>
+    <string name="welcome_body">Nyurra yirrarni-rna nyuntu-ku yiwarr-ku nyuntu-ju karlarra nyurra-ju. Kujarra-rna nyuntu-ku yiwarr nyuntu-ju karlarra nyurra-ju.</string>
+    <string name="welcome_get_started">Yirrarni-rna</string>
 
-    <string name="home_action_bar_title">(WMT) Clinical Assistant</string>
-    <string name="home_drawer_section_assessment">(WMT) Assessment</string>
-    <string name="home_drawer_section_language">(WMT) Language</string>
+    <string name="home_action_bar_title">Karlarra Nyurra Yirrarni</string>
+    <string name="home_drawer_section_assessment">Yirrarni</string>
+    <string name="home_drawer_section_language">Yimi</string>
 
-    <string name="triage_form_action_bar_title">(WMT) Triage Assessment</string>
-    <string name="triage_form_back_button">(WMT) Back</string>
-    <string name="triage_form_continue_button">(WMT) Continue</string>
-    <string name="triage_form_assess_button">(WMT) Assess</string>
-    <string name="triage_form_gender_title">(WMT) Your Gender</string>
-    <string name="triage_form_gender_option_male">(WMT) Male</string>
-    <string name="triage_form_gender_option_female">(WMT) Female</string>
-    <string name="triage_form_gender_option_prefer_not_to_say">(WMT) Prefer not to say</string>
-    <string name="triage_form_age_title">(WMT) Your Age</string>
-    <string name="triage_form_age_option_older_adult_or_younger">(WMT) 65 years old or younger</string>
-    <string name="triage_form_age_option_over_older_adult">(WMT) Older than 65 years old</string>
-    <string name="triage_form_symptom_title">(WMT) Select Any Symptoms</string>
-    <string name="triage_form_symptom_show_more">(WMT) Show More</string>
-    <string name="triage_form_symptom_or">(WMT) OR</string>
-    <string name="triage_form_symptom_describe_title">(WMT) Describe Symptoms</string>
-    <string name="triage_form_symptom_details_placeholder">(WMT) Type the details...</string>
-    <string name="triage_form_symptom_hold_to_record">(WMT) Hold to Record</string>
-    <string name="triage_form_symptom_recording">(WMT) Recording...</string>
-    <string name="triage_form_symptom_transcribing">(WMT) Transcribing...</string>
-    <string name="triage_form_symptom_mic_label">(WMT) Mic</string>
-    <string name="triage_form_symptom_permission_denied_message">(WMT) Microphone permission is required for voice recording.</string>
-    <string name="triage_form_symptom_recording_failed_message">(WMT) Could not process this recording. Please try again.</string>
-    <string name="triage_form_symptom_transcription_failed_message">(WMT) Could not transcribe recording. Please try again.</string>
-    <string name="triage_form_symptom_extract_failed_message">(WMT) Could not verify symptoms. Please try again.</string>
-    <string name="triage_form_symptom_extract_empty_title">(WMT) Check symptoms before continuing</string>
-    <string name="triage_form_symptom_extract_empty_message">(WMT) We could not find symptoms from your input. Please select symptoms from the icons or add more details.</string>
-    <string name="triage_form_symptom_extract_empty_confirm">(WMT) Got it</string>
-    <string name="triage_form_symptom_validation_error">(WMT) Select or describe at least one symptom</string>
-    <string name="triage_form_symptom_fever">(WMT) Fever</string>
-    <string name="triage_form_symptom_diarrhea">(WMT) Diarrhea</string>
-    <string name="triage_form_symptom_cough">(WMT) Cough</string>
-    <string name="triage_form_symptom_vomiting">(WMT) Vomiting</string>
-    <string name="triage_form_symptom_dizziness">(WMT) Dizziness</string>
-    <string name="triage_form_symptom_runny_nose">(WMT) Runny Nose</string>
-    <string name="triage_form_symptom_eye_pain">(WMT) Eye Pain</string>
-    <string name="triage_form_symptom_sore_throat">(WMT) Sore throat</string>
-    <string name="triage_form_symptom_headache">(WMT) Headache</string>
-    <string name="triage_form_symptom_joint_pain">(WMT) Joint Pain</string>
-    <string name="triage_form_symptom_abdominal_pain">(WMT) Abdominal Pain</string>
-    <string name="triage_form_symptom_body_pain">(WMT) Body Pain</string>
-    <string name="triage_form_severity_title">(WMT) Severity of Symptoms</string>
-    <string name="triage_form_severity_option_mild">(WMT) Mild</string>
-    <string name="triage_form_severity_option_low">(WMT) Low</string>
-    <string name="triage_form_severity_option_moderate">(WMT) Moderate</string>
-    <string name="triage_form_severity_option_high">(WMT) High</string>
-    <string name="triage_form_severity_option_severe">(WMT) Severe</string>
-    <string name="triage_form_duration_title">(WMT) Duration of Symptoms</string>
-    <string name="triage_form_duration_option_less_than_day">(WMT) Less than a day</string>
-    <string name="triage_form_duration_option_more_than_day">(WMT) More than a day</string>
-    <string name="triage_form_duration_option_unknown">(WMT) Unknown</string>
+    <string name="triage_form_action_bar_title">Karlarra Nyurra Yirrarni</string>
+    <string name="triage_form_back_button">Kujarra</string>
+    <string name="triage_form_continue_button">Yirrarni</string>
+    <string name="triage_form_assess_button">Yirrarni-rna</string>
 
-    <string name="triage_result_analyzing">(WMT) Analyzing symptoms</string>
-    <string name="triage_result_title">(WMT) Triage Result</string>
-    <string name="triage_result_severity_label">(WMT) Severity Level</string>
-    <string name="triage_result_moderate_status">(WMT) Moderate</string>
-    <string name="triage_result_semi_urgent_status">(WMT) Semi-Urgent</string>
-    <string name="triage_result_urgent_status">(WMT) Urgent</string>
-    <string name="triage_result_recommendation_title">(WMT) Recommendation</string>
-    <string name="triage_result_recommendation_body">(WMT) Monitor your symptoms and rest. If your condition gets worse, seek medical help.</string>
-    <string name="triage_result_recommendation_moderate">(WMT) Monitor your symptoms and rest. If your condition gets worse, seek medical help.</string>
-    <string name="triage_result_recommendation_semi_urgent">(WMT) Please seek medical attention soon. Visit a clinic as early as possible.</string>
-    <string name="triage_result_recommendation_urgent">(WMT) Seek urgent medical care now. If possible, go to the nearest emergency service.</string>
-    <string name="triage_result_symptoms_summary_title">(WMT) Symptoms Summary</string>
-    <string name="triage_result_summary_cold">(WMT) Cold</string>
-    <string name="triage_result_summary_belly_pain">(WMT) Belly pain</string>
-    <string name="triage_result_summary_runny_nose">(WMT) Runny Nose</string>
-    <string name="triage_result_save_button">(WMT) Save the Result</string>
-    <string name="triage_result_save_success_message">(WMT) Result saved to gallery</string>
-    <string name="triage_result_save_failed_message">(WMT) Could not save result on this device</string>
-    <string name="triage_result_ok_button">(WMT) OK</string>
+    <string name="triage_form_gender_title">Nyuntu Yirrarni</string>
+    <string name="triage_form_gender_option_male">Karli</string>
+    <string name="triage_form_gender_option_female">Yapajarra</string>
+    <string name="triage_form_gender_option_prefer_not_to_say">Karra yimi-rna</string>
+
+    <string name="triage_form_age_title">Nyuntu Jukurra</string>
+    <string name="triage_form_age_option_older_adult_or_younger">65 ngurra-wana karrinyanu-wana</string>
+    <string name="triage_form_age_option_over_older_adult">65 ngurra-wana karrinyanu-warlangu</string>
+
+    <string name="triage_form_symptom_title">Nyuntu Karlarra Yirrarni</string>
+    <string name="triage_form_symptom_show_more">Yirrarni Karlarra</string>
+    <string name="triage_form_symptom_or">KUJARRA</string>
+    <string name="triage_form_symptom_describe_title">Karlarra Yirrarni-rna</string>
+    <string name="triage_form_symptom_details_placeholder">Yimi-rna...</string>
+    <string name="triage_form_symptom_hold_to_record">Jijirr-ma Yirrarni-ku</string>
+    <string name="triage_form_symptom_recording">Yirrarni-rna…</string>
+    <string name="triage_form_symptom_transcribing">Yimi Yirrarni-rna...</string>
+    <string name="triage_form_symptom_mic_label">Yimi-rna</string>
+
+    <string name="triage_form_symptom_permission_denied_message">Yimi-rna karlarra-ku yirrarni-rna nyuntu-ju.</string>
+    <string name="triage_form_symptom_recording_failed_message">Karra yirrarni-rna karlarra. Yirrarni-rna kujarra.</string>
+    <string name="triage_form_symptom_transcription_failed_message">Karra yimi yirrarni-rna karlarra. Yirrarni-rna kujarra.</string>
+    <string name="triage_form_symptom_extract_failed_message">Karra karlarra yirrarni-rna. Yirrarni-rna kujarra.</string>
+    <string name="triage_form_symptom_extract_empty_title">Karlarra yirrarni-rna kujarra-ku</string>
+    <string name="triage_form_symptom_extract_empty_message">Karra karlarra yirrarni-rna nyuntu-ju. Yirrarni-rna karlarra-wana kujarra yimi-rna.</string>
+    <string name="triage_form_symptom_extract_empty_confirm">Yuwayi</string>
+    <string name="triage_form_symptom_validation_error">Yirrarni-rna karlarra kujarra-wana yimi-rna</string>
+
+    <string name="triage_form_symptom_fever">Karlarra Waru</string>
+    <string name="triage_form_symptom_diarrhoea">Karlarra Parnta</string>
+    <string name="triage_form_symptom_cough">Karlarra Kurrkurr</string>
+    <string name="triage_form_symptom_vomiting">Karlarra Puka</string>
+    <string name="triage_form_symptom_dizziness">Karlarra Mirrirr</string>
+    <string name="triage_form_symptom_nosebleed">Karlarra Munyju</string>
+    <string name="triage_form_symptom_eye_pain">Karlarra Miji</string>
+    <string name="triage_form_symptom_sore_throat">Karlarra Juwi</string>
+    <string name="triage_form_symptom_headache">Karlarra Kuja</string>
+    <string name="triage_form_symptom_joint_pain">Karlarra Jirrpi</string>
+    <string name="triage_form_symptom_abdominal_pain">Karlarra Jirri</string>
+    <string name="triage_form_symptom_back_pain">Karlarra Yijiji</string>
+
+    <string name="triage_form_severity_title">Karlarra Yirrarni Jukurra</string>
+    <string name="triage_form_severity_option_mild">Kujarra-wana</string>
+    <string name="triage_form_severity_option_low">Karlarra-wana</string>
+    <string name="triage_form_severity_option_moderate">Yirrarni-wana</string>
+    <string name="triage_form_severity_option_high">Jukurra-wana</string>
+    <string name="triage_form_severity_option_severe">Karlarra Jukurra</string>
+
+    <string name="triage_form_duration_title">Karlarra Nyurra Jukurra</string>
+    <string name="triage_form_duration_option_less_than_day">Ngurra-wana kujarra</string>
+    <string name="triage_form_duration_option_more_than_day">Ngurra-wana karlarra</string>
+    <string name="triage_form_duration_option_unknown">Karra yimi</string>
+
+    <string name="triage_form_symptoms_before_title">(WMT) Have you had these symptoms Before?</string>
+    <string name="triage_form_symptoms_before_option_yes">(WMT) Yes</string>
+    <string name="triage_form_symptoms_before_option_no">(WMT) No</string>
+    <string name="triage_form_symptoms_before_option_unknown">(WMT) Unknown</string>
+
+    <string name="triage_form_sick_contact_history_title">(WMT) Have you been in contact with anyone who is sick recently?</string>
+    <string name="triage_form_sick_contact_history_option_yes">(WMT) Yes</string>
+    <string name="triage_form_sick_contact_history_option_no">(WMT) No</string>
+    <string name="triage_form_sick_contact_history_option_unknown">(WMT) Unknown</string>
+
+    <string name="triage_form_chronic_conditions_history_title">(WMT) Do you have any chronic conditions?</string>
+    <string name="triage_form_chronic_conditions_option_hypertension">(WMT) Hypertension</string>
+    <string name="triage_form_chronic_conditions_option_type2_diabetes">(WMT) Type 2 Diabetes</string>
+    <string name="triage_form_chronic_conditions_option_heart_disease">(WMT) Heart Disease</string>
+    <string name="triage_form_chronic_conditions_option_asthma_copds">(WMT) Asthma COPDS</string>
+    <string name="triage_form_chronic_conditions_option_depression_anxiety">(WMT) Depression Anxiety</string>
+
+    <string name="triage_result_analyzing">Karlarra yirrarni-rna...</string>
+    <string name="triage_result_title">Karlarra Yirrarni Jukurra</string>
+    <string name="triage_result_severity_label">Karlarra Jukurra</string>
+    <string name="triage_result_category_a">Karra Yirrarni</string>
+    <string name="triage_result_category_b">Kujarra Yirrarni</string>
+    <string name="triage_result_category_c">Yirrarni-wana</string>
+    <string name="triage_result_category_d">Karlarra Yirrarni</string>
+    <string name="triage_result_category_e">Jukurra Karlarra</string>
+    <string name="triage_result_category_f">Karlarra Nyurra</string>
+
+    <string name="triage_result_recommendation_title">Yimi Karlarra</string>
+    <string name="triage_result_recommendation_body">Yirrarni-rna karlarra nyuntu-ju. Kujarra karlarra-wana, yirrarni-rna karlarra-ku.</string>
+    <string name="triage_result_category_a_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra-wana yirrarni karlarra.</string>
+    <string name="triage_result_category_b_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra jukurra yirrarni.</string>
+    <string name="triage_result_category_c_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra yirrarni-wana yimi.</string>
+    <string name="triage_result_category_d_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra jukurra yirrarni-wana.</string>
+    <string name="triage_result_category_e_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra yirrarni kujarra.</string>
+    <string name="triage_result_category_f_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju 24 ngurra-wana karlarra yirrarni.</string>
+    <string name="triage_result_symptoms_summary_title">Karlarra Yirrarni Jukurra</string>
+
+    <string name="triage_result_summary_cold">Karlarra Mirrirr</string>
+    <string name="triage_result_summary_belly_pain">Karlarra Jirri</string>
+    <string name="triage_result_summary_runny_nose">Karlarra Munyju</string>
+    <string name="triage_result_save_button">Yirrarni-rna Karlarra</string>
+    <string name="triage_result_save_success_message">Karlarra yirrarni-rna nyuntu-ju</string>
+    <string name="triage_result_save_failed_message">Karra karlarra yirrarni-rna nyuntu-ju</string>
+
+    <string name="triage_result_error_title">Karlarra Yirrarni Kujarra</string>
+    <string name="triage_result_error_message">Karra karlarra yirrarni-rna nyuntu-ju. Yirrarni-rna karlarra-ku yimi karlarra.</string>
+    <string name="triage_result_ok_button">Yuwayi</string>
 </resources>

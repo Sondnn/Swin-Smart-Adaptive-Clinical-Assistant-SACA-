@@ -11,6 +11,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun AgeQuestionScreen(
     onBackClick: () -> Unit,
+    onCancelClick: () -> Unit,
     onContinueClick: () -> Unit,
     modifier: Modifier = Modifier,
     triageFormViewModel: TriageFormViewModel = koinViewModel(),
@@ -31,9 +32,10 @@ fun AgeQuestionScreen(
         options = options,
         selectedOptionId = triageFormViewModel.selectedAgeOptionId,
         currentStep = 2,
-        totalSteps = 5,
+        totalSteps = 8,
         onBackClick = onBackClick,
         onOptionClick = triageFormViewModel::onAgeOptionSelected,
+        onCancelClick = onCancelClick,
         onContinueClick = onContinueClick,
         modifier = modifier,
     )

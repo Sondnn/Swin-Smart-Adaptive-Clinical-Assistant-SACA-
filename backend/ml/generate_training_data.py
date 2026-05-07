@@ -1,116 +1,260 @@
 import json
 import random
 import csv
+from collections import Counter
 from pathlib import Path
 
+from symptom_clusters import SCENARIOS
+
 BASE_DIR = Path(__file__).resolve().parents[1]
-OUTPUT_FILE = BASE_DIR / "models" / "training_data_v1.csv"
+OUTPUT_FILE = BASE_DIR / "models" / "training_data.csv"
 FEATURE_COLUMNS_FILE = BASE_DIR / "models" / "feature_columns.json"
 
-feature_columns = json.loads(FEATURE_COLUMNS_FILE.read_text())
-HEADER = feature_columns + ["triage_category"]
+SEED = 42
+N_ROWS = 5000
+SCENARIO_PROBABILITY = 0.25
 
-SYMPTOM_COLS = [c for c in HEADER if c.startswith("symptom__") and "duration" not in c and c != "symptom__otherwise_well"]
+EXISTING_FEATURE_COLUMNS = json.loads(FEATURE_COLUMNS_FILE.read_text())
+
+# New tri-state base fields beyond {gender, age_over_65, symptom_severity, symptoms_duration}.
+NEW_BASE_COLUMNS = ["had_symptoms_before", "had_contact"]
+
+CHRONIC_COLS = [
+    "chronic__hypertension",
+    "chronic__type2_diabetes",
+    "chronic__heart_disease",
+    "chronic__asthma_copd",
+    "chronic__depression_anxiety",
+]
+
+ESCALATION_COLS = [
+    "escalation__chest_pain",
+    "escalation__breathing_difficulty_at_rest",
+    "escalation__sudden_confusion_or_loc",
+    "escalation__sudden_weakness_one_side",
+    "escalation__severe_allergic_reaction",
+]
+
+# Escalation triggers correlate with the listed symptom; if the symptom is set, the trigger has high probability — this mirrors how a patient who reports chest_pain in Q3-Q4 will usually also tick the chest-pain escalation in Q7.
+ESCALATION_SYMPTOM_MAP = {
+    "escalation__chest_pain": "symptom__chest_pain",
+    "escalation__breathing_difficulty_at_rest": "symptom__breathing_difficulty",
+    "escalation__sudden_confusion_or_loc": "symptom__altered_consciousness",
+    "escalation__sudden_weakness_one_side": "symptom__one_sided_weakness",
+    "escalation__severe_allergic_reaction": "symptom__anaphylaxis",
+}
+
+ESCALATION_FORCE_CAT1 = {"escalation__severe_allergic_reaction", "escalation__sudden_confusion_or_loc"}
+ESCALATION_FORCE_CAT2 = {"escalation__chest_pain", "escalation__breathing_difficulty_at_rest", "escalation__sudden_weakness_one_side"}
+
+# Symptoms whose acuity gets bumped up when the patient also has a cardio/resp chronic.
+CARDIO_RESP_SYMPTOMS = {
+    "symptom__chest_pain", "symptom__breathing_difficulty",
+    "symptom__radiating_chest_pain", "symptom__rapid_breathing",
+    "symptom__pain_when_breathing", "symptom__chest_pressure",
+}
+
+# Idempotent column union — running the generator after train.py rewrites
+# feature_columns.json must still produce the same HEADER.
+NEW_FEATURE_COLUMNS = NEW_BASE_COLUMNS + CHRONIC_COLS + ESCALATION_COLS
+ALL_FEATURE_COLUMNS = EXISTING_FEATURE_COLUMNS + [
+    c for c in NEW_FEATURE_COLUMNS if c not in EXISTING_FEATURE_COLUMNS
+]
+HEADER = ALL_FEATURE_COLUMNS + ["triage_category"]
+
+# Symptoms eligible for random sampling — exclude flag-only fields and non-symptom columns
+SYMPTOM_COLS = [
+    c for c in HEADER
+    if c.startswith("symptom__") and c != "symptom__otherwise_well"
+]
+
+
+CAT1_SYMPTOMS = [
+    "symptom__collapse", "symptom__unconscious", "symptom__altered_consciousness",
+    "symptom__cardiac_arrest", "symptom__cyanosis", "symptom__paralysis",
+    "symptom__anaphylaxis", "symptom__floppy_infant",
+]
+
+CAT2_SYMPTOMS = [
+    "symptom__breathing_difficulty", "symptom__stridor", "symptom__choking",
+    "symptom__heavy_bleeding", "symptom__uncontrolled_bleeding", "symptom__vomiting_blood",
+    "symptom__chest_pain", "symptom__head_or_spinal_injury",
+    "symptom__seizure", "symptom__stroke", "symptom__facial_droop", "symptom__sudden_weakness",
+    "symptom__pregnancy_pain_or_bleeding", "symptom__reduced_foetal_movement",
+    "symptom__in_labour_or_ruptured_membranes", "symptom__drug_overdose",
+    "symptom__poisoning_or_overdose", "symptom__snake_bite", "symptom__extensive_burns",
+    "symptom__electric_shock", "symptom__suicidal_thoughts",
+    "symptom__sudden_severe_headache", "symptom__sudden_blindness",
+    "symptom__blood_clot_symptoms", "symptom__radiating_chest_pain",
+    "symptom__chest_pressure", "symptom__one_sided_weakness", "symptom__one_sided_numbness",
+    "symptom__difficulty_understanding_speech", "symptom__difficulty_speaking",
+]
+
+CAT3_SYMPTOMS = [
+    "symptom__severe_pain", "symptom__severe_headache", "symptom__severe_abdominal_pain",
+    "symptom__severe_rash", "symptom__severe_flu_like_symptoms",
+    "symptom__high_fever", "symptom__neck_stiffness",
+    "symptom__confusion", "symptom__drowsy", "symptom__vision_loss",
+    "symptom__unable_to_urinate", "symptom__urinary_retention",
+    "symptom__continuous_vomiting", "symptom__unable_to_keep_fluids",
+    "symptom__abuse_or_assault", "symptom__psychological_distress",
+    "symptom__post_op_problem",
+    "symptom__cellulitis", "symptom__dental_abscess", "symptom__abscess",
+    "symptom__petechiae", "symptom__jaundice", "symptom__yellow_skin",
+    "symptom__hallucinations", "symptom__paranoia", "symptom__agitation",
+    "symptom__pain_when_breathing", "symptom__rapid_breathing",
+]
+
+CAT4_SYMPTOMS = [
+    "symptom__injured_limb_or_possible_fracture", "symptom__fracture", "symptom__dislocation",
+    "symptom__cut_or_laceration", "symptom__deep_cut", "symptom__infected_wound",
+    "symptom__eye_injury_or_chemical", "symptom__foreign_body_in_eye",
+    "symptom__burn", "symptom__chemical_burn",
+    "symptom__abdominal_pain", "symptom__back_pain", "symptom__ear_pain",
+    "symptom__testicular_pain", "symptom__pelvic_pain",
+    "symptom__panic_attack", "symptom__extreme_concern",
+    "symptom__migraine", "symptom__breast_lump", "symptom__breast_pain",
+    "symptom__boil", "symptom__pain_during_sex", "symptom__genital_sores",
+]
+
+CAT5_SYMPTOMS = [
+    "symptom__fever", "symptom__vomiting", "symptom__diarrhoea",
+    "symptom__rash", "symptom__headache", "symptom__dizziness",
+    "symptom__nausea", "symptom__cough", "symptom__fatigue",
+    "symptom__sore_throat", "symptom__ear_discharge", "symptom__eye_discharge",
+    "symptom__painful_urination", "symptom__constipation",
+    "symptom__muscle_pain", "symptom__joint_pain", "symptom__sprain",
+    "symptom__insect_bite", "symptom__wound_redness",
+    "symptom__runny_nose", "symptom__blocked_nose", "symptom__nasal_congestion",
+    "symptom__sneezing", "symptom__sinus_pain", "symptom__hay_fever",
+    "symptom__loss_of_smell", "symptom__loss_of_taste",
+    "symptom__dry_cough", "symptom__productive_cough", "symptom__cough_with_phlegm",
+    "symptom__heartburn", "symptom__acid_reflux", "symptom__indigestion",
+    "symptom__bloating", "symptom__gas", "symptom__belching",
+    "symptom__toothache", "symptom__gum_swelling", "symptom__mouth_ulcer",
+    "symptom__body_aches", "symptom__night_sweats", "symptom__flu_like_symptoms",
+    "symptom__bruising", "symptom__easy_bruising",
+    "symptom__tinnitus", "symptom__vertigo",
+    "symptom__anxiety", "symptom__depression", "symptom__insomnia",
+]
+
+
+# Drift-prevention: every symptom referenced in the rules must exist in the schema
+RULE_SYMPTOMS = (
+    set(CAT1_SYMPTOMS) | set(CAT2_SYMPTOMS) | set(CAT3_SYMPTOMS)
+    | set(CAT4_SYMPTOMS) | set(CAT5_SYMPTOMS)
+    | {"symptom__otherwise_well", "symptom__severe_pain"}
+    | set(ESCALATION_SYMPTOM_MAP.values())
+    | CARDIO_RESP_SYMPTOMS
+)
+_missing = RULE_SYMPTOMS - set(ALL_FEATURE_COLUMNS)
+if _missing:
+    raise ValueError(
+        f"Rules reference symptoms not in feature_columns.json: {sorted(_missing)}. "
+        "Add them to the schema or remove them from the rules."
+    )
 
 
 def assign_triage(row):
-    # Category 1 - Immediate
-    if any(row.get(s, 0) == 1 for s in [
-        "symptom__collapse", "symptom__unconscious", "symptom__altered_consciousness",
-        "symptom__cardiac_arrest", "symptom__cyanosis", "symptom__paralysis",
-        "symptom__anaphylaxis", "symptom__floppy_infant", "symptom__child_not_responding"
-    ]):
+    # Escalation triggers are the strongest override.
+    if any(row.get(s, 0) == 1 for s in ESCALATION_FORCE_CAT1):
         return 1
-
-    # Category 2 - Emergency
-    if any(row.get(s, 0) == 1 for s in [
-        "symptom__breathing_difficulty", "symptom__stridor", "symptom__choking",
-        "symptom__heavy_bleeding", "symptom__uncontrolled_bleeding", "symptom__vomiting_blood",
-        "symptom__chest_pain", "symptom__head_or_spinal_injury", "symptom__paralysis",
-        "symptom__seizure", "symptom__stroke", "symptom__facial_droop", "symptom__sudden_weakness",
-        "symptom__pregnancy_pain_or_bleeding", "symptom__reduced_foetal_movement",
-        "symptom__in_labour_or_ruptured_membranes", "symptom__drug_overdose",
-        "symptom__poisoning_or_overdose", "symptom__snake_bite", "symptom__extensive_burns",
-        "symptom__electric_shock", "symptom__suicidal_thoughts"
-    ]):
+    if any(row.get(s, 0) == 1 for s in CAT1_SYMPTOMS):
+        return 1
+    if any(row.get(s, 0) == 1 for s in ESCALATION_FORCE_CAT2):
+        return 2
+    if any(row.get(s, 0) == 1 for s in CAT2_SYMPTOMS):
         return 2
 
-    # Category 3 - Urgent
-    if any(row.get(s, 0) == 1 for s in [
-        "symptom__severe_pain", "symptom__severe_headache", "symptom__severe_abdominal_pain",
-        "symptom__severe_rash", "symptom__severe_flu_like_symptoms",
-        "symptom__high_fever", "symptom__neck_stiffness",
-        "symptom__confusion", "symptom__drowsy", "symptom__vision_loss",
-        "symptom__unable_to_urinate", "symptom__urinary_retention",
-        "symptom__continuous_vomiting", "symptom__unable_to_keep_fluids",
-        "symptom__abuse_or_assault", "symptom__psychological_distress",
-        "symptom__post_op_problem"
-    ]) or row.get("symptom_severity", 0) >= 4:
-        return 3
+    if any(row.get(s, 0) == 1 for s in CAT3_SYMPTOMS) or row.get("symptom_severity", 0) >= 4:
+        cat = 3
+    elif any(row.get(s, 0) == 1 for s in CAT4_SYMPTOMS):
+        cat = 4
+    elif any(row.get(s, 0) == 1 for s in CAT5_SYMPTOMS):
+        cat = 5
+    else:
+        cat = 6
 
-    # Category 4 - Semi-Urgent
-    if any(row.get(s, 0) == 1 for s in [
-        "symptom__injured_limb_or_possible_fracture", "symptom__fracture", "symptom__dislocation",
-        "symptom__cut_or_laceration", "symptom__deep_cut", "symptom__infected_wound",
-        "symptom__eye_injury_or_chemical", "symptom__foreign_body_in_eye",
-        "symptom__burn", "symptom__chemical_burn",
-        "symptom__abdominal_pain", "symptom__back_pain", "symptom__ear_pain",
-        "symptom__testicular_pain", "symptom__pelvic_pain",
-        "symptom__panic_attack", "symptom__extreme_concern"
-    ]):
-        return 4
+    # Cardio/resp chronic + cardio/resp symptom: bump acuity by 1 (capped at 2 — escalation territory).
+    cardio_chronic = (row.get("chronic__heart_disease") == 1 or row.get("chronic__asthma_copd") == 1)
+    has_cardio_resp_symptom = any(row.get(s, 0) == 1 for s in CARDIO_RESP_SYMPTOMS)
+    if cardio_chronic and has_cardio_resp_symptom and cat >= 3:
+        cat = max(cat - 1, 2)
 
-    # Category 5 - Non-Urgent
-    if any(row.get(s, 0) == 1 for s in [
-        "symptom__fever", "symptom__vomiting", "symptom__diarrhoea",
-        "symptom__rash", "symptom__headache", "symptom__dizziness",
-        "symptom__nausea", "symptom__cough", "symptom__fatigue",
-        "symptom__sore_throat", "symptom__ear_discharge", "symptom__eye_discharge",
-        "symptom__painful_urination", "symptom__constipation",
-        "symptom__muscle_pain", "symptom__joint_pain", "symptom__sprain",
-        "symptom__insect_bite", "symptom__wound_redness"
-    ]):
-        return 5
+    # Recurrent low-acuity issue → de-escalate one step.
+    if row.get("had_symptoms_before") == 1 and cat in (4, 5):
+        cat = min(cat + 1, 6)
 
-    return 6
+    return cat
+
+
+def pick_symptoms():
+    if random.random() < SCENARIO_PROBABILITY:
+        scenario = random.choice(SCENARIOS)
+        chosen = list(scenario)
+        if random.random() < 0.4:
+            chosen.append(random.choice(SYMPTOM_COLS))
+        return chosen
+
+    symptom_count = random.choices([1, 2, 3, 4], weights=[30, 40, 20, 10])[0]
+    return random.sample(SYMPTOM_COLS, symptom_count)
 
 
 def generate_case():
     row = {col: 0 for col in HEADER}
 
-    row["gender"] = random.choice([0, 1])
-    row["age_over_65"] = random.choices([0, 1], weights=[85, 15])[0]
+    # Tri-state demographics (0=no/female, 1=yes/male, 2=unknown).
+    row["gender"] = random.choices([0, 1, 2], weights=[49, 49, 2])[0]
+    row["age_over_65"] = random.choices([0, 1, 2], weights=[75, 15, 10])[0]
     row["symptom_severity"] = random.randint(1, 5)
     row["symptoms_duration"] = random.choice([1, 2, 4, 6, 12, 24, 48, 72])
 
-    row["symptom__short_symptom_duration"] = 1 if row["symptoms_duration"] < 24 else 0
-    row["symptom__long_symptom_duration"] = 1 if row["symptoms_duration"] >= 24 else 0
+    # Tri-state history flags.
+    row["had_symptoms_before"] = random.choices([0, 1, 2], weights=[40, 35, 25])[0]
+    row["had_contact"] = random.choices([0, 1, 2], weights=[40, 20, 40])[0]
 
-    # bias toward critical symptoms occasionally
-    symptom_count = random.choices([1, 2, 3, 4], weights=[30, 40, 20, 10])[0]
-    chosen = random.sample(SYMPTOM_COLS, symptom_count)
-    for s in chosen:
-        row[s] = 1
+    for s in pick_symptoms():
+        if s in row:
+            row[s] = 1
 
-    if row["symptom__severe_pain"] == 1:
+    if row.get("symptom__severe_pain") == 1:
         row["symptom_severity"] = random.choice([4, 5])
 
     row["symptom__otherwise_well"] = 1 if row["symptom_severity"] <= 2 else 0
+
+    # Chronic conditions: independent draws, age_over_65 boosts prevalence.
+    chronic_base = 0.10
+    chronic_age_boost = 0.20 if row["age_over_65"] == 1 else 0.0
+    for c in CHRONIC_COLS:
+        if random.random() < chronic_base + chronic_age_boost:
+            row[c] = 1
+
+    # Escalation triggers: high prob when associated symptom is set, low baseline noise otherwise.
+    for esc, sym in ESCALATION_SYMPTOM_MAP.items():
+        if row.get(sym, 0) == 1:
+            if random.random() < 0.80:
+                row[esc] = 1
+        else:
+            if random.random() < 0.02:
+                row[esc] = 1
+
     row["triage_category"] = assign_triage(row)
     return row
 
 
 def main():
-    rows = [generate_case() for _ in range(5000)]
+    random.seed(SEED)
+    rows = [generate_case() for _ in range(N_ROWS)]
 
     with open(OUTPUT_FILE, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(HEADER)
-
         for r in rows:
             writer.writerow([r.get(col, 0) for col in HEADER])
 
+    counts = Counter(r["triage_category"] for r in rows)
     print(f"Generated {len(rows)} rows into {OUTPUT_FILE}")
+    print("Label distribution:", dict(sorted(counts.items())))
 
 
 if __name__ == "__main__":

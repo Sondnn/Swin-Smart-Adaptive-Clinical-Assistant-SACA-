@@ -11,6 +11,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun GenderQuestionScreen(
     onBackClick: () -> Unit,
+    onCancelClick: () -> Unit,
     onContinueClick: () -> Unit,
     modifier: Modifier = Modifier,
     triageFormViewModel: TriageFormViewModel = koinViewModel(),
@@ -31,8 +32,9 @@ fun GenderQuestionScreen(
         options = options,
         selectedOptionId = triageFormViewModel.selectedGenderOptionId,
         currentStep = 1,
-        totalSteps = 5,
+        totalSteps = 8,
         onBackClick = onBackClick,
+        onCancelClick = onCancelClick,
         onOptionClick = triageFormViewModel::onGenderOptionSelected,
         onContinueClick = onContinueClick,
         modifier = modifier,

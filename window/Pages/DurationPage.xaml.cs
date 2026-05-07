@@ -27,6 +27,8 @@ namespace SACA.WindowsApp.Pages
         {
             InitializeComponent();
             _mainWindow = mainWindow;
+            VoiceRecorder.Configure(GetSpeechToTextLanguageCode);
+            VoiceRecorder.TranscriptReceived += VoiceRecorder_TranscriptReceived;
         }
 
         private void Back_Click(object sender, RoutedEventArgs e)
@@ -34,7 +36,7 @@ namespace SACA.WindowsApp.Pages
             _mainWindow.NavigateToSymptoms();
         }
 
-        private void Assess_Click(object sender, RoutedEventArgs e)
+        private void Continue_Click(object sender, RoutedEventArgs e)
         {
             string duration = GetComboBoxValue(DurationComboBox);
 
@@ -45,7 +47,21 @@ namespace SACA.WindowsApp.Pages
             }
 
             _mainWindow.CurrentRequest.Duration = duration;
-            _mainWindow.NavigateToLoading();
+            _mainWindow.NavigateToSymptomsHistory();
+        }
+
+        private void VoiceRecorder_TranscriptReceived(object? sender, Controls.VoiceTranscribedEventArgs e)
+        {
+            _mainWindow.CurrentRequest.AudioRecordingPath = e.RecordingPath;
+            _mainWindow.CurrentRequest.AudioRecordingPaths.Add(e.RecordingPath);
+            _mainWindow.CurrentRequest.VoiceTranscripts.Add($"Duration: {e.Transcript}");
+        }
+
+        private int GetSpeechToTextLanguageCode()
+        {
+            return _mainWindow.CurrentRequest.Language.Equals("English", StringComparison.OrdinalIgnoreCase)
+                ? 1
+                : 2;
         }
 
         private string GetComboBoxValue(ComboBox comboBox)

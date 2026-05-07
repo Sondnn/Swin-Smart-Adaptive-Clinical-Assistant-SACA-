@@ -49,6 +49,21 @@ namespace SACA.WindowsApp
             MainContent.Content = new DurationPage(this);
         }
 
+        public void NavigateToSymptomsHistory()
+        {
+            MainContent.Content = new SymptomsHistoryPage(this);
+        }
+
+        public void NavigateToChronicConditions()
+        {
+            MainContent.Content = new ChronicConditionsPage(this);
+        }
+
+        public void NavigateToSickContact()
+        {
+            MainContent.Content = new SickContactPage(this);
+        }
+
         public void NavigateToLoading()
         {
             MainContent.Content = new LoadingPage(this);

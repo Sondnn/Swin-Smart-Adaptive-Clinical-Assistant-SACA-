@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.saca.smartadaptiveclinicalassistant.R
+import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButtonStyle
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.FormQuestionOption
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.FormQuestionScaffold
 import org.koin.androidx.compose.koinViewModel
@@ -11,6 +12,7 @@ import org.koin.androidx.compose.koinViewModel
 @Composable
 fun SeverityQuestionScreen(
     onBackClick: () -> Unit,
+    onCancelClick: () -> Unit,
     onContinueClick: () -> Unit,
     modifier: Modifier = Modifier,
     triageFormViewModel: TriageFormViewModel = koinViewModel(),
@@ -31,8 +33,9 @@ fun SeverityQuestionScreen(
         options = options,
         selectedOptionId = triageFormViewModel.selectedSeverityOptionId,
         currentStep = 4,
-        totalSteps = 5,
+        totalSteps = 8,
         onBackClick = onBackClick,
+        onCancelClick = onCancelClick,
         onOptionClick = triageFormViewModel::onSeverityOptionSelected,
         onContinueClick = onContinueClick,
         modifier = modifier,

@@ -6,5 +6,8 @@ data class TriageForm(
     val gender: Int,
     val ageIsOver65: Int,
     val severity: Int,
-    val duration: Int?,
+    val duration: Int,
+    val chronicConditions: List<String>,
+    val hadSymptomsBefore: Int,
+    val hadSickContact: Int,
 )

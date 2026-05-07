@@ -1,99 +1,129 @@
 package com.saca.smartadaptiveclinicalassistant.data.local
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.media.AudioFormat
+import android.media.AudioRecord
 import android.media.MediaRecorder
-import android.os.Build
 import java.io.File
+import java.io.FileOutputStream
+import java.io.RandomAccessFile
+import java.nio.ByteBuffer
+import java.nio.ByteOrder
+import kotlin.concurrent.thread
 
 class VoiceRecorder {
-    private var mediaRecorder: MediaRecorder? = null
+    private var audioRecord: AudioRecord? = null
+    private var recordingThread: Thread? = null
+    @Volatile
+    private var isRecording = false
     private var activeOutputFile: File? = null
+    private val sampleRate = 16000
+    private val channelConfig = AudioFormat.CHANNEL_IN_MONO
+    private val audioFormat = AudioFormat.ENCODING_PCM_16BIT
+    private val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
 
+    @SuppressLint("MissingPermission")
     fun startRecording(context: Context): Result<Unit> {
-        if (mediaRecorder != null) {
-            return Result.failure(IllegalStateException("Recording is already in progress"))
-        }
+        if (isRecording) return Result.failure(IllegalStateException("Already recording"))
 
-        val outputFile = File(
-            context.cacheDir,
-            "symptom_recording_${System.currentTimeMillis()}.m4a"
-        )
+        val outputFile = File(context.cacheDir, "recording_${System.currentTimeMillis()}.wav")
+        activeOutputFile = outputFile
 
         return try {
-            val recorder = createMediaRecorder(context)
-            recorder.setAudioSource(MediaRecorder.AudioSource.MIC)
-            recorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-            recorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-            recorder.setOutputFile(outputFile.absolutePath)
-            recorder.prepare()
-            recorder.start()
+            audioRecord = AudioRecord(
+                MediaRecorder.AudioSource.MIC,
+                sampleRate,
+                channelConfig,
+                audioFormat,
+                bufferSize
+            )
 
-            mediaRecorder = recorder
-            activeOutputFile = outputFile
+            if (audioRecord?.state != AudioRecord.STATE_INITIALIZED) {
+                return Result.failure(Exception("Failed to initialize recorder"))
+            }
+
+            audioRecord?.startRecording()
+            isRecording = true
+
+            recordingThread = thread(start = true) {
+                writeAudioDataToFile(outputFile)
+            }
             Result.success(Unit)
-        } catch (error: Exception) {
-            safeReleaseRecorder()
-            outputFile.delete()
-            Result.failure(error)
+        } catch (e: Exception) {
+            Result.failure(e)
         }
+    }
+
+    private fun writeAudioDataToFile(file: File) {
+        val data = ByteArray(bufferSize)
+        val outputStream = FileOutputStream(file)
+
+        outputStream.write(ByteArray(44))
+
+        while (isRecording) {
+            val read = audioRecord?.read(data, 0, bufferSize) ?: 0
+            if (read > 0) {
+                outputStream.write(data, 0, read)
+            }
+        }
+
+        outputStream.close()
+        updateWavHeader(file)
+    }
+
+    private fun updateWavHeader(file: File) {
+        val raf = RandomAccessFile(file, "rw")
+        val totalAudioLen = file.length() - 44
+        val totalDataLen = totalAudioLen + 36
+        val byteRate = sampleRate * 2 // 16-bit Mono = 2 bytes per sample
+
+        val header = ByteArray(44)
+        val buffer = ByteBuffer.wrap(header).order(ByteOrder.LITTLE_ENDIAN)
+
+        buffer.put("RIFF".toByteArray())
+        buffer.putInt(totalDataLen.toInt())
+        buffer.put("WAVE".toByteArray())
+        buffer.put("fmt ".toByteArray())
+        buffer.putInt(16) // Size of format chunk
+        buffer.putShort(1.toShort()) // PCM format
+        buffer.putShort(1.toShort()) // Mono
+        buffer.putInt(sampleRate)
+        buffer.putInt(byteRate)
+        buffer.putShort(2.toShort()) // Block align (1 channel * 2 bytes)
+        buffer.putShort(16.toShort()) // 16 bits per sample
+        buffer.put("data".toByteArray())
+        buffer.putInt(totalAudioLen.toInt())
+
+        raf.seek(0)
+        raf.write(header)
+        raf.close()
     }
 
     fun stopRecording(): Result<File> {
-        val recorder = mediaRecorder ?: return Result.failure(
-            IllegalStateException("Recording has not started")
-        )
-        val outputFile = activeOutputFile
+        isRecording = false
+        recordingThread?.join()
+        recordingThread = null
 
-        return try {
-            recorder.stop()
-            if (outputFile != null && outputFile.exists()) {
-                Result.success(outputFile)
-            } else {
-                Result.failure(IllegalStateException("Recorded audio file is missing"))
-            }
-        } catch (error: Exception) {
-            outputFile?.delete()
-            Result.failure(error)
-        } finally {
-            safeReleaseRecorder()
-        }
-    }
-
-    fun cancelRecoding() {
-        val recorder = mediaRecorder ?: return
-
-        try {
-            recorder.stop()
-        } catch (_: Exception) {
-
-        } finally {
-            val outputFile = activeOutputFile
-            safeReleaseRecorder()
-            outputFile?.delete()
-        }
-    }
-
-    private fun safeReleaseRecorder() {
-        mediaRecorder?.apply {
-            reset()
+        audioRecord?.apply {
+            if (state == AudioRecord.STATE_INITIALIZED) stop()
             release()
         }
+        audioRecord = null
 
-        mediaRecorder = null
-        activeOutputFile = null
-    }
-
-
-    private fun createMediaRecorder(context: Context): MediaRecorder {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            MediaRecorder(context)
+        val file = activeOutputFile
+        return if (file != null && file.exists()) {
+            Result.success(file)
         } else {
-            createLegacyMediaRecorder()
+            Result.failure(IllegalStateException("File missing"))
         }
     }
 
-    @Suppress("DEPRECATION")
-    private fun createLegacyMediaRecorder(): MediaRecorder {
-        return MediaRecorder()
+    fun cancelRecording() {
+        isRecording = false
+        recordingThread?.join()
+        activeOutputFile?.delete()
+        audioRecord?.release()
+        audioRecord = null
     }
 }

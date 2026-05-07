@@ -7,33 +7,6 @@ This repo holds an entire stack
 
 ## Description
 
-### NLP
-
-### ML
-
-#### How to run
-
-##### Step 1: Generate Training Data (if needed)
-``` bash
-python3 backend/ml/generate_training_data.py
-```
-This generates `backend/models/training_data_v1.csv` with 5000 synthetic patient cases.
-
-##### Step 2: Train data
-```bash
-python3 backend/ml/train.py
-```
-This will:
-- Load the training CSV
-- Train a Random Forest and Extra Trees classifier
-- Save the best performing model to `backend/models/best_model.joblib`
-- Save the feature schema to `backend/models/feature_columns.json`
-
-
-### Android
-
-### Window
-
 ### Backend
 
 #### API Service
@@ -44,6 +17,31 @@ python3 -m uvicorn main:app --reload
 ```
 The API will be available at `http://127.0.0.1:8000`
 Testing in `http://127.0.0.1:8000/docs`
+
+#### NLP
+
+#### ML
+
+##### Step 1: Generate Training Data (if needed)
+``` bash
+python3 backend/ml/generate_training_data.py
+```
+This generates `backend/models/training_data.csv` with 5000 synthetic patient cases.
+
+##### Step 2: Train data
+```bash
+python3 backend/ml/train.py
+```
+This will:
+- Load the training CSV
+- Train a Random Forest, Extra Trees classifier, XGBoost RandomisedCV, and finally VotingClassifier with `soft` voting.
+- Save the ensemble model to `backend/models/ensemble.joblib`
+- Save the feature schema to `backend/models/feature_columns.json`
+
+
+### Android
+
+### Window
 
 ## Repository Layout
 

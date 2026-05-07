@@ -17,6 +17,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -24,13 +25,18 @@ import androidx.compose.ui.unit.sp
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.common.Constants.LANGUAGE_TAG_ENGLISH
 import com.saca.smartadaptiveclinicalassistant.common.Constants.LANGUAGE_TAG_WALMAJARRI
+import com.saca.smartadaptiveclinicalassistant.ui.theme.DrawerBackground
+import com.saca.smartadaptiveclinicalassistant.ui.theme.TextBrown
+import com.saca.smartadaptiveclinicalassistant.ui.theme.TextDarkBrown
 
 @Composable
 fun SacaDrawerContent(
     currentLanguageTag: String,
     onLanguagePicked: (String) -> Unit,
 ) {
-    ModalDrawerSheet() {
+    ModalDrawerSheet(
+        drawerContainerColor = DrawerBackground,
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -38,27 +44,24 @@ fun SacaDrawerContent(
         ) {
             Text(
                 text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
+                style = MaterialTheme.typography.titleMedium,
+                color = TextBrown,
+                fontWeight = FontWeight.Black,
+                lineHeight = 35.sp
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shape = RoundedCornerShape(12.dp),
-                modifier = Modifier.fillMaxWidth(),
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment =  Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-                    verticalAlignment =  Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = stringResource(R.string.home_drawer_section_assessment),
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
+                Text(
+                    text = stringResource(R.string.home_drawer_section_assessment),
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontSize = 24.sp,
+                    color = TextBrown,
+                )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -69,11 +72,11 @@ fun SacaDrawerContent(
 
             Text(
                 text = stringResource(R.string.home_drawer_section_language),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                style = MaterialTheme.typography.bodyMedium,
+                color = TextDarkBrown,
             )
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             DrawerLanguageRow(
                 label = stringResource(R.string.language_option_english),
@@ -100,7 +103,13 @@ private fun DrawerLanguageRow(
     onClick: () -> Unit,
 ) {
     NavigationDrawerItem(
-        label = { Text(text = label) },
+        label = {
+            Text(
+                text = label,
+                style = MaterialTheme.typography.bodyLarge,
+                color = TextDarkBrown
+            )
+        },
         selected = isSelected,
         onClick = onClick,
         badge = {
@@ -112,7 +121,9 @@ private fun DrawerLanguageRow(
                 )
             }
         },
-        colors = NavigationDrawerItemDefaults.colors(),
+        colors = NavigationDrawerItemDefaults.colors(
+            selectedContainerColor = Color(0xFFEEECEB)
+        ),
         modifier = Modifier.fillMaxWidth(),
     )
 }

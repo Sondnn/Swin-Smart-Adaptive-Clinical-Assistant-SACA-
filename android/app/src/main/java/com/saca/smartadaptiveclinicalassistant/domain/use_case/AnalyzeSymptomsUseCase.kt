@@ -17,19 +17,22 @@ class AnalyzeSymptomsUseCase(
             gender = form.gender,
             ageIsOver65 = form.ageIsOver65,
             symptomsDuration = form.duration,
-            symptomsSeverity = form.severity
+            symptomsSeverity = form.severity,
+            chronicConditions = form.chronicConditions,
+            hadSymptomsBefore = form.hadSymptomsBefore,
+            hadSickContact = form.hadSickContact
         )
 
         return triageRepository.analysisSymptoms(request).map { response ->
             val normalizedCategory = response.triageCategory.coerceIn(1, 6)
             val triageCategory = when (normalizedCategory) {
-                1 -> TriageCategory.NON_URGENT
-                2 -> TriageCategory.SEMI_URGENT
-                3 -> TriageCategory.MODERATE
-                4 -> TriageCategory.URGENT
-                5 -> TriageCategory.EMERGENCY
-                6 -> TriageCategory.IMMEDIATE
-                else -> null
+                1 -> TriageCategory.A
+                2 -> TriageCategory.B
+                3 -> TriageCategory.C
+                4 -> TriageCategory.D
+                5 -> TriageCategory.E
+                6 -> TriageCategory.F
+                else -> TriageCategory.A
             }
 
             TriageResult(

@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.common.Constants.LANGUAGE_TAG_WALMAJARRI
+import com.saca.smartadaptiveclinicalassistant.domain.model.TriageForm
 import com.saca.smartadaptiveclinicalassistant.domain.use_case.ExtractSymptomsUseCase
 import com.saca.smartadaptiveclinicalassistant.domain.use_case.SpeechToTextUseCase
 import kotlinx.coroutines.launch
@@ -31,7 +32,8 @@ class TriageFormViewModel(
         val labelRes: Int
     ) {
         OVER_OLDER_ADULT("over_older_adult", R.string.triage_form_age_option_over_older_adult),
-        OLDER_ADULT_OR_YOUNGER("older_adult_or_younger", R.string.triage_form_age_option_older_adult_or_younger)
+        OLDER_ADULT_OR_YOUNGER("older_adult_or_younger", R.string.triage_form_age_option_older_adult_or_younger),
+        PREFER_NOT_TO_SAY("prefer_not_to_say", R.string.triage_form_gender_option_prefer_not_to_say)
     }
 
     enum class SeverityOption(
@@ -60,17 +62,46 @@ class TriageFormViewModel(
         val iconRes: Int
     ) {
         FEVER("fever", R.string.triage_form_symptom_fever, R.drawable.ic_symptom_fever),
-        DIARRHEA("diarrhea", R.string.triage_form_symptom_diarrhea, R.drawable.ic_symptom_diarrhea),
+        DIARRHOEA("diarrhoea", R.string.triage_form_symptom_diarrhoea, R.drawable.ic_symptom_diarrhoea),
         COUGH("cough", R.string.triage_form_symptom_cough, R.drawable.ic_symptom_cough),
         VOMITING("vomiting", R.string.triage_form_symptom_vomiting, R.drawable.ic_symptom_vomiting),
         DIZZINESS("dizziness", R.string.triage_form_symptom_dizziness, R.drawable.ic_symptom_dizzy),
-        RUNNY_NOSE("runny_nose", R.string.triage_form_symptom_runny_nose, R.drawable.ic_symptom_runny_nose),
+        NOSEBLEED("nosebleed", R.string.triage_form_symptom_nosebleed, R.drawable.ic_symptom_nosebleed),
         EYE_PAIN("eye_pain", R.string.triage_form_symptom_eye_pain, R.drawable.ic_symptom_eye_pain),
         SORE_THROAT("sore_throat", R.string.triage_form_symptom_sore_throat, R.drawable.ic_symptom_sore_throat),
         HEADACHE("headache", R.string.triage_form_symptom_headache, R.drawable.ic_symptom_headache),
         JOINT_PAIN("joint_pain", R.string.triage_form_symptom_joint_pain, R.drawable.ic_symptom_joint_pain),
         ABDOMINAL_PAIN("abdominal_pain", R.string.triage_form_symptom_abdominal_pain, R.drawable.ic_symptom_abdominal_pain),
-        BODY_PAIN("body_pain", R.string.triage_form_symptom_body_pain, R.drawable.ic_symptom_back_pain),
+        BACK_PAIN("back_pain", R.string.triage_form_symptom_back_pain, R.drawable.ic_symptom_back_pain),
+    }
+
+    enum class SymptomsBeforeOption(
+        val value: String,
+        val labelRes: Int
+    ) {
+        YES("yes", R.string.triage_form_symptoms_before_option_yes),
+        NO("no", R.string.triage_form_symptoms_before_option_no),
+        UNKNOWN("unknown", R.string.triage_form_symptoms_before_option_unknown),
+    }
+
+    enum class ChronicConditionsOption(
+        val value: String,
+        val labelRes: Int
+    ) {
+        HYPERTENSION("hypertension", R.string.triage_form_chronic_conditions_option_hypertension),
+        TYPE_2_DIABETES("type2_diabetes", R.string.triage_form_chronic_conditions_option_type2_diabetes),
+        HEART_DISEASE("heart_disease", R.string.triage_form_chronic_conditions_option_heart_disease),
+        ASTHMA_COPD("asthma_copd", R.string.triage_form_chronic_conditions_option_asthma_copds),
+        DEPRESSION_ANXIETY("depression_anxiety", R.string.triage_form_chronic_conditions_option_depression_anxiety),
+    }
+
+    enum class SickContactHistoryOption(
+        val value: String,
+        val labelRes: Int
+    ) {
+        YES("yes", R.string.triage_form_sick_contact_history_option_yes),
+        NO("no", R.string.triage_form_sick_contact_history_option_no),
+        UNKNOWN("unknown", R.string.triage_form_sick_contact_history_option_unknown),
     }
 
     var selectedGenderOptionId: String? by mutableStateOf(null)
@@ -102,15 +133,21 @@ class TriageFormViewModel(
     var extractSymptomsErrorResId: Int? by mutableStateOf(null)
         private set
 
-    var shouldShowExtractSymptomsDialog: Boolean by mutableStateOf(false)
-        private set
-
     private var extractedSymptomsFromBackend: List<String> by mutableStateOf(emptyList())
 
     var selectedSeverityOptionId: String? by mutableStateOf(null)
         private set
 
     var selectedDurationOptionId: String? by mutableStateOf(null)
+        private set
+
+    var selectedSymptomsBeforeOptionId: String? by mutableStateOf(null)
+        private set
+
+    var selectedChronicConditionsOptionIds: Set<String> by mutableStateOf(emptySet())
+        private set
+
+    var selectedSickContactHistoryOptionId: String? by mutableStateOf(null)
         private set
 
     fun onGenderOptionSelected(optionId: String) {
@@ -157,11 +194,6 @@ class TriageFormViewModel(
         extractSymptomsErrorResId = null
     }
 
-    fun dismissExtractSymptomsDialog() {
-        shouldShowExtractSymptomsDialog = false
-        clearExtractSymptomsError()
-    }
-
     fun hideSymptomErrorIfExists() {
         if (selectedSymptomIds.isNotEmpty() || symptomDescriptionText.isNotBlank()) {
             shouldShowSymptomError = false
@@ -176,9 +208,81 @@ class TriageFormViewModel(
         selectedDurationOptionId = optionId
     }
 
-    fun getLanguageCode(languageTag: String): Int {
+    fun onSymptomsBeforeOptionSelected(optionId: String) {
+        selectedSymptomsBeforeOptionId = optionId
+    }
+
+    fun onSickContactHistoryOptionSelected(optionId: String) {
+        selectedSickContactHistoryOptionId = optionId
+    }
+
+    fun onChronicConditionsOptionSelected(optionId: String) {
+        selectedChronicConditionsOptionIds = if (selectedChronicConditionsOptionIds.contains(optionId)) {
+            selectedChronicConditionsOptionIds - optionId
+        } else {
+            selectedChronicConditionsOptionIds + optionId
+        }
+    }
+
+    private fun getLanguageCode(languageTag: String): Int {
         return if (languageTag == LANGUAGE_TAG_WALMAJARRI) 0 else 1
     }
+
+    private fun getGenderCode(): Int {
+        return when (selectedGenderOptionId) {
+            "male" -> 1
+            "female" -> 0
+            else -> 2
+        }
+    }
+
+    private fun getAgeOver65Code(): Int {
+        return when (selectedAgeOptionId) {
+            "older_adult_or_younger" -> 0
+            "over_older_adult" -> 1
+            else -> 2
+        }
+    }
+
+    private fun getSeverityCode(): Int {
+        return when (selectedSeverityOptionId) {
+            "mild" -> 1
+            "low" -> 2
+            "moderate" -> 3
+            "high" -> 4
+            "severe" -> 5
+            else -> 0
+        }
+    }
+
+    private fun getDurationCode(): Int {
+        return when (selectedDurationOptionId) {
+            "less_than_day" -> 0
+            "more_than_day" -> 1
+            "unknown" -> 2
+            else -> 2
+        }
+    }
+
+
+    private fun getSymptomsBeforeCode(): Int {
+        return when (selectedSymptomsBeforeOptionId) {
+            "no" -> 0
+            "yes" -> 1
+            "unknown" -> 2
+            else -> 2
+        }
+    }
+
+    private fun getHadSickContactCode(): Int {
+        return when (selectedSickContactHistoryOptionId) {
+            "no" -> 0
+            "yes" -> 1
+            "unknown" -> 2
+            else -> 2
+        }
+    }
+
     fun transcribeRecordedAudio(audioFile: File, languageTag: String) {
         if (isTranscribing) {
             return
@@ -211,7 +315,7 @@ class TriageFormViewModel(
                 recordingErrorResId = R.string.triage_form_symptom_transcription_failed_message
             } finally {
                 isTranscribing = false
-                audioFile.delete()
+                //audioFile.delete()
             }
         }
     }
@@ -230,7 +334,6 @@ class TriageFormViewModel(
         }
 
         isExtractingSymptoms = true
-        dismissExtractSymptomsDialog()
 
         return try {
             val result = extractSymptomsUseCase(
@@ -242,7 +345,7 @@ class TriageFormViewModel(
             result.fold(
                 onSuccess = { extractedSymptoms ->
                     if (extractedSymptoms.isEmpty()) {
-                        shouldShowExtractSymptomsDialog = true
+                        extractSymptomsErrorResId = R.string.triage_form_symptom_extract_empty_message
                         return@fold false
                     }
 
@@ -261,5 +364,43 @@ class TriageFormViewModel(
         } finally {
             isExtractingSymptoms = false
         }
+    }
+
+
+    fun getFormAnswers(languageTag: String): TriageForm {
+        val symptoms = extractedSymptomsFromBackend.ifEmpty {
+            selectedSymptomIds.toList()
+        }
+
+        return TriageForm(
+            language = getLanguageCode(languageTag),
+            symptoms = symptoms,
+            gender = getGenderCode(),
+            ageIsOver65 = getAgeOver65Code(),
+            severity = getSeverityCode(),
+            duration = getDurationCode(),
+            chronicConditions = selectedChronicConditionsOptionIds.toList(),
+            hadSymptomsBefore = getSymptomsBeforeCode(),
+            hadSickContact = getHadSickContactCode(),
+        )
+    }
+
+    fun resetFormState() {
+        selectedGenderOptionId = null
+        selectedAgeOptionId = null
+        selectedSymptomIds = emptySet()
+        selectedSeverityOptionId = null
+        selectedDurationOptionId = null
+        selectedChronicConditionsOptionIds = emptySet()
+        selectedSickContactHistoryOptionId = null
+        selectedSymptomsBeforeOptionId = null
+        symptomDescriptionText = ""
+        isSymptomOptionsExpanded = false
+        isTranscribing = false
+        isExtractingSymptoms = false
+        extractedSymptomsFromBackend = emptyList()
+        recordingErrorResId = null
+        extractSymptomsErrorResId = null
+        shouldShowSymptomError = false
     }
 }

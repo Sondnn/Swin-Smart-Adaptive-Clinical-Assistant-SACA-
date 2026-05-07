@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,9 +31,7 @@ fun ErrorMessage(text: String) {
         Text(
             text = text,
             color = Brown,
-            fontWeight = FontWeight.Bold,
-            fontSize = 11.sp,
-            lineHeight = 15.sp,
+            style = MaterialTheme.typography.labelLarge,
             textAlign = TextAlign.Center,
         )
     }

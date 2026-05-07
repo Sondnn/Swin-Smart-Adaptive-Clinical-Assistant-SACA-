@@ -1,0 +1,50 @@
+<UserControl x:Class="SACA.WindowsApp.Pages.SymptomsHistoryPage"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:SACA.WindowsApp.Controls">
+
+    <Grid Background="{StaticResource AppBackgroundBrush}" Margin="40">
+        <StackPanel Width="560" HorizontalAlignment="Center" VerticalAlignment="Center">
+
+            <TextBlock Text="Have you had these symptoms before?"
+                       Style="{StaticResource PageTitleTextStyle}"
+                       FontSize="30"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,30"/>
+
+            <StackPanel Margin="0,0,0,35">
+                <RadioButton x:Name="YesRadioButton"
+                             Content="Yes"
+                             GroupName="SymptomsHistory"
+                             FontSize="18"
+                             Margin="0,0,0,16"/>
+                <RadioButton x:Name="NoRadioButton"
+                             Content="No"
+                             GroupName="SymptomsHistory"
+                             FontSize="18"
+                             Margin="0,0,0,16"/>
+                <RadioButton x:Name="UnknownRadioButton"
+                             Content="Unknown"
+                             GroupName="SymptomsHistory"
+                             FontSize="18"/>
+            </StackPanel>
+
+            <controls:VoiceRecorderControl x:Name="VoiceRecorder"/>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="Back"
+                        Style="{StaticResource SecondaryButtonStyle}"
+                        Width="120"
+                        Height="40"
+                        Margin="0,0,10,0"
+                        Click="Back_Click"/>
+
+                <Button Content="Continue"
+                        Width="140"
+                        Height="40"
+                        Click="Continue_Click"/>
+            </StackPanel>
+
+        </StackPanel>
+    </Grid>
+</UserControl>

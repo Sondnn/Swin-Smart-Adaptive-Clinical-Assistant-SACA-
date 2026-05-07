@@ -1,13 +1,16 @@
 ﻿<UserControl x:Class="SACA.WindowsApp.Pages.DurationPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:controls="clr-namespace:SACA.WindowsApp.Controls">
 
     <Grid Background="{StaticResource AppBackgroundBrush}" Margin="40">
         <StackPanel Width="520" HorizontalAlignment="Center" VerticalAlignment="Center">
 
-            <TextBlock Text="Duration of Symptoms"
+            <TextBlock Text="How long have you had these symptoms"
                        Style="{StaticResource PageTitleTextStyle}"
                        FontSize="30"
+                       TextWrapping="Wrap"
+                       TextAlignment="Center"
                        Margin="0,0,0,30"/>
 
             <ComboBox x:Name="DurationComboBox"
@@ -19,6 +22,8 @@
                 <ComboBoxItem Content="Unknown"/>
             </ComboBox>
 
+            <controls:VoiceRecorderControl x:Name="VoiceRecorder"/>
+
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="Back"
                         Style="{StaticResource SecondaryButtonStyle}"
@@ -27,10 +32,10 @@
                         Margin="0,0,10,0"
                         Click="Back_Click"/>
 
-                <Button Content="Assess"
+                <Button Content="Continue"
                         Width="140"
                         Height="40"
-                        Click="Assess_Click"/>
+                        Click="Continue_Click"/>
             </StackPanel>
 
         </StackPanel>
