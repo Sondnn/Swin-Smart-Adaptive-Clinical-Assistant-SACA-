@@ -352,7 +352,7 @@ def _parse_age(transcript: str) -> dict | None:
     return None
 
 def _parse_severity(transript: str) -> dict | None:
-    if "mild" in transript:
+    if "mild" in transript or "mould" in transript:
         return {"symptom_severity": "1"}
     if "low" in transript:
         return {"symptom_severity": "2"}
@@ -378,7 +378,7 @@ def _parse_chronic_conditions(transcript: str) -> dict | None:
     conditions = set()
     if "hypertension" in transcript:
         conditions.add("hypertension")
-    if "type-2 diabetes" in transcript:
+    if "type 2 diabetes" in transcript:
         conditions.add("type_2_diabetes")
     if "heart disease" in transcript:
         conditions.add("heart_disease")
@@ -424,13 +424,13 @@ _QUESTION_PARSERS = {
     1: _parse_gender, #check
     2: _parse_age, #check
     3: _parse_symptoms, #check
-    4: _parse_additional_symptoms, #not implemented yet
+    #4: _parse_additional_symptoms, #not implemented yet
     5: _parse_severity, #check
     6: _parse_duration, #check
     7: _parse_had_symptoms_before, #check
     8: _parse_chronic_conditions, #check
     9: _parse_had_contact, #check
-    10: _parse_escalation_triggers, #not implemented yet
+    #10: _parse_escalation_triggers, #not implemented yet
 }
 
 def process_audio_response(file_obj, language: int = 1, question_id: int = None) -> dict | None:
@@ -461,7 +461,7 @@ def main() -> None:
     # symptoms_extracted = process_symptom_description(symptom_description, language=0)
     # print(json.dumps(symptoms_extracted))
     
-    test = process_audio_response(open("/Users/jasperl/Downloads/audio/test1.wav", "rb"), language=1, question_id=3)
+    test = process_audio_response(open("/Users/jasperl/Downloads/audio/type2diabetes.wav", "rb"), language=1, question_id=8)
     print(test)
 
 
