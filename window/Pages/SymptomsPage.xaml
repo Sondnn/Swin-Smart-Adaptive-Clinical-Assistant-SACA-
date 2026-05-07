@@ -32,14 +32,31 @@
                 <CheckBox Content="Body Pain" Margin="10"/>
             </WrapPanel>
 
-            <TextBlock Text="Describe Symptoms" Style="{StaticResource SectionLabelTextStyle}"/>
-            <TextBox x:Name="DescriptionTextBox"
-                     Height="90"
-                     TextWrapping="Wrap"
-                     AcceptsReturn="True"
-                     Margin="0,5,0,20"/>
+            <controls:VoiceRecorderControl x:Name="SymptomsVoiceRecorder"
+                                           QuestionId="3"
+                                           Label="Voice answer for symptoms"/>
 
-            <controls:VoiceRecorderControl x:Name="VoiceRecorder"/>
+            <Border x:Name="TranscriptBorder"
+                    Background="{StaticResource SelectedBackgroundBrush}"
+                    BorderBrush="{StaticResource AccentBrush}"
+                    BorderThickness="2"
+                    CornerRadius="8"
+                    Padding="16"
+                    Margin="0,0,0,20"
+                    Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock Text="Recorded symptoms:"
+                               Foreground="{StaticResource PrimaryTextBrush}"
+                               FontWeight="Bold"
+                               FontSize="16"
+                               Margin="0,0,0,6"/>
+                    <TextBlock x:Name="TranscriptTextBlock"
+                               Foreground="{StaticResource PrimaryTextBrush}"
+                               FontSize="17"
+                               FontWeight="SemiBold"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
 
             <TextBlock Text="Severity" Style="{StaticResource SectionLabelTextStyle}"/>
             <ComboBox x:Name="SeverityComboBox" Height="40" Margin="0,5,0,25">
@@ -49,6 +66,10 @@
                 <ComboBoxItem Content="High"/>
                 <ComboBoxItem Content="Severe"/>
             </ComboBox>
+
+            <controls:VoiceRecorderControl x:Name="SeverityVoiceRecorder"
+                                           QuestionId="5"
+                                           Label="Voice answer for severity"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="Back"

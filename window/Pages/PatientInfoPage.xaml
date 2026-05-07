@@ -25,6 +25,7 @@
                       SelectionChanged="GenderComboBox_SelectionChanged">
                 <ComboBoxItem Content="Male"/>
                 <ComboBoxItem Content="Female"/>
+                <ComboBoxItem Content="Unknown / Prefer not to say"/>
             </ComboBox>
 
             <TextBlock Text="Your Age" Style="{StaticResource SectionLabelTextStyle}"/>
@@ -35,7 +36,13 @@
                 <ComboBoxItem Content="Older than 65"/>
             </ComboBox>
 
-            <controls:VoiceRecorderControl x:Name="VoiceRecorder"/>
+            <controls:VoiceRecorderControl x:Name="GenderVoiceRecorder"
+                                           QuestionId="1"
+                                           Label="Voice answer for gender"/>
+
+            <controls:VoiceRecorderControl x:Name="AgeVoiceRecorder"
+                                           QuestionId="2"
+                                           Label="Voice answer for age"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="Back"

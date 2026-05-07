@@ -18,6 +18,7 @@ namespace SACA.WindowsApp.Services
         // Change this later when backend teammate gives the real URL
         private const string ApiUrl = "http://localhost:8000/api/triage/analyse";
         private const string SpeechToTextUrl = "http://127.0.0.1:8000/speech-to-text";
+        private const string SpeechToTextPageUrl = "http://127.0.0.1:8000/speech-to-text-page";
 
         public TriageApiService()
         {
@@ -79,6 +80,80 @@ namespace SACA.WindowsApp.Services
 
             string responseBody = await response.Content.ReadAsStringAsync();
             return ExtractTranscript(responseBody);
+        }
+
+        public async Task<SpeechToTextPageResult> ConvertSpeechToTextPageAsync(string audioFilePath, int languageCode, int questionId)
+        {
+            if (!File.Exists(audioFilePath))
+            {
+                throw new FileNotFoundException("The voice recording file could not be found.", audioFilePath);
+            }
+
+            using var form = new MultipartFormDataContent();
+            form.Add(new StringContent(languageCode.ToString()), "language");
+            form.Add(new StringContent(questionId.ToString()), "question_id");
+
+            await using var fileStream = File.OpenRead(audioFilePath);
+            using var fileContent = new StreamContent(fileStream);
+            fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("audio/wav");
+            form.Add(fileContent, "files", Path.GetFileName(audioFilePath));
+
+            using HttpResponseMessage response = await _httpClient.PostAsync(SpeechToTextPageUrl, form);
+            string responseBody = await response.Content.ReadAsStringAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Unable to process voice answer. Server returned {(int)response.StatusCode}: {responseBody}");
+            }
+
+            using JsonDocument document = JsonDocument.Parse(responseBody);
+            JsonElement root = document.RootElement;
+
+            if (root.TryGetProperty("error", out JsonElement error))
+            {
+                throw new Exception(error.GetString() ?? "The speech-to-text service returned an error.");
+            }
+
+            if (!root.TryGetProperty("parsed_response", out JsonElement parsedResponse)
+                || parsedResponse.ValueKind == JsonValueKind.Null
+                || parsedResponse.ValueKind == JsonValueKind.Undefined)
+            {
+                throw new Exception($"The voice answer could not be understood for this question. Response: {responseBody}");
+            }
+
+            int returnedQuestionId = questionId;
+
+            if (root.TryGetProperty("question_id", out JsonElement returnedQuestion)
+                && returnedQuestion.ValueKind == JsonValueKind.Number
+                && returnedQuestion.TryGetInt32(out int parsedQuestionId))
+            {
+                returnedQuestionId = parsedQuestionId;
+            }
+
+            JsonElement parsedClone = parsedResponse.Clone();
+            string parsedJson = parsedClone.GetRawText();
+
+            return new SpeechToTextPageResult
+            {
+                QuestionId = returnedQuestionId,
+                ParsedResponse = parsedClone,
+                ParsedResponseJson = parsedJson,
+                DisplayText = ToDisplayText(parsedClone)
+            };
+        }
+
+        private static string ToDisplayText(JsonElement element)
+        {
+            return element.ValueKind switch
+            {
+                JsonValueKind.String => element.GetString() ?? "",
+                JsonValueKind.Number => element.GetRawText(),
+                JsonValueKind.True => "Yes",
+                JsonValueKind.False => "No",
+                JsonValueKind.Array => string.Join(", ", element.EnumerateArray().Select(ToDisplayText).Where(value => !string.IsNullOrWhiteSpace(value))),
+                JsonValueKind.Object => string.Join(", ", element.EnumerateObject().Select(property => $"{property.Name}: {ToDisplayText(property.Value)}")),
+                _ => element.GetRawText()
+            };
         }
 
         private static string ExtractTranscript(string responseBody)

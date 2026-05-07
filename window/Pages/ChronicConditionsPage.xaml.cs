@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using SACA.WindowsApp.Services;
 
 namespace SACA.WindowsApp.Pages
 {
@@ -13,6 +14,7 @@ namespace SACA.WindowsApp.Pages
     public partial class ChronicConditionsPage : UserControl
     {
         private readonly MainWindow _mainWindow;
+        private List<string> _recordedConditions = new();
 
         public ChronicConditionsPage(MainWindow mainWindow)
         {
@@ -33,7 +35,12 @@ namespace SACA.WindowsApp.Pages
 
             if (!selectedConditions.Any())
             {
-                MessageBox.Show("Please select any chronic conditions, or choose Unknown / None.");
+                selectedConditions = _recordedConditions;
+            }
+
+            if (!selectedConditions.Any())
+            {
+                MessageBox.Show("Please select any chronic conditions, choose Unknown / None, or answer using voice.");
                 return;
             }
 
@@ -43,16 +50,18 @@ namespace SACA.WindowsApp.Pages
 
         private void VoiceRecorder_TranscriptReceived(object? sender, Controls.VoiceTranscribedEventArgs e)
         {
+            _recordedConditions = ParsedResponseReader.ReadStringList(e.ParsedResponseJson);
+            SelectCheckBoxes(_recordedConditions);
             _mainWindow.CurrentRequest.AudioRecordingPath = e.RecordingPath;
             _mainWindow.CurrentRequest.AudioRecordingPaths.Add(e.RecordingPath);
-            _mainWindow.CurrentRequest.VoiceTranscripts.Add($"Chronic conditions: {e.Transcript}");
+            _mainWindow.CurrentRequest.VoiceTranscripts.Add($"Question {e.QuestionId}: {e.Transcript}");
         }
 
         private int GetSpeechToTextLanguageCode()
         {
             return _mainWindow.CurrentRequest.Language.Equals("English", StringComparison.OrdinalIgnoreCase)
                 ? 1
-                : 2;
+                : 0;
         }
 
         private void UnknownCheckBox_Checked(object sender, RoutedEventArgs e)
@@ -87,6 +96,18 @@ namespace SACA.WindowsApp.Pages
             }
 
             return conditions;
+        }
+
+        private void SelectCheckBoxes(IEnumerable<string> values)
+        {
+            foreach (CheckBox checkBox in FindVisualChildren<CheckBox>(this))
+            {
+                string checkBoxValue = checkBox.Content?.ToString() ?? "";
+                checkBox.IsChecked = values.Any(value =>
+                    checkBoxValue.Equals(value, StringComparison.OrdinalIgnoreCase)
+                    || checkBoxValue.Contains(value, StringComparison.OrdinalIgnoreCase)
+                    || value.Contains(checkBoxValue, StringComparison.OrdinalIgnoreCase));
+            }
         }
 
         private static IEnumerable<T> FindVisualChildren<T>(DependencyObject parent)

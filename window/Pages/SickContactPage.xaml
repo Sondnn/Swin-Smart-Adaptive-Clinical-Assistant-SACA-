@@ -29,7 +29,9 @@
                              FontSize="18"/>
             </StackPanel>
 
-            <controls:VoiceRecorderControl x:Name="VoiceRecorder"/>
+            <controls:VoiceRecorderControl x:Name="VoiceRecorder"
+                                           QuestionId="9"
+                                           Label="Voice answer for sick contact"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="Back"
