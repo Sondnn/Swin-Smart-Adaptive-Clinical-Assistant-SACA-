@@ -15,8 +15,13 @@ namespace SACA.WindowsApp.Models
         public List<string> Symptoms { get; set; } = new();
         public string Severity { get; set; } = "";
         public string Duration { get; set; } = "";
+        public string HadSymptomsBefore { get; set; } = "";
+        public List<string> ChronicConditions { get; set; } = new();
+        public string RecentSickContact { get; set; } = "";
         public string Description { get; set; } = "";
         public string AudioRecordingPath { get; set; } = "";
+        public List<string> AudioRecordingPaths { get; set; } = new();
+        public List<string> VoiceTranscripts { get; set; } = new();
         public string Source { get; set; } = "WindowsApp";
     }
 }

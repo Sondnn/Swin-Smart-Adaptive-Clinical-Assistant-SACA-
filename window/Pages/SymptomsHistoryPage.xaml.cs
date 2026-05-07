@@ -1,29 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace SACA.WindowsApp.Pages
 {
     /// <summary>
-    /// Interaction logic for DurationPage.xaml
+    /// Interaction logic for SymptomsHistoryPage.xaml
     /// </summary>
-
-    public partial class DurationPage : UserControl
+    public partial class SymptomsHistoryPage : UserControl
     {
         private readonly MainWindow _mainWindow;
 
-        public DurationPage(MainWindow mainWindow)
+        public SymptomsHistoryPage(MainWindow mainWindow)
         {
             InitializeComponent();
             _mainWindow = mainWindow;
@@ -33,28 +21,28 @@ namespace SACA.WindowsApp.Pages
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            _mainWindow.NavigateToSymptoms();
+            _mainWindow.NavigateToDuration();
         }
 
         private void Continue_Click(object sender, RoutedEventArgs e)
         {
-            string duration = GetComboBoxValue(DurationComboBox);
+            string selectedValue = GetSelectedValue();
 
-            if (string.IsNullOrWhiteSpace(duration))
+            if (string.IsNullOrWhiteSpace(selectedValue))
             {
-                MessageBox.Show("Please select symptom duration.");
+                MessageBox.Show("Please select whether you have had these symptoms before.");
                 return;
             }
 
-            _mainWindow.CurrentRequest.Duration = duration;
-            _mainWindow.NavigateToSymptomsHistory();
+            _mainWindow.CurrentRequest.HadSymptomsBefore = selectedValue;
+            _mainWindow.NavigateToChronicConditions();
         }
 
         private void VoiceRecorder_TranscriptReceived(object? sender, Controls.VoiceTranscribedEventArgs e)
         {
             _mainWindow.CurrentRequest.AudioRecordingPath = e.RecordingPath;
             _mainWindow.CurrentRequest.AudioRecordingPaths.Add(e.RecordingPath);
-            _mainWindow.CurrentRequest.VoiceTranscripts.Add($"Duration: {e.Transcript}");
+            _mainWindow.CurrentRequest.VoiceTranscripts.Add($"Symptoms before: {e.Transcript}");
         }
 
         private int GetSpeechToTextLanguageCode()
@@ -64,11 +52,21 @@ namespace SACA.WindowsApp.Pages
                 : 2;
         }
 
-        private string GetComboBoxValue(ComboBox comboBox)
+        private string GetSelectedValue()
         {
-            if (comboBox.SelectedItem is ComboBoxItem item)
+            if (YesRadioButton.IsChecked == true)
             {
-                return item.Content?.ToString() ?? "";
+                return "Yes";
+            }
+
+            if (NoRadioButton.IsChecked == true)
+            {
+                return "No";
+            }
+
+            if (UnknownRadioButton.IsChecked == true)
+            {
+                return "Unknown";
             }
 
             return "";
