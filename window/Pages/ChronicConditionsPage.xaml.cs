@@ -91,7 +91,7 @@ namespace SACA.WindowsApp.Pages
             {
                 if (checkBox.IsChecked == true && checkBox.Content != null)
                 {
-                    conditions.Add(checkBox.Content.ToString() ?? "");
+                    conditions.Add(checkBox.Tag?.ToString() ?? checkBox.Content.ToString() ?? "");
                 }
             }
 
@@ -103,9 +103,12 @@ namespace SACA.WindowsApp.Pages
             foreach (CheckBox checkBox in FindVisualChildren<CheckBox>(this))
             {
                 string checkBoxValue = checkBox.Content?.ToString() ?? "";
+                string tagValue = checkBox.Tag?.ToString() ?? "";
                 checkBox.IsChecked = values.Any(value =>
                     checkBoxValue.Equals(value, StringComparison.OrdinalIgnoreCase)
+                    || tagValue.Equals(value, StringComparison.OrdinalIgnoreCase)
                     || checkBoxValue.Contains(value, StringComparison.OrdinalIgnoreCase)
+                    || tagValue.Contains(value, StringComparison.OrdinalIgnoreCase)
                     || value.Contains(checkBoxValue, StringComparison.OrdinalIgnoreCase));
             }
         }
