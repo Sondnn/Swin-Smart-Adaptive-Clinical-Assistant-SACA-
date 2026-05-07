@@ -1,6 +1,7 @@
 ﻿<UserControl x:Class="SACA.WindowsApp.Pages.LoadingPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:services="clr-namespace:SACA.WindowsApp.Services">
 
     <Grid Background="{StaticResource AppBackgroundBrush}">
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
@@ -10,7 +11,7 @@
                        TextAlignment="Center"
                        Margin="0,0,0,20"/>
 
-            <TextBlock Text="Analysing symptoms..."
+            <TextBlock Text="{services:Loc loading}"
                        Style="{StaticResource PageTitleTextStyle}"
                        FontSize="26"
                        TextAlignment="Center"/>

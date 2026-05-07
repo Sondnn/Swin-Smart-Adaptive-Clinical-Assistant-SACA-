@@ -109,7 +109,7 @@ namespace SACA.WindowsApp.Pages
         {
             if (comboBox.SelectedItem is ComboBoxItem item)
             {
-                return item.Content?.ToString() ?? "";
+                return item.Tag?.ToString() ?? item.Content?.ToString() ?? "";
             }
 
             return "";
@@ -120,9 +120,12 @@ namespace SACA.WindowsApp.Pages
             foreach (ComboBoxItem item in comboBox.Items)
             {
                 string itemValue = item.Content?.ToString() ?? "";
+                string tagValue = item.Tag?.ToString() ?? "";
 
                 if (itemValue.Equals(value, StringComparison.OrdinalIgnoreCase)
+                    || tagValue.Equals(value, StringComparison.OrdinalIgnoreCase)
                     || itemValue.Contains(value, StringComparison.OrdinalIgnoreCase)
+                    || tagValue.Contains(value, StringComparison.OrdinalIgnoreCase)
                     || value.Contains(itemValue, StringComparison.OrdinalIgnoreCase))
                 {
                     comboBox.SelectedItem = item;

@@ -110,12 +110,12 @@ namespace SACA.WindowsApp.Controls
                 SendMciCommand($"record {RecordingAlias}");
 
                 _isRecording = true;
-                RecordingStatusTextBlock.Text = "Recording... release to stop";
+                RecordingStatusTextBlock.Text = AppLanguage.T("recording");
             }
             catch (Exception ex)
             {
                 _isRecording = false;
-                RecordingStatusTextBlock.Text = "Recording unavailable";
+                RecordingStatusTextBlock.Text = AppLanguage.T("voice_failed");
                 MessageBox.Show($"Could not start voice recording: {ex.Message}");
                 CloseRecordingDevice();
             }
@@ -135,12 +135,12 @@ namespace SACA.WindowsApp.Controls
                 SendMciCommand($"stop {RecordingAlias}");
                 SendMciCommand($"save {RecordingAlias} \"{_recordingPath}\"");
                 savedRecordingPath = _recordingPath;
-                RecordingStatusTextBlock.Text = $"Recording saved: {Path.GetFileName(_recordingPath)}";
+                RecordingStatusTextBlock.Text = Path.GetFileName(_recordingPath);
             }
             catch (Exception ex)
             {
                 _recordingPath = "";
-                RecordingStatusTextBlock.Text = "Recording failed";
+                RecordingStatusTextBlock.Text = AppLanguage.T("voice_failed");
                 MessageBox.Show($"Could not save voice recording: {ex.Message}");
             }
             finally
@@ -164,7 +164,7 @@ namespace SACA.WindowsApp.Controls
 
             _isTranscribing = true;
             RecordButton.IsEnabled = false;
-            RecordingStatusTextBlock.Text = "Processing voice answer...";
+            RecordingStatusTextBlock.Text = AppLanguage.T("processing_voice");
 
             try
             {
@@ -172,18 +172,18 @@ namespace SACA.WindowsApp.Controls
 
                 if (string.IsNullOrWhiteSpace(result.DisplayText))
                 {
-                    RecordingStatusTextBlock.Text = "Voice answer was not valid";
+                    RecordingStatusTextBlock.Text = AppLanguage.T("voice_failed");
                     return;
                 }
 
-                RecordingStatusTextBlock.Text = $"Accepted: {result.DisplayText}";
+                RecordingStatusTextBlock.Text = $"{AppLanguage.T("accepted")}: {result.DisplayText}";
                 TranscriptReceived?.Invoke(
                     this,
                     new VoiceTranscribedEventArgs(result.QuestionId, result.DisplayText, audioFilePath, result.ParsedResponseJson));
             }
             catch (Exception ex)
             {
-                RecordingStatusTextBlock.Text = "Voice answer failed";
+                RecordingStatusTextBlock.Text = AppLanguage.T("voice_failed");
                 MessageBox.Show($"Could not process the voice answer: {ex.Message}");
             }
             finally

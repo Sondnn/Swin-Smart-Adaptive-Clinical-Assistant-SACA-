@@ -1,6 +1,7 @@
 <UserControl x:Class="SACA.WindowsApp.Controls.VoiceRecorderControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:services="clr-namespace:SACA.WindowsApp.Services">
 
     <StackPanel Margin="0,0,0,25">
         <TextBlock x:Name="TitleTextBlock" Style="{StaticResource SectionLabelTextStyle}"/>
@@ -19,14 +20,14 @@
                                Foreground="White"
                                Margin="0,0,8,0"
                                VerticalAlignment="Center"/>
-                    <TextBlock Text="Hold to record"
+                    <TextBlock Text="{services:Loc hold_record}"
                                Foreground="White"
                                VerticalAlignment="Center"/>
                 </StackPanel>
             </Button>
 
             <TextBlock x:Name="RecordingStatusTextBlock"
-                       Text="No recording"
+                       Text="{services:Loc no_recording}"
                        Foreground="{StaticResource MutedTextBrush}"
                        TextWrapping="Wrap"
                        VerticalAlignment="Center"
