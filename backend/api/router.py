@@ -106,9 +106,9 @@ async def speech_to_text_page(
     files: UploadFile = File(...),
 ):
     try:
-        audio_response = nlp_service.process_audio_response(files.file, language=language, question_id=question_id)
+        parsed_response = nlp_service.process_audio_response(files.file, language=language, question_id=question_id)
         return {"question_id": question_id, 
-                "audio_response": audio_response}
+                "parsed_response": parsed_response}
     except Exception as e:
         return JSONResponse(
             status_code=500,
