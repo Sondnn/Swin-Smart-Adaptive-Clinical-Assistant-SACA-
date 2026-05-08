@@ -1,12 +1,13 @@
 <UserControl x:Class="SACA.WindowsApp.Pages.SickContactPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:controls="clr-namespace:SACA.WindowsApp.Controls">
+             xmlns:controls="clr-namespace:SACA.WindowsApp.Controls"
+             xmlns:services="clr-namespace:SACA.WindowsApp.Services">
 
     <Grid Background="{StaticResource AppBackgroundBrush}" Margin="40">
         <StackPanel Width="620" HorizontalAlignment="Center" VerticalAlignment="Center">
 
-            <TextBlock Text="Have you been in contact with anyone who is sick recently?"
+            <TextBlock Text="{services:Loc contact_title}"
                        Style="{StaticResource PageTitleTextStyle}"
                        FontSize="30"
                        TextWrapping="Wrap"
@@ -14,32 +15,34 @@
 
             <StackPanel Margin="0,0,0,35">
                 <RadioButton x:Name="YesRadioButton"
-                             Content="Yes"
+                             Content="{services:Loc yes}"
                              GroupName="SickContact"
                              FontSize="18"
                              Margin="0,0,0,16"/>
                 <RadioButton x:Name="NoRadioButton"
-                             Content="No"
+                             Content="{services:Loc no}"
                              GroupName="SickContact"
                              FontSize="18"
                              Margin="0,0,0,16"/>
                 <RadioButton x:Name="UnknownRadioButton"
-                             Content="Unknown"
+                             Content="{services:Loc unknown}"
                              GroupName="SickContact"
                              FontSize="18"/>
             </StackPanel>
 
-            <controls:VoiceRecorderControl x:Name="VoiceRecorder"/>
+            <controls:VoiceRecorderControl x:Name="VoiceRecorder"
+                                           QuestionId="9"
+                                           Label="{services:Loc voice_contact}"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Back"
+                <Button Content="{services:Loc back}"
                         Style="{StaticResource SecondaryButtonStyle}"
                         Width="120"
                         Height="40"
                         Margin="0,0,10,0"
                         Click="Back_Click"/>
 
-                <Button Content="Assess"
+                <Button Content="{services:Loc assess}"
                         Width="140"
                         Height="40"
                         Background="{StaticResource AccentBrush}"

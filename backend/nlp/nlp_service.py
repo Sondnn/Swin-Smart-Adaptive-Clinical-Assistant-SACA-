@@ -195,16 +195,66 @@ def transcribe_upload(file_obj, language: int = 1) -> str:
         os.unlink(tmp_path)
 
 
-def process_symptom_description(symptom_description: str, language: int = 1) -> dict:
-    if language not in LANGUAGE_MAP:
-        raise ValueError(f"Unsupported language code: {language}. Use 1 (English) or 0 (Indigenous).")
+# def process_symptom_description(symptom_description: str, language: int = 1) -> dict:
+#     if language not in LANGUAGE_MAP:
+#         raise ValueError(f"Unsupported language code: {language}. Use 1 (English) or 0 (Indigenous).")
 
-    if language == 0:
-        text_to_process = translate_indigenous_to_english(symptom_description)
-    else:
-        text_to_process = symptom_description
+#     if language == 0:
+#         text_to_process = translate_indigenous_to_english(symptom_description)
+#     else:
+#         text_to_process = symptom_description
         
-    normalized_text = normalize_text(text_to_process)
+#     normalized_text = normalize_text(text_to_process)
+
+#     spacy_tokens = tokenize_with_spacy(_nlp, normalized_text)
+#     nltk_tokens = tokenize_with_nltk(_tokenizer, normalized_text)
+
+#     spacy_stems = set(stem_tokens(spacy_tokens, _stopwords, _stemmer))
+#     nltk_stems = set(stem_tokens(nltk_tokens, _stopwords, _stemmer))
+#     combined_stems = spacy_stems | nltk_stems
+
+#     result = {
+#         "symptom_description": symptom_description,
+#         "translated_text": text_to_process,
+#         "stemmed_tokens": list(combined_stems),
+#     }
+
+#     extracted = []
+#     negated = []
+#     negation_words = {"no", "not", "without", "don't", "doesn't", "didn't"}
+
+#     for symptom, phrases in SYMPTOM_PATTERNS.items():
+#         for phrase in phrases:
+#             phrase_normalized = normalize_text(phrase)
+#             phrase_stems = set(stem_tokens(phrase_normalized.split(), _stopwords, _stemmer))
+
+#             if phrase_normalized in normalized_text:
+#                 phrase_index = normalized_text.find(phrase_normalized)
+#                 text_before = normalized_text[:phrase_index].split()
+#                 if text_before and text_before[-1] in negation_words:
+#                     negated.append(symptom)
+#                 else:
+#                     extracted.append(symptom)
+#                 break
+
+#             if phrase_stems and phrase_stems.issubset(combined_stems):
+#                 negation_found = False
+#                 for negation_word in negation_words:
+#                     if re.search(negation_word + r"\s+.*?" + phrase_normalized, normalized_text):
+#                         negated.append(symptom)
+#                         negation_found = True
+#                         break
+#                 if not negation_found:
+#                     extracted.append(symptom)
+#                 break
+
+#     result["extracted_symptoms"] = list(dict.fromkeys(extracted))
+#     result["negated_symptoms"] = list(dict.fromkeys(negated))
+
+#     return result
+
+def mapping_symptoms(transcript: str) -> dict:        
+    normalized_text = normalize_text(transcript)
 
     spacy_tokens = tokenize_with_spacy(_nlp, normalized_text)
     nltk_tokens = tokenize_with_nltk(_tokenizer, normalized_text)
@@ -214,8 +264,8 @@ def process_symptom_description(symptom_description: str, language: int = 1) -> 
     combined_stems = spacy_stems | nltk_stems
 
     result = {
-        "symptom_description": symptom_description,
-        "translated_text": text_to_process,
+        "transcript": transcript,
+        "translated_text": transcript,
         "stemmed_tokens": list(combined_stems),
     }
 
@@ -253,24 +303,37 @@ def process_symptom_description(symptom_description: str, language: int = 1) -> 
 
     return result
 
+# def extract_symptoms(request: ExtractSymptomsRequest) -> ExtractSymptomsResponse:
+#     processed = process_symptom_description(request.symptoms_description, language=request.language)
+#     extracted = processed.get("extracted_symptoms", [])
+#     all_symptoms = list(dict.fromkeys(request.symptoms + extracted))
 
-def extract_symptoms(request: ExtractSymptomsRequest) -> ExtractSymptomsResponse:
-    processed = process_symptom_description(request.symptoms_description, language=request.language)
+#     return ExtractSymptomsResponse(
+#         symptoms_description=request.symptoms_description,
+#         extracted_symptoms=extracted,
+#         negated_symptoms=processed.get("negated_symptoms", []),
+#         symptoms=all_symptoms,
+#     )
+
+def _parse_symptoms(transcript: str) -> dict | None:
+    processed = mapping_symptoms(transcript)
     extracted = processed.get("extracted_symptoms", [])
-    all_symptoms = list(dict.fromkeys(request.symptoms + extracted))
+    all_symptoms = list(dict.fromkeys(extracted))
+    if extracted:
+        return {"symptoms": all_symptoms}
+    return None
 
-    return ExtractSymptomsResponse(
-        symptoms_description=request.symptoms_description,
-        extracted_symptoms=extracted,
-        negated_symptoms=processed.get("negated_symptoms", []),
-        symptoms=all_symptoms,
-    )
+def _parse_additional_symptoms(transcript: str) -> dict | None:
+    ##
+    return None
 
 def _parse_gender(transcript: str) -> dict | None:
     if "female" in transcript:
         return {"gender": "0"}
     if "male" in transcript or "mail" in transcript:
         return {"gender": "1"}
+    if "unknown" in transcript or "prefer not to say" in transcript:
+        return {"gender": "2"}
     return None
 
 
@@ -281,57 +344,93 @@ def _parse_age(transcript: str) -> dict | None:
     over_words = {"older", "over", "above", "more", "greater"}
     under_words = {"younger", "under", "below", "less", "fewer"}
     if any(w in transcript for w in over_words):
-        return {"age_is_over_65": "1"}
+        return {"age_over_65": "1"}
     if any(w in transcript for w in under_words):
-        return {"age_is_over_65": "0"}
+        return {"age_over_65": "0"}
+    if "unknown" in transcript or "prefer not to say" in transcript:
+        return {"age_over_65": "2"}
     return None
 
 def _parse_severity(transript: str) -> dict | None:
-    if "mild" in transript:
-        return {"severity": "1"}
+    if "mild" in transript or "mould" in transript:
+        return {"symptom_severity": "1"}
     if "low" in transript:
-        return {"severity": "2"}
+        return {"symptom_severity": "2"}
     if "moderate" in transript:
-        return {"severity": "3"}
+        return {"symptom_severity": "3"}
     if "high" in transript:
-        return {"severity": "4"}
+        return {"symptom_severity": "4"}
     if "severe" in transript:
-        return {"severity": "5"}
+        return {"symptom_severity": "5"}
     return None
 
 def _parse_duration(transcript: str) -> dict | None:
-    has_day = "a day" in transcript
-    if not has_day:
-        return None
     over_words = {"longer", "over", "more", "greater"}
     under_words = {"shorter", "under", "less", "fewer"}
-    if any(w in transcript for w in over_words):
-        return {"duration": "1"}
     if any(w in transcript for w in under_words):
-        return {"duration": "0"}
-    return None
+        return {"symptoms_duration": "0"}
+    if any(w in transcript for w in over_words):
+        return {"symptoms_duration": "1"}
+    if "unknown" in transcript or "don't know" in transcript or "not sure" in transcript:
+        return {"symptoms_duration": "2"}
+
+def _parse_chronic_conditions(transcript: str) -> dict | None:
+    conditions = set()
+    if "hypertension" in transcript:
+        conditions.add("hypertension")
+    if "type 2 diabetes" in transcript:
+        conditions.add("type_2_diabetes")
+    if "heart disease" in transcript:
+        conditions.add("heart_disease")
+    if "asthma" in transcript or "copd" in transcript:
+        conditions.add("asthma_copd")
+    if "depression" in transcript or "anxiety" in transcript:
+        conditions.add("depression_anxiety")
+    return {"chronic_conditions": conditions} if conditions else None
+
+def _parse_escalation_triggers(transcript: str) -> dict | None:
+    triggers = set()
+    if "difficulty breathing" in transcript or "shortness of breath" in transcript:
+        triggers.add("difficulty_breathing")
+    if "chest pain" in transcript:
+        triggers.add("chest_pain")
+    if "confusion" in transcript:
+        triggers.add("confusion")
+    if "persistent high fever" in transcript:
+        triggers.add("persistent_high_fever")
+    if "severe weakness" in transcript:
+        triggers.add("severe_weakness")
+    return {"escalation_triggers": triggers} if triggers else None
 
 def _parse_had_symptoms_before(transcript: str) -> dict | None:
-    if "yes" in transcript:
+    if "don't know" in transcript or "not sure" in transcript or "unknown" in transcript:
+        return {"had_symptoms_before": "2"}
+    if "yes" in transcript or "yeah" in transcript or "yep" in transcript:
         return {"had_symptoms_before": "1"}
-    if "no" in transcript:
+    if "no" in transcript or "not" in transcript or "nah" in transcript:
         return {"had_symptoms_before": "0"}
     return None
 
 def _parse_had_contact(transcript: str) -> dict | None:
-    if "yes" in transcript:
+    if "don't know" in transcript or "not sure" in transcript or "unknown" in transcript:
+        return {"had_contact": "2"}    
+    if "yes" in transcript or "yeah" in transcript or "yep" in transcript:
         return {"had_contact": "1"}
-    if "no" in transcript:
+    if "no" in transcript or "not" in transcript or "nah" in transcript:
         return {"had_contact": "0"}
     return None
 
 _QUESTION_PARSERS = {
-    1: _parse_gender,
-    2: _parse_age,
-    3: _parse_severity,
-    4: _parse_duration,
-    5: _parse_had_symptoms_before,
-    6: _parse_had_contact,
+    1: _parse_gender, #check
+    2: _parse_age, #check
+    3: _parse_symptoms, #check
+    #4: _parse_additional_symptoms, #not implemented yet
+    5: _parse_severity, #check
+    6: _parse_duration, #check
+    7: _parse_had_symptoms_before, #check
+    8: _parse_chronic_conditions, #check
+    9: _parse_had_contact, #check
+    #10: _parse_escalation_triggers, #not implemented yet
 }
 
 def process_audio_response(file_obj, language: int = 1, question_id: int = None) -> dict | None:
@@ -341,7 +440,13 @@ def process_audio_response(file_obj, language: int = 1, question_id: int = None)
 
     try:
         transcript = convert_wav_to_text(tmp_path, language=language)
-        transcript = transcript.lower().strip()
+        if language not in LANGUAGE_MAP:
+            raise ValueError(f"Unsupported language code: {language}. Use 1 (English) or 0 (Indigenous).")
+        if language == 0:
+            audio_to_process = translate_indigenous_to_english(transcript)
+        else:
+            audio_to_process = transcript
+        transcript = audio_to_process.lower().strip()
         parser = _QUESTION_PARSERS.get(question_id)
         if parser:
             return parser(transcript)
@@ -356,7 +461,7 @@ def main() -> None:
     # symptoms_extracted = process_symptom_description(symptom_description, language=0)
     # print(json.dumps(symptoms_extracted))
     
-    test = process_audio_response(open("/Users/jasperl/Downloads/audio/under65.wav", "rb"), language=1, question_id=2)
+    test = process_audio_response(open("/Users/jasperl/Downloads/audio/type2diabetes.wav", "rb"), language=1, question_id=8)
     print(test)
 
 

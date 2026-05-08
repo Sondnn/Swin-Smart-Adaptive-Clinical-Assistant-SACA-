@@ -1,0 +1,78 @@
+{
+  "trained_at": "2026-05-07T20:39:51",
+  "cv_accuracy_mean": 0.9092500000000001,
+  "cv_accuracy_std": 0.010386289038920488,
+  "cv_macro_f1_mean": 0.8680050141227206,
+  "cv_macro_f1_std": 0.011878395541795544,
+  "test_accuracy": 0.921,
+  "test_macro_f1": 0.8857834655757406,
+  "test_weighted_f1": 0.9213419740460498,
+  "best_xgb_params": {
+    "subsample": 1.0,
+    "n_estimators": 300,
+    "min_child_weight": 1,
+    "max_depth": 10,
+    "learning_rate": 0.1,
+    "colsample_bytree": 1.0
+  },
+  "confusion_matrix": [
+    [
+      109,
+      0,
+      1,
+      0,
+      1,
+      0
+    ],
+    [
+      0,
+      271,
+      7,
+      1,
+      3,
+      4
+    ],
+    [
+      0,
+      1,
+      297,
+      1,
+      7,
+      6
+    ],
+    [
+      0,
+      0,
+      0,
+      32,
+      9,
+      2
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      65,
+      33
+    ],
+    [
+      0,
+      0,
+      0,
+      0,
+      3,
+      147
+    ]
+  ],
+  "n_features": 286,
+  "n_train": 4000,
+  "n_test": 1000,
+  "timing_seconds": {
+    "random_forest_fit": 1.08,
+    "extra_trees_fit": 2.4,
+    "xgb_randomized_cv": 43.36,
+    "ensemble_cv_fit": 9.26,
+    "total": 56.1
+  }
+}

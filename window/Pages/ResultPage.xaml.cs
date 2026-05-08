@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using SACA.WindowsApp.Models;
+using SACA.WindowsApp.Services;
 
 namespace SACA.WindowsApp.Pages
 {
@@ -29,14 +30,15 @@ namespace SACA.WindowsApp.Pages
             InitializeComponent();
             _mainWindow = mainWindow;
 
-            SeverityTextBlock.Text = $"Severity Level: {response.TriageLevel}";
-            RecommendationTextBlock.Text = $"Recommendation: {response.Recommendation}";
+            SeverityTextBlock.Text = $"{AppLanguage.T("severity_level")}: {response.TriageLevel}";
+            RecommendationTextBlock.Text = $"{AppLanguage.T("recommendation")}: {response.Recommendation}";
             SummaryTextBlock.Text = string.Join(", ", response.Summary);
         }
 
         private void StartAgain_Click(object sender, RoutedEventArgs e)
         {
             _mainWindow.CurrentRequest = new TriageRequest();
+            AppLanguage.SetLanguage("English");
             _mainWindow.NavigateToSplash();
         }
 

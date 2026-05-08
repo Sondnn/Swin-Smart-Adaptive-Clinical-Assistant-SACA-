@@ -1,64 +1,86 @@
 ﻿<UserControl x:Class="SACA.WindowsApp.Pages.SymptomsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:controls="clr-namespace:SACA.WindowsApp.Controls">
+             xmlns:controls="clr-namespace:SACA.WindowsApp.Controls"
+             xmlns:services="clr-namespace:SACA.WindowsApp.Services">
 
     <Grid Background="{StaticResource AppBackgroundBrush}" Margin="40">
         <StackPanel Width="650" HorizontalAlignment="Center">
 
-            <TextBlock Text="Triage Assessment"
+            <TextBlock Text="{services:Loc triage_assessment}"
                        Foreground="{StaticResource PrimaryTextBrush}"
                        FontSize="18"
                        FontWeight="SemiBold"
                        Margin="0,0,0,25"/>
 
-            <TextBlock Text="Select Any Symptoms"
+            <TextBlock Text="{services:Loc symptoms_title}"
                        Style="{StaticResource PageTitleTextStyle}"
                        FontSize="30"
                        Margin="0,0,0,20"/>
 
             <WrapPanel Margin="0,0,0,25">
-                <CheckBox Content="Fever" Margin="10"/>
-                <CheckBox Content="Diarrhea" Margin="10"/>
-                <CheckBox Content="Cough" Margin="10"/>
-                <CheckBox Content="Vomiting" Margin="10"/>
-                <CheckBox Content="Dizziness" Margin="10"/>
-                <CheckBox Content="Runny Nose" Margin="10"/>
-                <CheckBox Content="Eye Pain" Margin="10"/>
-                <CheckBox Content="Sore Throat" Margin="10"/>
-                <CheckBox Content="Headache" Margin="10"/>
-                <CheckBox Content="Joint Pain" Margin="10"/>
-                <CheckBox Content="Abdominal Pain" Margin="10"/>
-                <CheckBox Content="Body Pain" Margin="10"/>
+                <CheckBox Content="{services:Loc symptom_fever}" Tag="Fever" Margin="10"/>
+                <CheckBox Content="{services:Loc symptom_diarrhea}" Tag="Diarrhea" Margin="10"/>
+                <CheckBox Content="{services:Loc symptom_cough}" Tag="Cough" Margin="10"/>
+                <CheckBox Content="{services:Loc symptom_vomiting}" Tag="Vomiting" Margin="10"/>
+                <CheckBox Content="{services:Loc symptom_dizziness}" Tag="Dizziness" Margin="10"/>
+                <CheckBox Content="{services:Loc symptom_runny_nose}" Tag="Runny Nose" Margin="10"/>
+                <CheckBox Content="{services:Loc symptom_eye_pain}" Tag="Eye Pain" Margin="10"/>
+                <CheckBox Content="{services:Loc symptom_sore_throat}" Tag="Sore Throat" Margin="10"/>
+                <CheckBox Content="{services:Loc symptom_headache}" Tag="Headache" Margin="10"/>
+                <CheckBox Content="{services:Loc symptom_joint_pain}" Tag="Joint Pain" Margin="10"/>
+                <CheckBox Content="{services:Loc symptom_abdominal_pain}" Tag="Abdominal Pain" Margin="10"/>
+                <CheckBox Content="{services:Loc symptom_body_pain}" Tag="Body Pain" Margin="10"/>
             </WrapPanel>
 
-            <TextBlock Text="Describe Symptoms" Style="{StaticResource SectionLabelTextStyle}"/>
-            <TextBox x:Name="DescriptionTextBox"
-                     Height="90"
-                     TextWrapping="Wrap"
-                     AcceptsReturn="True"
-                     Margin="0,5,0,20"/>
+            <controls:VoiceRecorderControl x:Name="SymptomsVoiceRecorder"
+                                           QuestionId="3"
+                                           Label="{services:Loc voice_symptoms}"/>
 
-            <controls:VoiceRecorderControl x:Name="VoiceRecorder"/>
+            <Border x:Name="TranscriptBorder"
+                    Background="{StaticResource SelectedBackgroundBrush}"
+                    BorderBrush="{StaticResource AccentBrush}"
+                    BorderThickness="2"
+                    CornerRadius="8"
+                    Padding="16"
+                    Margin="0,0,0,20"
+                    Visibility="Collapsed">
+                <StackPanel>
+                    <TextBlock Text="{services:Loc recorded_symptoms}"
+                               Foreground="{StaticResource PrimaryTextBrush}"
+                               FontWeight="Bold"
+                               FontSize="16"
+                               Margin="0,0,0,6"/>
+                    <TextBlock x:Name="TranscriptTextBlock"
+                               Foreground="{StaticResource PrimaryTextBrush}"
+                               FontSize="17"
+                               FontWeight="SemiBold"
+                               TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
 
-            <TextBlock Text="Severity" Style="{StaticResource SectionLabelTextStyle}"/>
+            <TextBlock Text="{services:Loc severity_title}" Style="{StaticResource SectionLabelTextStyle}"/>
             <ComboBox x:Name="SeverityComboBox" Height="40" Margin="0,5,0,25">
-                <ComboBoxItem Content="Mild"/>
-                <ComboBoxItem Content="Low"/>
-                <ComboBoxItem Content="Moderate"/>
-                <ComboBoxItem Content="High"/>
-                <ComboBoxItem Content="Severe"/>
+                <ComboBoxItem Content="{services:Loc severity_mild}" Tag="Mild"/>
+                <ComboBoxItem Content="{services:Loc severity_low}" Tag="Low"/>
+                <ComboBoxItem Content="{services:Loc severity_moderate}" Tag="Moderate"/>
+                <ComboBoxItem Content="{services:Loc severity_high}" Tag="High"/>
+                <ComboBoxItem Content="{services:Loc severity_severe}" Tag="Severe"/>
             </ComboBox>
 
+            <controls:VoiceRecorderControl x:Name="SeverityVoiceRecorder"
+                                           QuestionId="5"
+                                           Label="{services:Loc voice_severity}"/>
+
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Back"
+                <Button Content="{services:Loc back}"
                         Style="{StaticResource SecondaryButtonStyle}"
                         Width="120"
                         Height="40"
                         Margin="0,0,10,0"
                         Click="Back_Click"/>
 
-                <Button Content="Continue"
+                <Button Content="{services:Loc continue}"
                         Width="140"
                         Height="40"
                         Click="Continue_Click"/>
