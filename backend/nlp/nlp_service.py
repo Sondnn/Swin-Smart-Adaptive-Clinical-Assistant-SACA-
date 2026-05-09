@@ -455,13 +455,14 @@ def process_audio_response(file_obj, language: int = 1, question_id: int = None)
         os.unlink(tmp_path)
 
 def main() -> None:
-    # wav_input = "/Users/jasperl/Downloads/test1.wav"
-    # symptom_description = convert_wav_to_text(wav_input)
-    # symptom_description = "mil wurlurl"
-    # symptoms_extracted = process_symptom_description(symptom_description, language=0)
-    # print(json.dumps(symptoms_extracted))
     
-    test = process_audio_response(open("/Users/jasperl/Downloads/audio/type2diabetes.wav", "rb"), language=1, question_id=8)
+    # test = process_audio_response(open("/Users/jasperl/Downloads/audio/type2diabetes.wav", "rb"), language=1, question_id=8)
+    # print(test)
+    
+    test = translate_indigenous_to_english("karlarra waru, karlarra mirrirr, ngajirta karlarra parnta, ngajirta patanyja")
+    # test = "i have fever, no cough"
+    print(test)
+    test = mapping_symptoms(test)
     print(test)
 
 
