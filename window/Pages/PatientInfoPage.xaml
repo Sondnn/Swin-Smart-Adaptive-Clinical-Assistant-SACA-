@@ -19,7 +19,12 @@
                        Margin="0,0,0,25"
                        TextAlignment="Center"/>
 
-            <TextBlock Text="{services:Loc gender_title}" Style="{StaticResource SectionLabelTextStyle}"/>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="{services:Loc gender_title}"
+                           Style="{StaticResource SectionLabelTextStyle}"
+                           VerticalAlignment="Center"/>
+                <controls:SpeakerButtonControl TextKey="speak_gender"/>
+            </StackPanel>
             <ComboBox x:Name="GenderComboBox"
                       Height="40"
                       Margin="0,5,0,20"
@@ -29,7 +34,12 @@
                 <ComboBoxItem Content="{services:Loc gender_unknown}" Tag="Unknown / Prefer not to say"/>
             </ComboBox>
 
-            <TextBlock Text="{services:Loc age_title}" Style="{StaticResource SectionLabelTextStyle}"/>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="{services:Loc age_title}"
+                           Style="{StaticResource SectionLabelTextStyle}"
+                           VerticalAlignment="Center"/>
+                <controls:SpeakerButtonControl TextKey="speak_age"/>
+            </StackPanel>
             <ComboBox x:Name="AgeComboBox"
                       Height="40"
                       Margin="0,5,0,30">

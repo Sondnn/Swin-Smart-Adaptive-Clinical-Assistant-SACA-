@@ -10,10 +10,14 @@
 
   <ItemGroup>
     <None Remove="Assets\Images\Doctors-pana.png" />
+    <None Remove="Assets\Icons\*.png" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Assets\Images\Doctors-pana.png">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Assets\Icons\*.png">
       <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </Resource>
   </ItemGroup>

@@ -4,33 +4,100 @@
              xmlns:controls="clr-namespace:SACA.WindowsApp.Controls"
              xmlns:services="clr-namespace:SACA.WindowsApp.Services">
 
-    <Grid Background="{StaticResource AppBackgroundBrush}" Margin="40">
+    <Grid Background="{StaticResource AppBackgroundBrush}" Margin="32">
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
         <StackPanel Width="650" HorizontalAlignment="Center">
 
             <TextBlock Text="{services:Loc triage_assessment}"
                        Foreground="{StaticResource PrimaryTextBrush}"
                        FontSize="18"
                        FontWeight="SemiBold"
-                       Margin="0,0,0,25"/>
+                       Margin="0,0,0,16"/>
 
-            <TextBlock Text="{services:Loc symptoms_title}"
-                       Style="{StaticResource PageTitleTextStyle}"
-                       FontSize="30"
-                       Margin="0,0,0,20"/>
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Margin="0,0,0,14">
+                <TextBlock Text="{services:Loc symptoms_title}"
+                           Style="{StaticResource PageTitleTextStyle}"
+                           FontSize="28"
+                           VerticalAlignment="Center"/>
+                <controls:SpeakerButtonControl TextKey="speak_symptoms"/>
+            </StackPanel>
 
-            <WrapPanel Margin="0,0,0,25">
-                <CheckBox Content="{services:Loc symptom_fever}" Tag="Fever" Margin="10"/>
-                <CheckBox Content="{services:Loc symptom_diarrhea}" Tag="Diarrhea" Margin="10"/>
-                <CheckBox Content="{services:Loc symptom_cough}" Tag="Cough" Margin="10"/>
-                <CheckBox Content="{services:Loc symptom_vomiting}" Tag="Vomiting" Margin="10"/>
-                <CheckBox Content="{services:Loc symptom_dizziness}" Tag="Dizziness" Margin="10"/>
-                <CheckBox Content="{services:Loc symptom_runny_nose}" Tag="Runny Nose" Margin="10"/>
-                <CheckBox Content="{services:Loc symptom_eye_pain}" Tag="Eye Pain" Margin="10"/>
-                <CheckBox Content="{services:Loc symptom_sore_throat}" Tag="Sore Throat" Margin="10"/>
-                <CheckBox Content="{services:Loc symptom_headache}" Tag="Headache" Margin="10"/>
-                <CheckBox Content="{services:Loc symptom_joint_pain}" Tag="Joint Pain" Margin="10"/>
-                <CheckBox Content="{services:Loc symptom_abdominal_pain}" Tag="Abdominal Pain" Margin="10"/>
-                <CheckBox Content="{services:Loc symptom_body_pain}" Tag="Body Pain" Margin="10"/>
+            <WrapPanel Margin="0,0,0,18" HorizontalAlignment="Center">
+                <CheckBox Tag="Fever" Margin="6" Width="138">
+                    <StackPanel>
+                        <Image Source="/Assets/Icons/thermometer 1.png" Width="38" Height="38" Stretch="Uniform" Margin="0,0,0,4"/>
+                        <TextBlock Text="{services:Loc symptom_fever}" TextAlignment="Center" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </CheckBox>
+                <CheckBox Tag="Diarrhea" Margin="6" Width="138">
+                    <StackPanel>
+                        <Image Source="/Assets/Icons/stomach-flu 1.png" Width="38" Height="38" Stretch="Uniform" Margin="0,0,0,4"/>
+                        <TextBlock Text="{services:Loc symptom_diarrhea}" TextAlignment="Center" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </CheckBox>
+                <CheckBox Tag="Cough" Margin="6" Width="138">
+                    <StackPanel>
+                        <Image Source="/Assets/Icons/sneezing 1.png" Width="38" Height="38" Stretch="Uniform" Margin="0,0,0,4"/>
+                        <TextBlock Text="{services:Loc symptom_cough}" TextAlignment="Center" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </CheckBox>
+                <CheckBox Tag="Vomiting" Margin="6" Width="138">
+                    <StackPanel>
+                        <Image Source="/Assets/Icons/vomiting 1.png" Width="38" Height="38" Stretch="Uniform" Margin="0,0,0,4"/>
+                        <TextBlock Text="{services:Loc symptom_vomiting}" TextAlignment="Center" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </CheckBox>
+                <CheckBox Tag="Dizziness" Margin="6" Width="138">
+                    <StackPanel>
+                        <Image Source="/Assets/Icons/dizzy (1) 1.png" Width="38" Height="38" Stretch="Uniform" Margin="0,0,0,4"/>
+                        <TextBlock Text="{services:Loc symptom_dizziness}" TextAlignment="Center" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </CheckBox>
+                <CheckBox Tag="Runny Nose" Margin="6" Width="138">
+                    <StackPanel>
+                        <Image Source="/Assets/Icons/runny-nose 1.png" Width="38" Height="38" Stretch="Uniform" Margin="0,0,0,4"/>
+                        <TextBlock Text="{services:Loc symptom_runny_nose}" TextAlignment="Center" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </CheckBox>
+                <CheckBox Tag="Eye Pain" Margin="6" Width="138">
+                    <StackPanel>
+                        <Image Source="/Assets/Icons/eye 1.png" Width="38" Height="38" Stretch="Uniform" Margin="0,0,0,4"/>
+                        <TextBlock Text="{services:Loc symptom_eye_pain}" TextAlignment="Center" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </CheckBox>
+                <CheckBox Tag="Sore Throat" Margin="6" Width="138">
+                    <StackPanel>
+                        <Image Source="/Assets/Icons/sore-throat (1) 1.png" Width="38" Height="38" Stretch="Uniform" Margin="0,0,0,4"/>
+                        <TextBlock Text="{services:Loc symptom_sore_throat}" TextAlignment="Center" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </CheckBox>
+                <CheckBox Tag="Headache" Margin="6" Width="138">
+                    <StackPanel>
+                        <Image Source="/Assets/Icons/headache (1) 1.png" Width="38" Height="38" Stretch="Uniform" Margin="0,0,0,4"/>
+                        <TextBlock Text="{services:Loc symptom_headache}" TextAlignment="Center" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </CheckBox>
+                <CheckBox Tag="Joint Pain" Margin="6" Width="138">
+                    <StackPanel>
+                        <Image Source="/Assets/Icons/pain 1.png" Width="38" Height="38" Stretch="Uniform" Margin="0,0,0,4"/>
+                        <TextBlock Text="{services:Loc symptom_joint_pain}" TextAlignment="Center" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </CheckBox>
+                <CheckBox Tag="Abdominal Pain" Margin="6" Width="138">
+                    <StackPanel>
+                        <Image Source="/Assets/Icons/constipation 1.png" Width="38" Height="38" Stretch="Uniform" Margin="0,0,0,4"/>
+                        <TextBlock Text="{services:Loc symptom_abdominal_pain}" TextAlignment="Center" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </CheckBox>
+                <CheckBox Tag="Body Pain" Margin="6" Width="138">
+                    <StackPanel>
+                        <Image Source="/Assets/Icons/back 1.png" Width="38" Height="38" Stretch="Uniform" Margin="0,0,0,4"/>
+                        <TextBlock Text="{services:Loc symptom_body_pain}" TextAlignment="Center" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </CheckBox>
             </WrapPanel>
 
             <controls:VoiceRecorderControl x:Name="SymptomsVoiceRecorder"
@@ -43,7 +110,7 @@
                     BorderThickness="2"
                     CornerRadius="8"
                     Padding="16"
-                    Margin="0,0,0,20"
+                    Margin="0,0,0,14"
                     Visibility="Collapsed">
                 <StackPanel>
                     <TextBlock Text="{services:Loc recorded_symptoms}"
@@ -59,8 +126,13 @@
                 </StackPanel>
             </Border>
 
-            <TextBlock Text="{services:Loc severity_title}" Style="{StaticResource SectionLabelTextStyle}"/>
-            <ComboBox x:Name="SeverityComboBox" Height="40" Margin="0,5,0,25">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="{services:Loc severity_title}"
+                           Style="{StaticResource SectionLabelTextStyle}"
+                           VerticalAlignment="Center"/>
+                <controls:SpeakerButtonControl TextKey="speak_severity"/>
+            </StackPanel>
+            <ComboBox x:Name="SeverityComboBox" Height="40" Margin="0,5,0,14">
                 <ComboBoxItem Content="{services:Loc severity_mild}" Tag="Mild"/>
                 <ComboBoxItem Content="{services:Loc severity_low}" Tag="Low"/>
                 <ComboBoxItem Content="{services:Loc severity_moderate}" Tag="Moderate"/>
@@ -87,5 +159,6 @@
             </StackPanel>
 
         </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

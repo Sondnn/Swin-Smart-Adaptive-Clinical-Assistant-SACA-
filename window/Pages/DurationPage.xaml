@@ -7,12 +7,21 @@
     <Grid Background="{StaticResource AppBackgroundBrush}" Margin="40">
         <StackPanel Width="520" HorizontalAlignment="Center" VerticalAlignment="Center">
 
-            <TextBlock Text="{services:Loc duration_title}"
-                       Style="{StaticResource PageTitleTextStyle}"
-                       FontSize="30"
-                       TextWrapping="Wrap"
-                       TextAlignment="Center"
-                       Margin="0,0,0,30"/>
+            <Grid Width="520" Margin="0,0,0,30">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{services:Loc duration_title}"
+                           Grid.Column="0"
+                           Style="{StaticResource PageTitleTextStyle}"
+                           FontSize="30"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"
+                           VerticalAlignment="Center"/>
+                <controls:SpeakerButtonControl Grid.Column="1"
+                                               TextKey="speak_duration"/>
+            </Grid>
 
             <ComboBox x:Name="DurationComboBox"
                       Height="45"
