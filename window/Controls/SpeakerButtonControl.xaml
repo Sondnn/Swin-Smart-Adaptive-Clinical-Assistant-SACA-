@@ -1,0 +1,21 @@
+<UserControl x:Class="SACA.WindowsApp.Controls.SpeakerButtonControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:services="clr-namespace:SACA.WindowsApp.Services">
+
+    <Button Width="30"
+            Height="30"
+            Padding="0"
+            Margin="8,0,0,0"
+            Background="Transparent"
+            BorderBrush="Transparent"
+            Foreground="{StaticResource PrimaryButtonBrush}"
+            ToolTip="{services:Loc read_aloud}"
+            Click="SpeakButton_Click">
+        <TextBlock Text="&#xE767;"
+                   FontFamily="Segoe MDL2 Assets"
+                   FontSize="17"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"/>
+    </Button>
+</UserControl>

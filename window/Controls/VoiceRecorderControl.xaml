@@ -10,6 +10,8 @@
             <Button x:Name="RecordButton"
                     Width="170"
                     Height="42"
+                    Background="#33A29C"
+                    BorderBrush="#33A29C"
                     PreviewMouseLeftButtonDown="RecordButton_PreviewMouseLeftButtonDown"
                     PreviewMouseLeftButtonUp="RecordButton_PreviewMouseLeftButtonUp"
                     MouseLeave="RecordButton_MouseLeave">

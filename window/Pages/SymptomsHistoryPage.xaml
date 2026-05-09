@@ -7,11 +7,21 @@
     <Grid Background="{StaticResource AppBackgroundBrush}" Margin="40">
         <StackPanel Width="560" HorizontalAlignment="Center" VerticalAlignment="Center">
 
-            <TextBlock Text="{services:Loc had_before_title}"
-                       Style="{StaticResource PageTitleTextStyle}"
-                       FontSize="30"
-                       TextWrapping="Wrap"
-                       Margin="0,0,0,30"/>
+            <Grid Width="560" Margin="0,0,0,30">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{services:Loc had_before_title}"
+                           Grid.Column="0"
+                           Style="{StaticResource PageTitleTextStyle}"
+                           FontSize="30"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"
+                           VerticalAlignment="Center"/>
+                <controls:SpeakerButtonControl Grid.Column="1"
+                                               TextKey="speak_had_before"/>
+            </Grid>
 
             <StackPanel Margin="0,0,0,35">
                 <RadioButton x:Name="YesRadioButton"
