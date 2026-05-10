@@ -22,9 +22,9 @@ class TriageRepositoryImpl(
     ): Result<SpeechToTextResponse> {
         return try {
             val file = audioFile.asRequestBody("audio/wav".toMediaTypeOrNull())
-            Log.d("speechToText", "language=$language questionId=$questionId")
             val filePart = MultipartBody.Part.createFormData("files", audioFile.name, file)
 
+            Log.d("speechToText", "language=$language questionId=$questionId")
             Log.d("speechToText", "exists=${audioFile.exists()}")
             Log.d("speechToText", "name=${audioFile.name}")
             Log.d("speechToText", "path=${audioFile.absolutePath}")

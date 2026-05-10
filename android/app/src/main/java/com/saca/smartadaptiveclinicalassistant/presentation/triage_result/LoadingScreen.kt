@@ -37,8 +37,6 @@ fun LoadingScreen(
 ) {
     val uiState = triageResultViewModel.uiState
 
-    Log.d("formAnswers", formAnswers.toString())
-
     LaunchedEffect(formAnswers) {
         triageResultViewModel.analyzeSymptoms(formAnswers)
     }

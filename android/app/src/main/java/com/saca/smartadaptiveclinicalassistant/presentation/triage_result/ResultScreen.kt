@@ -213,7 +213,6 @@ private fun SymptomsSummary(symptoms: List<String>) {
 
         Spacer(modifier = Modifier.height(6.dp))
 
-        Log.d("Result", symptoms.toString())
         for (symptom in symptoms) {
             Row(
                 modifier = Modifier

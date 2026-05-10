@@ -283,7 +283,6 @@ class TriageFormViewModel(
 
         viewModelScope.launch {
             try {
-                Log.d("view model speech", questionId.toString())
                 val result = speechToTextUseCase(
                     language = getLanguageCode(languageTag),
                     questionId = questionId,

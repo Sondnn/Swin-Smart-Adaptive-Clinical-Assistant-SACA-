@@ -25,7 +25,6 @@ class AnalyzeSymptomsUseCase(
         )
 
         return triageRepository.analysisSymptoms(request).map { response ->
-            Log.d("response", response.toString())
             val normalizedCategory = response.triageCategory.coerceIn(1, 6)
             val triageCategory = when (normalizedCategory) {
                 1 -> TriageCategory.A
