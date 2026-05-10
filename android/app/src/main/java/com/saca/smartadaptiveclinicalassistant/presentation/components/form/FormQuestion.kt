@@ -121,7 +121,10 @@ fun FormQuestionScaffold(
 
             QuestionOptions(
                 options = options,
-                selectedOptionId = selectedOptionId,
+                selectedOptionIds = buildSet {
+                    selectedOptionIds?.let { addAll(it) }
+                    selectedOptionId?.let { add(it) }
+                },
                 onOptionClick = onOptionClick
             )
 
@@ -212,6 +215,7 @@ private fun VoiceInputSection(
     )
 
     if (recordingErrorResId != null) {
+        Log.d("Form question recording", recordingErrorResId.toString())
         Spacer(modifier = Modifier.height(10.dp))
         ErrorMessage(text = stringResource(recordingErrorResId))
     }
@@ -261,7 +265,7 @@ fun QuestionTextInput(
 @Composable
 private fun QuestionOptions(
     options: List<FormQuestionOption>,
-    selectedOptionId: String?,
+    selectedOptionIds: Set<String>,
     onOptionClick: (String) -> Unit,
 ) {
     Column(
@@ -271,7 +275,7 @@ private fun QuestionOptions(
         for (option in options) {
             QuestionOptionButton(
                 text = stringResource(option.labelResourceId),
-                selected = option.id == selectedOptionId,
+                selected = selectedOptionIds.contains(option.id),
                 onClick = {
                     onOptionClick(option.id)
                 }

@@ -1,5 +1,6 @@
 package com.saca.smartadaptiveclinicalassistant.domain.use_case
 
+import android.util.Log
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.SpeechToTextV2Response
 import com.saca.smartadaptiveclinicalassistant.domain.repository.TriageRepository
 import java.io.File
@@ -12,6 +13,7 @@ class SpeechToTextV2UseCase (
         questionId: Int,
         audioFile: File
     ): Result<SpeechToTextV2Response> {
+        Log.d("speech-to-text",questionId.toString())
         return triageRepository.speechToTextV2(language, questionId, audioFile)
     }
 }

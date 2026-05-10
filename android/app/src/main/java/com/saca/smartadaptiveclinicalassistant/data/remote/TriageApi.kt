@@ -2,8 +2,6 @@ package com.saca.smartadaptiveclinicalassistant.data.remote
 
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.AnalysisSymptomsRequest
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.AnalysisSymptomsResponse
-import com.saca.smartadaptiveclinicalassistant.data.remote.dto.ExtractSymptomsRequest
-import com.saca.smartadaptiveclinicalassistant.data.remote.dto.ExtractSymptomsResponse
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.SpeechToTextResponse
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.SpeechToTextV2Response
 import okhttp3.MultipartBody
@@ -28,11 +26,6 @@ interface TriageApi {
         @Part("question_id") questionId: Int,
         @Part files: MultipartBody.Part
     ): Response<SpeechToTextV2Response>
-
-    @POST("extract-symptoms")
-    suspend fun extractSymptoms(
-       @Body request: ExtractSymptomsRequest
-    ): Response<ExtractSymptomsResponse>
 
     @POST("predict")
     suspend fun analysisSymptoms(

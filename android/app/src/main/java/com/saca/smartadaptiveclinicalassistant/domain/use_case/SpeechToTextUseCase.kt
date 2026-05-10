@@ -1,5 +1,4 @@
 package com.saca.smartadaptiveclinicalassistant.domain.use_case
-import com.saca.smartadaptiveclinicalassistant.data.remote.dto.SpeechToTextV2Response
 import com.saca.smartadaptiveclinicalassistant.domain.repository.TriageRepository
 import java.io.File
 

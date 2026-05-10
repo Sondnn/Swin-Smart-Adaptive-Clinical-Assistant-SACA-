@@ -1,5 +1,6 @@
 package com.saca.smartadaptiveclinicalassistant.presentation.triage_form
 
+import android.util.Log
 import androidx.annotation.StringRes
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -10,23 +11,21 @@ import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.common.Constants.LANGUAGE_TAG_WALMAJARRI
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.SpeechToTextV2Response
 import com.saca.smartadaptiveclinicalassistant.domain.model.TriageForm
-import com.saca.smartadaptiveclinicalassistant.domain.use_case.ExtractSymptomsUseCase
 import com.saca.smartadaptiveclinicalassistant.domain.use_case.SpeechToTextV2UseCase
 import kotlinx.coroutines.launch
 import java.io.File
 
 class TriageFormViewModel(
     private val speechToTextUseCase: SpeechToTextV2UseCase,
-    private val extractSymptomsUseCase: ExtractSymptomsUseCase
 ): ViewModel() {
     enum class TriageQuestionId(val value: Int) {
         GENDER(1),
         AGE(2),
         SYMPTOM(3),
-        SEVERITY(4),
-        DURATION(5),
-        CHRONIC_CONDITIONS(6),
-        SYMPTOMS_BEFORE(8),
+        SEVERITY(5),
+        DURATION(6),
+        SYMPTOMS_BEFORE(7),
+        CHRONIC_CONDITIONS(8),
         SICK_CONTACT_HISTORY(9),
     }
     enum class GenderOption(
@@ -127,7 +126,7 @@ class TriageFormViewModel(
     var selectedSymptomIds: Set<String> by mutableStateOf(emptySet())
         private set
 
-    var symptomDescriptionText: String by mutableStateOf("")
+    var recordedSymptoms: Set<String> by mutableStateOf(emptySet())
         private set
 
     var isTranscribing: Boolean by mutableStateOf(false)
@@ -136,15 +135,7 @@ class TriageFormViewModel(
     var recordingErrorResId: Int? by mutableStateOf(null)
         private set
 
-    var shouldShowSymptomError: Boolean by mutableStateOf(false)
-
-    var isExtractingSymptoms: Boolean by mutableStateOf(false)
-        private set
-
-    var extractSymptomsErrorResId: Int? by mutableStateOf(null)
-        private set
-
-    private var extractedSymptomsFromBackend: List<String> by mutableStateOf(emptyList())
+    var shouldShowNoSymptomError: Boolean by mutableStateOf(false)
 
     var selectedSeverityOptionId: String? by mutableStateOf(null)
         private set
@@ -180,15 +171,7 @@ class TriageFormViewModel(
             selectedSymptomIds + optionId
         }
 
-        clearExtractSymptomsError()
-        hideSymptomErrorIfExists()
-    }
-
-    fun onSymptomDescriptionChanged(text: String) {
-        symptomDescriptionText = text
-
         clearRecordingError()
-        clearExtractSymptomsError()
         hideSymptomErrorIfExists()
     }
 
@@ -201,13 +184,9 @@ class TriageFormViewModel(
         recordingErrorResId = null
     }
 
-    fun clearExtractSymptomsError() {
-        extractSymptomsErrorResId = null
-    }
-
     fun hideSymptomErrorIfExists() {
-        if (selectedSymptomIds.isNotEmpty() || symptomDescriptionText.isNotBlank()) {
-            shouldShowSymptomError = false
+        if (selectedSymptomIds.isNotEmpty() || recordedSymptoms.isNotEmpty()) {
+            shouldShowNoSymptomError = false
         }
     }
 
@@ -304,6 +283,7 @@ class TriageFormViewModel(
 
         viewModelScope.launch {
             try {
+                Log.d("view model speech", questionId.toString())
                 val result = speechToTextUseCase(
                     language = getLanguageCode(languageTag),
                     questionId = questionId,
@@ -325,7 +305,8 @@ class TriageFormViewModel(
                 recordingErrorResId = R.string.triage_form_symptom_transcription_failed_message
             } finally {
                 isTranscribing = false
-                //audioFile.delete()
+                // audioFile is stored for testing purpose, but should be deleted after recording in production
+                // audioFile.delete()
             }
         }
     }
@@ -333,7 +314,7 @@ class TriageFormViewModel(
     private fun applyVoiceAnswer(questionId: Int, response: SpeechToTextV2Response): Boolean {
         return when (questionId) {
             TriageQuestionId.GENDER.value -> {
-                val optionId = when (response.gender) {
+                val optionId = when (response.parsedResponse?.gender) {
                     0 -> "female"
                     1 -> "male"
                     2 -> "prefer_not_to_say"
@@ -348,7 +329,7 @@ class TriageFormViewModel(
             }
 
             TriageQuestionId.AGE.value -> {
-                val optionId = when (response.ageOver65) {
+                val optionId = when (response.parsedResponse?.ageOver65) {
                     0 -> "older_adult_or_younger"
                     1 -> "over_older_adult"
                     2 -> "prefer_not_to_say"
@@ -363,10 +344,9 @@ class TriageFormViewModel(
             }
 
             TriageQuestionId.SYMPTOM.value -> {
-                val text = response.symptoms
-                if (!text.isNullOrBlank()) {
-                    symptomDescriptionText = text
-                    clearExtractSymptomsError()
+                val symptoms = response.parsedResponse?.symptoms
+                if (symptoms != null) {
+                    recordedSymptoms = symptoms.toSet()
                     hideSymptomErrorIfExists()
                     true
                 } else {
@@ -375,7 +355,7 @@ class TriageFormViewModel(
             }
 
             TriageQuestionId.SEVERITY.value -> {
-                val optionId = when (response.symptomSeverity) {
+                val optionId = when (response.parsedResponse?.symptomSeverity) {
                     1 -> "mild"
                     2 -> "low"
                     3 -> "moderate"
@@ -392,8 +372,7 @@ class TriageFormViewModel(
             }
 
             TriageQuestionId.DURATION.value -> {
-                // API: 0 = less than a day, 1 = more than a day, 2 = unknown
-                val optionId = when (response.symptomsDuration) {
+                val optionId = when (response.parsedResponse?.symptomsDuration) {
                     0 -> "less_than_day"
                     1 -> "more_than_day"
                     2 -> "unknown"
@@ -408,9 +387,8 @@ class TriageFormViewModel(
             }
 
             TriageQuestionId.CHRONIC_CONDITIONS.value -> {
-                val conditions = response.chronicConditions
+                val conditions = response.parsedResponse?.chronicConditions
                 if (conditions != null) {
-                    // Replace the current selection with whatever the voice detected.
                     selectedChronicConditionsOptionIds = conditions.toSet()
                     true
                 } else {
@@ -419,7 +397,7 @@ class TriageFormViewModel(
             }
 
             TriageQuestionId.SYMPTOMS_BEFORE.value -> {
-                val optionId = when (response.hadSymptomsBefore) {
+                val optionId = when (response.parsedResponse?.hadSymptomsBefore) {
                     0 -> "no"
                     1 -> "yes"
                     2 -> "unknown"
@@ -434,7 +412,7 @@ class TriageFormViewModel(
             }
 
             TriageQuestionId.SICK_CONTACT_HISTORY.value -> {
-                val optionId = when (response.hadContact) {
+                val optionId = when (response.parsedResponse?.hadContact) {
                     0 -> "no"
                     1 -> "yes"
                     2 -> "unknown"
@@ -453,60 +431,14 @@ class TriageFormViewModel(
     }
 
     fun canContinueFromSymptomQuestion(): Boolean {
-        val hasSelectedSymptom = selectedSymptomIds.isNotEmpty()
-        val hasWrittenDetails = symptomDescriptionText.isNotBlank()
-
-        shouldShowSymptomError = !hasSelectedSymptom && !hasWrittenDetails
-        return !shouldShowSymptomError
+        shouldShowNoSymptomError = selectedSymptomIds.isEmpty() && recordedSymptoms.isEmpty()
+        return !shouldShowNoSymptomError
     }
-
-    suspend fun extractSymptoms(languageTag: String): Boolean {
-        if (!canContinueFromSymptomQuestion() || isExtractingSymptoms) {
-            return false
-        }
-
-        isExtractingSymptoms = true
-
-        return try {
-            val result = extractSymptomsUseCase(
-                language = getLanguageCode(languageTag),
-                symptomsDescription = symptomDescriptionText.trim(),
-                selectedSymptoms = selectedSymptomIds.toList()
-            )
-
-            result.fold(
-                onSuccess = { extractedSymptoms ->
-                    if (extractedSymptoms.isEmpty()) {
-                        extractSymptomsErrorResId = R.string.triage_form_symptom_extract_empty_message
-                        return@fold false
-                    }
-
-                    extractedSymptomsFromBackend = extractedSymptoms
-                    hideSymptomErrorIfExists()
-                    true
-                },
-                onFailure =  {
-                    extractSymptomsErrorResId = R.string.triage_form_symptom_extract_failed_message
-                    false
-                }
-            )
-        } catch (_: Exception) {
-            extractSymptomsErrorResId = R.string.triage_form_symptom_extract_failed_message
-            false
-        } finally {
-            isExtractingSymptoms = false
-        }
-    }
-
 
     fun getFormAnswers(languageTag: String): TriageForm {
-        val symptoms = extractedSymptomsFromBackend.ifEmpty {
-            selectedSymptomIds.toList()
-        }
-
         return TriageForm(
             language = getLanguageCode(languageTag),
-            symptoms = symptoms,
+            symptoms = (selectedSymptomIds + recordedSymptoms).toList(),
             gender = getGenderCode(),
             ageIsOver65 = getAgeOver65Code(),
             severity = getSeverityCode(),
@@ -526,13 +458,10 @@ class TriageFormViewModel(
         selectedChronicConditionsOptionIds = emptySet()
         selectedSickContactHistoryOptionId = null
         selectedSymptomsBeforeOptionId = null
-        symptomDescriptionText = ""
+        recordedSymptoms = emptySet()
         isSymptomOptionsExpanded = false
         isTranscribing = false
-        isExtractingSymptoms = false
-        extractedSymptomsFromBackend = emptyList()
         recordingErrorResId = null
-        extractSymptomsErrorResId = null
-        shouldShowSymptomError = false
+        shouldShowNoSymptomError = false
     }
 }

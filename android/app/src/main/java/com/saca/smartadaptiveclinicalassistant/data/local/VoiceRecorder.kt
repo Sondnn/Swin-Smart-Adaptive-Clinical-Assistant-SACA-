@@ -76,7 +76,7 @@ class VoiceRecorder {
         val raf = RandomAccessFile(file, "rw")
         val totalAudioLen = file.length() - 44
         val totalDataLen = totalAudioLen + 36
-        val byteRate = sampleRate * 2 // 16-bit Mono = 2 bytes per sample
+        val byteRate = sampleRate * 2
 
         val header = ByteArray(44)
         val buffer = ByteBuffer.wrap(header).order(ByteOrder.LITTLE_ENDIAN)
@@ -85,13 +85,13 @@ class VoiceRecorder {
         buffer.putInt(totalDataLen.toInt())
         buffer.put("WAVE".toByteArray())
         buffer.put("fmt ".toByteArray())
-        buffer.putInt(16) // Size of format chunk
-        buffer.putShort(1.toShort()) // PCM format
-        buffer.putShort(1.toShort()) // Mono
+        buffer.putInt(16)
+        buffer.putShort(1.toShort())
+        buffer.putShort(1.toShort())
         buffer.putInt(sampleRate)
         buffer.putInt(byteRate)
-        buffer.putShort(2.toShort()) // Block align (1 channel * 2 bytes)
-        buffer.putShort(16.toShort()) // 16 bits per sample
+        buffer.putShort(2.toShort())
+        buffer.putShort(16.toShort())
         buffer.put("data".toByteArray())
         buffer.putInt(totalAudioLen.toInt())
 

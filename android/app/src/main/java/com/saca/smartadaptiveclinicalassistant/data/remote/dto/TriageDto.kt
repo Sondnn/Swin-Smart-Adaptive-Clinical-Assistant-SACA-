@@ -7,24 +7,19 @@ data class SpeechToTextResponse(
 )
 
 data class SpeechToTextV2Response(
+    @SerializedName("question_id") val questionId: Int? = null,
+    @SerializedName("parsed_response") val parsedResponse: ParsedResponse? = null,
+)
+
+data class ParsedResponse(
     @SerializedName("gender") val gender: Int? = null,
     @SerializedName("age_over_65") val ageOver65: Int? = null,
-    @SerializedName("symptoms") val symptoms: String? = null,
+    @SerializedName("symptoms") val symptoms: List<String>? = null,
     @SerializedName("symptom_severity") val symptomSeverity: Int? = null,
     @SerializedName("symptoms_duration") val symptomsDuration: Int? = null,
     @SerializedName("chronic_conditions") val chronicConditions: List<String>? = null,
     @SerializedName("had_symptoms_before") val hadSymptomsBefore: Int? = null,
     @SerializedName("had_contact") val hadContact: Int? = null,
-)
-
-data class ExtractSymptomsRequest(
-    val language: Int,
-    @SerializedName("symptoms_description") val symptomsDescription: String,
-    val symptoms: List<String>,
-)
-
-data class ExtractSymptomsResponse(
-    val symptoms: List<String>
 )
 
 data class AnalysisSymptomsRequest(

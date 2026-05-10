@@ -4,8 +4,6 @@ import android.util.Log
 import com.saca.smartadaptiveclinicalassistant.data.remote.TriageApi
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.AnalysisSymptomsRequest
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.AnalysisSymptomsResponse
-import com.saca.smartadaptiveclinicalassistant.data.remote.dto.ExtractSymptomsRequest
-import com.saca.smartadaptiveclinicalassistant.data.remote.dto.ExtractSymptomsResponse
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.SpeechToTextResponse
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.SpeechToTextV2Response
 import com.saca.smartadaptiveclinicalassistant.domain.repository.TriageRepository
@@ -75,24 +73,6 @@ class TriageRepositoryImpl(
             }
         } catch (e: Exception) {
             Log.d("speechToText", e.toString())
-            Result.failure(e)
-        }
-    }
-
-    override suspend fun extractSymptoms(request: ExtractSymptomsRequest): Result<ExtractSymptomsResponse> {
-        return try {
-            Log.d("extractSymptoms", request.toString())
-            val res = api.extractSymptoms(request)
-            val responseBody: ExtractSymptomsResponse? = res.body()
-            if (res.isSuccessful && responseBody != null) {
-                Log.d("extractSymptoms", responseBody.toString())
-                Result.success(responseBody)
-            } else {
-                Log.d("extractSymptoms", "failed")
-                Result.failure(Exception("Extract Symptoms Error"))
-            }
-        } catch (e: Exception) {
-            Log.d("extractSymptoms", e.toString())
             Result.failure(e)
         }
     }
