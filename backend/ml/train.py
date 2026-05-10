@@ -24,9 +24,20 @@ def main():
 
     if "triage_category" not in df.columns:
         raise ValueError("Dataset must contain 'triage_category' column")
+    has_disease = "disease" in df.columns
+
+    # Stratified 5-fold CV needs at least 5 samples per class. Drop ultra-rare
+    # triage categories so training is well-defined.
+    triage_counts = df["triage_category"].value_counts()
+    rare = triage_counts[triage_counts < 10].index.tolist()
+    if rare:
+        print(f"Dropping rare triage categories with <10 rows: {rare}")
+        df = df[~df["triage_category"].isin(rare)].reset_index(drop=True)
 
     y = df["triage_category"]
-    X = df.drop(columns=["triage_category"])
+    drop_cols = ["triage_category"] + (["disease"] if has_disease else [])
+    X = df.drop(columns=drop_cols)
+    disease_y_raw = df["disease"] if has_disease else None
 
     feature_columns = list(X.columns)
 
@@ -178,6 +189,11 @@ def main():
     print("- best_model_name.txt")
     print("- feature_columns.json")
 
+    # ---- Disease classifier (real-world labels from Kaggle) ----
+    disease_metrics = None
+    if has_disease:
+        disease_metrics = train_disease_model(X, disease_y_raw, feature_columns)
+
     # Save metric metadata
     metrics = {
     "trained_at": datetime.datetime.now().isoformat(timespec="seconds"),
@@ -202,7 +218,64 @@ def main():
     },
     }
     
+    if disease_metrics is not None:
+        metrics["disease_model"] = disease_metrics
+
     (MODELS_DIR / "ml_metrics.json").write_text(json.dumps(metrics, indent=2))
+
+
+def train_disease_model(X, disease_y_raw, feature_columns):
+    """Train a separate disease classifier on the same feature matrix.
+
+    Disease labels live in their own label space (40+ Kaggle diseases) so we
+    keep this model and its encoder isolated from the triage pipeline.
+    """
+    print("\n=== Disease classifier ===")
+    disease_encoder = LabelEncoder()
+    y_disease = disease_encoder.fit_transform(disease_y_raw.astype(str))
+
+    X_dev_d, X_test_d, y_dev_d, y_test_d = train_test_split(
+        X, y_disease, test_size=0.2, random_state=42, stratify=y_disease
+    )
+
+    disease_clf = XGBClassifier(
+        n_estimators=400,
+        max_depth=6,
+        learning_rate=0.1,
+        subsample=0.85,
+        colsample_bytree=0.85,
+        objective="multi:softprob",
+        eval_metric="mlogloss",
+        random_state=42,
+        n_jobs=-1,
+        tree_method="hist",
+    )
+    t0 = time.perf_counter()
+    disease_clf.fit(X_dev_d, y_dev_d)
+    fit_time = time.perf_counter() - t0
+
+    pred = disease_clf.predict(X_test_d)
+    acc = accuracy_score(y_test_d, pred)
+    macro_f1 = f1_score(y_test_d, pred, average="macro")
+    print(f"Disease accuracy:  {acc:.4f}")
+    print(f"Disease macro-F1:  {macro_f1:.4f}")
+
+    joblib.dump(disease_clf, MODELS_DIR / "disease_model.joblib")
+    joblib.dump(disease_encoder, MODELS_DIR / "disease_label_encoder.joblib")
+    (MODELS_DIR / "disease_classes.json").write_text(
+        json.dumps(disease_encoder.classes_.tolist(), indent=2)
+    )
+    print("Saved disease_model.joblib, disease_label_encoder.joblib, disease_classes.json")
+
+    return {
+        "test_accuracy": float(acc),
+        "test_macro_f1": float(macro_f1),
+        "n_classes": int(len(disease_encoder.classes_)),
+        "n_train": int(len(X_dev_d)),
+        "n_test": int(len(X_test_d)),
+        "fit_seconds": round(fit_time, 2),
+    }
+
 
 if __name__ == "__main__":
     main()

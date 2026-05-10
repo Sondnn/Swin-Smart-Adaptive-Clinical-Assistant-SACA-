@@ -1,7 +1,7 @@
 import json
 import joblib
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -9,6 +9,8 @@ from ml.preprocess import make_single_case_dataframe
 
 # Tri-state encoding for skippable yes/no questions: 0=no, 1=yes, 2=unknown.
 TRISTATE_DESCRIPTION = "Tri-state: 0=no, 1=yes, 2=unknown (skipped)."
+
+DISEASE_TOP_K = 3
 
 
 class PredictRequest(BaseModel):
@@ -37,14 +39,23 @@ class PredictRequest(BaseModel):
             }
         }
     }
-    
+
+
+class DiseasePrediction(BaseModel):
+    disease: str
+    confidence: float
+    top_k: List[dict]
+
+
 class PredictResponse(BaseModel):
     triage_category: int
     triage_label: str
     confidence: float
     probabilities: dict
     model_used: str
+    disease: Optional[DiseasePrediction] = None
     input_summary: dict
+
 
 class MLService:
     def __init__(self, models_dir: Path):
@@ -53,6 +64,9 @@ class MLService:
         self.model_name = None
         self.feature_columns = None
         self.label_encoder = None
+        # Disease pipeline (optional — only loaded if files are present).
+        self.disease_model = None
+        self.disease_label_encoder = None
 
     def load(self):
         self.model = joblib.load(self.models_dir / "ensemble.joblib")
@@ -60,9 +74,34 @@ class MLService:
         self.model_name = (self.models_dir / "best_model_name.txt").read_text().strip()
         self.feature_columns = json.loads((self.models_dir / "feature_columns.json").read_text())
 
+        disease_model_path = self.models_dir / "disease_model.joblib"
+        disease_encoder_path = self.models_dir / "disease_label_encoder.joblib"
+        if disease_model_path.exists() and disease_encoder_path.exists():
+            self.disease_model = joblib.load(disease_model_path)
+            self.disease_label_encoder = joblib.load(disease_encoder_path)
+
+    def _predict_disease(self, case_df) -> Optional[DiseasePrediction]:
+        if self.disease_model is None or self.disease_label_encoder is None:
+            return None
+
+        proba = self.disease_model.predict_proba(case_df)[0]
+        classes = self.disease_label_encoder.inverse_transform(self.disease_model.classes_)
+
+        ranked = sorted(
+            zip(classes, proba), key=lambda kv: kv[1], reverse=True
+        )
+        top_k = [
+            {"disease": str(name), "probability": round(float(p), 4)}
+            for name, p in ranked[:DISEASE_TOP_K]
+        ]
+        top_disease, top_prob = ranked[0]
+        return DiseasePrediction(
+            disease=str(top_disease),
+            confidence=round(float(top_prob), 4),
+            top_k=top_k,
+        )
 
     def predict(self, input_data: PredictRequest):
-
         if self.model is None:
             self.load()
 
@@ -106,13 +145,17 @@ class MLService:
         }
         triage_label = triage_labels.get(prediction, "Unknown")
 
-        # 4. Echo back the input for traceability
+        # 4. Disease prediction (optional, depends on disease_model.joblib presence)
+        disease_pred = self._predict_disease(case_df)
+
+        # 5. Echo back the input for traceability
         return {
             "triage_category": prediction,
             "triage_label": triage_label,
             "confidence": confidence,
             "probabilities": probabilities,
             "model_used": self.model_name,
+            "disease": disease_pred,
             "input_summary": {
                 "gender": input_data.gender,
                 "age_over_65": input_data.age_over_65,
