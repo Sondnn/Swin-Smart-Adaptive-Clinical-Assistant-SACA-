@@ -21,6 +21,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -58,6 +59,8 @@ import com.saca.smartadaptiveclinicalassistant.presentation.components.form.Reco
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown20
+import com.saca.smartadaptiveclinicalassistant.ui.theme.TextBrown
+import com.saca.smartadaptiveclinicalassistant.ui.theme.TextDarkBrown
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -111,7 +114,6 @@ fun SymptomQuestionScreen(
                 .background(AppBackground)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer(modifier = Modifier.height(54.dp))
 
@@ -125,7 +127,7 @@ fun SymptomQuestionScreen(
                 options = options,
                 selectedOptionIds = triageFormViewModel.selectedSymptomIds,
                 isExpanded =  triageFormViewModel.isSymptomOptionsExpanded,
-                initialOptionCount = 3,
+                initialOptionCount = 6,
                 onOptionClick = triageFormViewModel::onSymptomOptionSelected
             )
 
@@ -138,23 +140,25 @@ fun SymptomQuestionScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(48.dp))
 
-            OrDivider(text = stringResource(R.string.triage_form_symptom_or))
+            if (triageFormViewModel.recordedSymptoms.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.triage_form_symptom_recorded) + " :",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = TextBrown,
+                    fontWeight = FontWeight.SemiBold,
+                )
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(2.dp))
 
-            Title(
-                text = stringResource(R.string.triage_form_symptom_describe_title)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            QuestionTextInput(
-                text = triageFormViewModel.symptomDescriptionText,
-                placeholder = stringResource(R.string.triage_form_symptom_details_placeholder),
-                onTextChanged = triageFormViewModel::onSymptomDescriptionChanged
-            )
+                Text(
+                    text = triageFormViewModel.recordedSymptoms.toString(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextDarkBrown,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
 
@@ -202,7 +206,8 @@ fun SymptomQuestionScreen(
                     val stopResult = voiceRecorder.stopRecording()
                     stopResult.fold(
                         onSuccess = { audioFile ->
-                            triageFormViewModel.transcribeRecordedAudio(
+                            triageFormViewModel.transcribeAnswer(
+                                questionId = TriageFormViewModel.TriageQuestionId.SYMPTOM.value,
                                 audioFile = audioFile,
                                 languageTag = sessionViewModel.languageTag
                             )
@@ -221,12 +226,7 @@ fun SymptomQuestionScreen(
                 ErrorMessage(text = stringResource(messageResId))
             }
 
-            triageFormViewModel.extractSymptomsErrorResId?.let { messageResId ->
-                Spacer(modifier = Modifier.height(10.dp))
-                ErrorMessage(text = stringResource(messageResId))
-            }
-
-            if (triageFormViewModel.shouldShowSymptomError) {
+            if (triageFormViewModel.shouldShowNoSymptomError) {
                 Spacer(modifier = Modifier.height(10.dp))
                 ErrorMessage(text = stringResource(R.string.triage_form_symptom_validation_error))
             }
@@ -239,12 +239,12 @@ fun SymptomQuestionScreen(
                 continueButtonText = stringResource(R.string.triage_form_continue_button),
                 currentStep = 3,
                 totalSteps = 5,
-                canContinue = !triageFormViewModel.isExtractingSymptoms && !triageFormViewModel.isTranscribing,
+                canContinue = !triageFormViewModel.isTranscribing,
                 onBackClick = onBackClick,
                 onContinueClick = {
                     coroutineScope.launch {
                         // call api to extract symptoms before continue
-                        val canContinue = triageFormViewModel.extractSymptoms(sessionViewModel.languageTag)
+                        val canContinue = triageFormViewModel.canContinueFromSymptomQuestion()
                         if (canContinue) {
                             onContinueClick()
                         }

@@ -61,6 +61,7 @@ fun SacaNavGraph(modifier: Modifier = Modifier) {
                     navController.popBackStack()
                 },
                 onContinueClick = {
+                    triageFormViewModel.clearRecordingError()
                     navController.navigate(SacaDestinations.TRIAGE_FORM_AGE)
                 },
                 onCancelClick = {
@@ -85,6 +86,7 @@ fun SacaNavGraph(modifier: Modifier = Modifier) {
                     navController.navigate(SacaDestinations.TRIAGE_FORM_SYMPTOM)
                 },
                 onCancelClick = {
+                    triageFormViewModel.clearRecordingError()
                     triageFormViewModel.resetFormState()
                     navController.navigate(SacaDestinations.HOME) {
                         popUpTo(SacaDestinations.HOME) {
@@ -103,6 +105,7 @@ fun SacaNavGraph(modifier: Modifier = Modifier) {
                     navController.popBackStack()
                 },
                 onContinueClick = {
+                    triageFormViewModel.clearRecordingError()
                     navController.navigate(SacaDestinations.TRIAGE_FORM_SEVERITY)
                 },
                 onCancelClick = {
@@ -124,6 +127,7 @@ fun SacaNavGraph(modifier: Modifier = Modifier) {
                     navController.popBackStack()
                 },
                 onContinueClick = {
+                    triageFormViewModel.clearRecordingError()
                     navController.navigate(SacaDestinations.TRIAGE_FORM_DURATION)
                 },
                 onCancelClick = {
@@ -145,6 +149,7 @@ fun SacaNavGraph(modifier: Modifier = Modifier) {
                     navController.popBackStack()
                 },
                 onContinueClick = {
+                    triageFormViewModel.clearRecordingError()
                     navController.navigate(SacaDestinations.TRIAGE_FORM_SYMPTOMS_BEFORE)
                 },
                 onCancelClick = {
@@ -166,6 +171,7 @@ fun SacaNavGraph(modifier: Modifier = Modifier) {
                     navController.popBackStack()
                 },
                 onContinueClick = {
+                    triageFormViewModel.clearRecordingError()
                     navController.navigate(SacaDestinations.TRIAGE_FORM_CHRONIC_CONDITIONS)
                 },
                 onCancelClick = {
@@ -187,6 +193,7 @@ fun SacaNavGraph(modifier: Modifier = Modifier) {
                     navController.popBackStack()
                 },
                 onContinueClick = {
+                    triageFormViewModel.clearRecordingError()
                     navController.navigate(SacaDestinations.TRIAGE_FORM_SICK_CONTACT_HISTORY)
                 },
                 onCancelClick = {

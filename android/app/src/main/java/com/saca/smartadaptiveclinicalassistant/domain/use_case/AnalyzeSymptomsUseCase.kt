@@ -1,5 +1,6 @@
 package com.saca.smartadaptiveclinicalassistant.domain.use_case
 
+import android.util.Log
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.AnalysisSymptomsRequest
 import com.saca.smartadaptiveclinicalassistant.domain.repository.TriageRepository
 import com.saca.smartadaptiveclinicalassistant.domain.model.TriageCategory

@@ -35,6 +35,7 @@
     <string name="triage_form_symptom_or">KUJARRA</string>
     <string name="triage_form_symptom_describe_title">Karlarra Yirrarni-rna</string>
     <string name="triage_form_symptom_details_placeholder">Yimi-rna...</string>
+    <string name="triage_form_symptom_recorded">(WMT) Symptoms Recorded</string>
     <string name="triage_form_symptom_hold_to_record">Jijirr-ma Yirrarni-ku</string>
     <string name="triage_form_symptom_recording">Yirrarni-rna…</string>
     <string name="triage_form_symptom_transcribing">Yimi Yirrarni-rna...</string>

@@ -5,7 +5,6 @@ import com.saca.smartadaptiveclinicalassistant.data.remote.TriageApi
 import com.saca.smartadaptiveclinicalassistant.data.repository.TriageRepositoryImpl
 import com.saca.smartadaptiveclinicalassistant.domain.repository.TriageRepository
 import com.saca.smartadaptiveclinicalassistant.domain.use_case.AnalyzeSymptomsUseCase
-import com.saca.smartadaptiveclinicalassistant.domain.use_case.ExtractSymptomsUseCase
 import com.saca.smartadaptiveclinicalassistant.domain.use_case.SpeechToTextUseCase
 import com.saca.smartadaptiveclinicalassistant.presentation.home.HomeViewModel
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
@@ -41,14 +40,14 @@ val appModule = module {
     single<TriageRepository> { TriageRepositoryImpl(get()) }
 
     single { SpeechToTextUseCase(get()) }
-    single { ExtractSymptomsUseCase(get()) }
+
     single { AnalyzeSymptomsUseCase(get()) }
 
     single { SessionViewModel() }
 
     viewModel { HomeViewModel() }
 
-    viewModel { TriageFormViewModel(get(), get()) }
+    viewModel { TriageFormViewModel(get()) }
 
     viewModel { TriageResultViewModel(get()) }
 }

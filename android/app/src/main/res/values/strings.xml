@@ -31,6 +31,7 @@
     <string name="triage_form_symptom_show_more">Show More</string>
     <string name="triage_form_symptom_or">OR</string>
     <string name="triage_form_symptom_describe_title">Describe Symptoms</string>
+    <string name="triage_form_symptom_recorded">Symptoms Recorded</string>
     <string name="triage_form_symptom_details_placeholder">Type the details...</string>
     <string name="triage_form_symptom_hold_to_record">Hold to Record</string>
     <string name="triage_form_symptom_recording">Recording...</string>

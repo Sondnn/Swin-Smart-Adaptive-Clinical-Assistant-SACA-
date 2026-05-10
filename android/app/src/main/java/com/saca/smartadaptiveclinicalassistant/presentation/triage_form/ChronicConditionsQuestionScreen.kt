@@ -6,6 +6,7 @@ import androidx.compose.ui.res.stringResource
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.FormQuestionOption
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.FormQuestionScaffold
+import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -15,6 +16,7 @@ fun ChronicConditionsQuestionScreen(
     onContinueClick: () -> Unit,
     modifier: Modifier = Modifier,
     triageFormViewModel: TriageFormViewModel = koinViewModel(),
+    sessionViewModel: SessionViewModel = koinViewModel(),
 ) {
     val options = TriageFormViewModel.ChronicConditionsOption.entries.map {
         FormQuestionOption(
@@ -38,6 +40,16 @@ fun ChronicConditionsQuestionScreen(
         onOptionClick = triageFormViewModel::onChronicConditionsOptionSelected,
         onCancelClick = onCancelClick,
         onContinueClick = onContinueClick,
-        modifier = modifier
+        modifier = modifier,
+        voiceQuestionId = TriageFormViewModel.TriageQuestionId.CHRONIC_CONDITIONS.value,
+        isTranscribing = triageFormViewModel.isTranscribing,
+        recordingErrorResId = triageFormViewModel.recordingErrorResId,
+        onTranscribeAudio = { audioFile ->
+            triageFormViewModel.transcribeAnswer(
+                questionId = TriageFormViewModel.TriageQuestionId.CHRONIC_CONDITIONS.value,
+                audioFile = audioFile,
+                languageTag = sessionViewModel.languageTag,
+            )
+        },
     )
 }

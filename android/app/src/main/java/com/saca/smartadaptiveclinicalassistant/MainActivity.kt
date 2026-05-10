@@ -1,6 +1,7 @@
 package com.saca.smartadaptiveclinicalassistant
 
 import android.os.Bundle
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -18,9 +19,18 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             (application as MainApplication).resetLocaleToEnglishForNewLaunch()
         }
-        enableEdgeToEdge()
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.light(
+                scrim = android.graphics.Color.TRANSPARENT,
+                darkScrim = android.graphics.Color.TRANSPARENT
+            ),
+            navigationBarStyle = SystemBarStyle.light(
+                scrim = android.graphics.Color.TRANSPARENT,
+                darkScrim = android.graphics.Color.TRANSPARENT
+            )
+        )
         setContent {
-            SmartAdaptiveClinicalAssistantTheme {
+            SmartAdaptiveClinicalAssistantTheme(darkTheme = false) {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     SacaNavGraph(
                         modifier = Modifier.padding(innerPadding)

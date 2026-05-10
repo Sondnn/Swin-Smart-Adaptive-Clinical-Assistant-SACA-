@@ -1,5 +1,12 @@
 package com.saca.smartadaptiveclinicalassistant.presentation.components.form
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
+import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,11 +32,16 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
@@ -37,7 +49,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat.checkSelfPermission
 import com.saca.smartadaptiveclinicalassistant.R
+import com.saca.smartadaptiveclinicalassistant.data.local.VoiceRecorder
 import com.saca.smartadaptiveclinicalassistant.presentation.components.ActionBarIconButton
 import com.saca.smartadaptiveclinicalassistant.presentation.components.AppBar
 import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButton
@@ -51,6 +65,7 @@ import com.saca.smartadaptiveclinicalassistant.ui.theme.LexendFontFamily
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Orange
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Orange40
 import com.saca.smartadaptiveclinicalassistant.ui.theme.TextBrown
+import java.io.File
 import kotlin.collections.chunked
 
 @Composable
@@ -72,6 +87,10 @@ fun FormQuestionScaffold(
     onBackClick: () -> Unit = {},
     onOptionClick: (String) -> Unit,
     onContinueClick: () -> Unit,
+    voiceQuestionId: Int? = null,
+    isTranscribing: Boolean = false,
+    @StringRes recordingErrorResId: Int? = null,
+    onTranscribeAudio: ((File) -> Unit)? = null
 ) {
     Scaffold(
         topBar = {
@@ -102,10 +121,22 @@ fun FormQuestionScaffold(
 
             QuestionOptions(
                 options = options,
-                selectedOptionId = selectedOptionId,
-                selectedOptionIds = selectedOptionIds,
+                selectedOptionIds = buildSet {
+                    selectedOptionIds?.let { addAll(it) }
+                    selectedOptionId?.let { add(it) }
+                },
                 onOptionClick = onOptionClick
             )
+
+            if (voiceQuestionId != null && onTranscribeAudio != null) {
+                Spacer(modifier = Modifier.height(24.dp))
+
+                VoiceInputSection(
+                    isTranscribing = isTranscribing,
+                    recordingErrorResId = recordingErrorResId,
+                    onTranscribeAudio = onTranscribeAudio,
+                )
+            }
 
             Spacer(modifier = Modifier.weight(1f))
 
@@ -122,6 +153,80 @@ fun FormQuestionScaffold(
         }
     }
 }
+
+@Composable
+private fun VoiceInputSection(
+    isTranscribing: Boolean,
+    @StringRes recordingErrorResId: Int?,
+    onTranscribeAudio: (File) -> Unit,
+) {
+    val context = LocalContext.current
+    val voiceRecorder = remember { VoiceRecorder() }
+    var isRecordButtonPressed by remember { mutableStateOf(false) }
+
+    val requestPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission(),
+    ) { isGranted ->
+        if (!isGranted) {
+            Log.w("VoiceInputSection", "RECORD_AUDIO permission denied")
+        }
+    }
+
+    RecordButton(
+        text = when {
+            isTranscribing -> stringResource(R.string.triage_form_symptom_transcribing)
+            isRecordButtonPressed -> stringResource(R.string.triage_form_symptom_recording)
+            else -> stringResource(R.string.triage_form_symptom_hold_to_record)
+        },
+        isRecording = isRecordButtonPressed,
+        isEnabled = !isTranscribing,
+        onPress = {
+            if (!hasRecordAudioPermission(context)) {
+                requestPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                return@RecordButton
+            }
+
+            val startResult = voiceRecorder.startRecording(context)
+            if (startResult.isFailure) {
+                Log.e("VoiceInputSection", "startRecording failed", startResult.exceptionOrNull())
+                return@RecordButton
+            }
+
+            isRecordButtonPressed = true
+
+            val didRelease = tryAwaitRelease()
+            isRecordButtonPressed = false
+
+            if (!didRelease) {
+                voiceRecorder.cancelRecording()
+                return@RecordButton
+            }
+
+            val stopResult = voiceRecorder.stopRecording()
+            stopResult.fold(
+                onSuccess = { audioFile ->
+                    onTranscribeAudio(audioFile)
+                },
+                onFailure = {
+                    Log.e("VoiceInputSection", "stopRecording failed", it)
+                },
+            )
+        }
+    )
+
+    if (recordingErrorResId != null) {
+        Log.d("Form question recording", recordingErrorResId.toString())
+        Spacer(modifier = Modifier.height(10.dp))
+        ErrorMessage(text = stringResource(recordingErrorResId))
+    }
+}
+private fun hasRecordAudioPermission(context: Context): Boolean {
+    return checkSelfPermission(
+        context,
+        Manifest.permission.RECORD_AUDIO
+    ) == PackageManager.PERMISSION_GRANTED
+}
+
 
 @Composable
 fun QuestionTextInput(
@@ -160,8 +265,7 @@ fun QuestionTextInput(
 @Composable
 private fun QuestionOptions(
     options: List<FormQuestionOption>,
-    selectedOptionId: String?,
-    selectedOptionIds: Set<String>?,
+    selectedOptionIds: Set<String>,
     onOptionClick: (String) -> Unit,
 ) {
     Column(
@@ -169,11 +273,9 @@ private fun QuestionOptions(
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         for (option in options) {
-            val isSelected = option.id == selectedOptionId || selectedOptionIds?.contains(option.id) == true
-
             QuestionOptionButton(
                 text = stringResource(option.labelResourceId),
-                selected = isSelected,
+                selected = selectedOptionIds.contains(option.id),
                 onClick = {
                     onOptionClick(option.id)
                 }
