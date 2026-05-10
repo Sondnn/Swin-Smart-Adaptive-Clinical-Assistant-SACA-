@@ -3,10 +3,6 @@ package com.saca.smartadaptiveclinicalassistant.data.remote.dto
 import com.google.gson.annotations.SerializedName
 
 data class SpeechToTextResponse(
-    @SerializedName("symptoms_description") val symptomsDescription: String
-)
-
-data class SpeechToTextV2Response(
     @SerializedName("question_id") val questionId: Int? = null,
     @SerializedName("parsed_response") val parsedResponse: ParsedResponse? = null,
 )

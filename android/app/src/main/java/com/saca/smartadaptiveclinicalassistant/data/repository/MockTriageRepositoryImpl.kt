@@ -4,23 +4,15 @@ import com.saca.smartadaptiveclinicalassistant.data.remote.dto.AnalysisSymptomsR
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.AnalysisSymptomsResponse
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.ParsedResponse
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.SpeechToTextResponse
-import com.saca.smartadaptiveclinicalassistant.data.remote.dto.SpeechToTextV2Response
 import com.saca.smartadaptiveclinicalassistant.domain.repository.TriageRepository
 import java.io.File
 
 class MockTriageRepositoryImpl: TriageRepository {
     override suspend fun speechToText(
         language: Int,
-        audioFile: File
-    ): Result<SpeechToTextResponse> {
-        return Result.success(SpeechToTextResponse("belly pain"))
-    }
-
-    override suspend fun speechToTextV2(
-        language: Int,
         questionId: Int,
         audioFile: File
-    ): Result<SpeechToTextV2Response> {
+    ): Result<SpeechToTextResponse> {
         val parsed = when (questionId) {
             1 -> ParsedResponse(gender = 1)
             2 -> ParsedResponse(ageOver65 = 0)
@@ -33,7 +25,7 @@ class MockTriageRepositoryImpl: TriageRepository {
             else -> ParsedResponse()
         }
 
-        val mockResponse = SpeechToTextV2Response(
+        val mockResponse = SpeechToTextResponse(
             questionId = questionId,
             parsedResponse = parsed
         )

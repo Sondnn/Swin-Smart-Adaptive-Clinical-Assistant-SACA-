@@ -6,13 +6,11 @@ import com.saca.smartadaptiveclinicalassistant.data.repository.TriageRepositoryI
 import com.saca.smartadaptiveclinicalassistant.domain.repository.TriageRepository
 import com.saca.smartadaptiveclinicalassistant.domain.use_case.AnalyzeSymptomsUseCase
 import com.saca.smartadaptiveclinicalassistant.domain.use_case.SpeechToTextUseCase
-import com.saca.smartadaptiveclinicalassistant.domain.use_case.SpeechToTextV2UseCase
 import com.saca.smartadaptiveclinicalassistant.presentation.home.HomeViewModel
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_form.TriageFormViewModel
 import com.saca.smartadaptiveclinicalassistant.presentation.triage_result.TriageResultViewModel
 import okhttp3.OkHttpClient
-import okhttp3.Protocol
 import org.koin.dsl.module
 import org.koin.core.module.dsl.viewModel
 import retrofit2.Retrofit
@@ -42,7 +40,7 @@ val appModule = module {
     single<TriageRepository> { TriageRepositoryImpl(get()) }
 
     single { SpeechToTextUseCase(get()) }
-    single { SpeechToTextV2UseCase(get()) }
+
     single { AnalyzeSymptomsUseCase(get()) }
 
     single { SessionViewModel() }

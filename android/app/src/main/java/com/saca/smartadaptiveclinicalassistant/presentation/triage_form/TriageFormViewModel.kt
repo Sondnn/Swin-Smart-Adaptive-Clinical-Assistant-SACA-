@@ -9,14 +9,14 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.common.Constants.LANGUAGE_TAG_WALMAJARRI
-import com.saca.smartadaptiveclinicalassistant.data.remote.dto.SpeechToTextV2Response
+import com.saca.smartadaptiveclinicalassistant.data.remote.dto.SpeechToTextResponse
 import com.saca.smartadaptiveclinicalassistant.domain.model.TriageForm
-import com.saca.smartadaptiveclinicalassistant.domain.use_case.SpeechToTextV2UseCase
+import com.saca.smartadaptiveclinicalassistant.domain.use_case.SpeechToTextUseCase
 import kotlinx.coroutines.launch
 import java.io.File
 
 class TriageFormViewModel(
-    private val speechToTextUseCase: SpeechToTextV2UseCase,
+    private val speechToTextUseCase: SpeechToTextUseCase,
 ): ViewModel() {
     enum class TriageQuestionId(val value: Int) {
         GENDER(1),
@@ -311,7 +311,7 @@ class TriageFormViewModel(
         }
     }
 
-    private fun applyVoiceAnswer(questionId: Int, response: SpeechToTextV2Response): Boolean {
+    private fun applyVoiceAnswer(questionId: Int, response: SpeechToTextResponse): Boolean {
         return when (questionId) {
             TriageQuestionId.GENDER.value -> {
                 val optionId = when (response.parsedResponse?.gender) {
