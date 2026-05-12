@@ -69,7 +69,7 @@ def _apply_temperature(proba: np.ndarray, T: float) -> np.ndarray:
     return e / e.sum()
 
 
-class MLService:
+class PredictService:
     def __init__(self, models_dir: Path):
         self.models_dir = models_dir
         self.model = None
@@ -172,6 +172,7 @@ class MLService:
             "triage_label": triage_label,
             "confidence": confidence,
             "probabilities": probabilities,
+            "model_used": type(self.model).__name__,
             "disease": disease_pred,
             "input_summary": {
                 "gender": input_data.gender,

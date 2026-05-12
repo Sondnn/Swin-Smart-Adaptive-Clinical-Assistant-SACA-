@@ -15,7 +15,7 @@ from ml.train import (
     _fit_temperature,
     RARE_DISEASE_MIN,
 )
-from ml.ml_service import _apply_temperature as service_apply_temperature
+from ml.predict_service import _apply_temperature as service_apply_temperature
 
 
 # --------------------------------------------------------------------------- #

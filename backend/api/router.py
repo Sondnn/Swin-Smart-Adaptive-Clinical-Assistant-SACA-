@@ -4,8 +4,8 @@ from fastapi import APIRouter, File, Form, UploadFile
 from fastapi.responses import JSONResponse
 
 from config import MODEL_DIR
-from ml.ml_service import (
-    MLService,
+from ml.predict_service import (
+    PredictService,
     PredictRequest,
     PredictResponse
 )
@@ -18,7 +18,7 @@ from nlp import nlp_service
 from nlp.nlp_service import ExtractSymptomsRequest, ExtractSymptomsResponse
 
 router = APIRouter()
-ml_service = MLService(MODEL_DIR)
+predict_service = PredictService(MODEL_DIR)
 symptom_suggestion_service = SymptomSuggestionService(MODEL_DIR, MODEL_DIR / "training_data.csv")
 
 ERROR_RESPONSES = {
@@ -53,7 +53,7 @@ def root():
 )
 async def analyze_symptoms(payload: PredictRequest):
     try:
-        return ml_service.predict(payload)
+        return predict_service.predict(payload)
     except Exception as e:
         return JSONResponse(
             status_code=500,
