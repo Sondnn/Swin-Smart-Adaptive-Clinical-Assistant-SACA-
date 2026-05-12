@@ -17,7 +17,7 @@ except ImportError:
     sr = None
 
 BASE_DIR = Path(__file__).resolve().parents[1]
-FEATURE_COLUMNS_FILE = BASE_DIR / "models" / "feature_columns.json"
+MODEL_FEATURES_FILE = BASE_DIR / "models" / "model_features.json"
 WMT_EN_DICT_FILE = Path(__file__).resolve().with_name("wmt_en_dict.json")
 
 # Maps language int (from API) to Google Speech API language code
@@ -68,7 +68,7 @@ def build_symptom_patterns(feature_columns: Iterable[str]) -> dict[str, list[str
 
 
 def load_symptom_patterns() -> dict[str, list[str]]:
-    feature_columns = json.loads(FEATURE_COLUMNS_FILE.read_text())
+    feature_columns = json.loads(MODEL_FEATURES_FILE.read_text())
     return build_symptom_patterns(feature_columns)
 
 

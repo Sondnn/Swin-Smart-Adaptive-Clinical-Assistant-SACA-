@@ -1,5 +1,6 @@
 import json
 import joblib
+import numpy as np
 from pathlib import Path
 from typing import List, Optional
 
@@ -10,7 +11,7 @@ from ml.preprocess import make_single_case_dataframe
 # Tri-state encoding for skippable yes/no questions: 0=no, 1=yes, 2=unknown.
 TRISTATE_DESCRIPTION = "Tri-state: 0=no, 1=yes, 2=unknown (skipped)."
 
-DISEASE_TOP_K = 3
+DISEASE_TOP_K = 5
 
 
 class PredictRequest(BaseModel):
@@ -57,22 +58,32 @@ class PredictResponse(BaseModel):
     input_summary: dict
 
 
+def _apply_temperature(proba: np.ndarray, T: float) -> np.ndarray:
+    """Re-softmax log(proba)/T. Mirrors the calibration applied during training."""
+    if T == 1.0:
+        return proba
+    eps = 1e-12
+    logp = np.log(np.clip(proba, eps, 1.0)) / T
+    logp -= logp.max()
+    e = np.exp(logp)
+    return e / e.sum()
+
+
 class MLService:
     def __init__(self, models_dir: Path):
         self.models_dir = models_dir
         self.model = None
-        self.model_name = None
         self.feature_columns = None
         self.label_encoder = None
         # Disease pipeline (optional — only loaded if files are present).
         self.disease_model = None
         self.disease_label_encoder = None
+        self.disease_temperature = 1.0
 
     def load(self):
-        self.model = joblib.load(self.models_dir / "ensemble.joblib")
-        self.label_encoder = joblib.load(self.models_dir / "label_encoder.joblib")
-        self.model_name = (self.models_dir / "best_model_name.txt").read_text().strip()
-        self.feature_columns = json.loads((self.models_dir / "feature_columns.json").read_text())
+        self.model = joblib.load(self.models_dir / "triage_model.joblib")
+        self.label_encoder = joblib.load(self.models_dir / "triage_label_encoder.joblib")
+        self.feature_columns = json.loads((self.models_dir / "model_features.json").read_text())
 
         disease_model_path = self.models_dir / "disease_model.joblib"
         disease_encoder_path = self.models_dir / "disease_label_encoder.joblib"
@@ -80,11 +91,18 @@ class MLService:
             self.disease_model = joblib.load(disease_model_path)
             self.disease_label_encoder = joblib.load(disease_encoder_path)
 
+            temp_path = self.models_dir / "disease_temperature.json"
+            if temp_path.exists():
+                self.disease_temperature = float(
+                    json.loads(temp_path.read_text()).get("temperature", 1.0)
+                )
+
     def _predict_disease(self, case_df) -> Optional[DiseasePrediction]:
         if self.disease_model is None or self.disease_label_encoder is None:
             return None
 
         proba = self.disease_model.predict_proba(case_df)[0]
+        proba = _apply_temperature(proba, self.disease_temperature)
         classes = self.disease_label_encoder.inverse_transform(self.disease_model.classes_)
 
         ranked = sorted(
@@ -154,7 +172,6 @@ class MLService:
             "triage_label": triage_label,
             "confidence": confidence,
             "probabilities": probabilities,
-            "model_used": self.model_name,
             "disease": disease_pred,
             "input_summary": {
                 "gender": input_data.gender,

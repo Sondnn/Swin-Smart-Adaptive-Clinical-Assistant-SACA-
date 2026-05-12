@@ -38,7 +38,7 @@ class SymptomSuggestionService:
         self._loaded = False
 
     def load(self):
-        feature_list = json.loads((self.models_dir / "feature_columns.json").read_text())
+        feature_list = json.loads((self.models_dir / "model_features.json").read_text())
         self.feature_columns = {
             c for c in feature_list
             if c.startswith(SYMPTOM_PREFIX) and c not in EXCLUDED_SYMPTOMS

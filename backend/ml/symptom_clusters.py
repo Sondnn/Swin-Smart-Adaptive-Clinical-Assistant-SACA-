@@ -1,6 +1,3 @@
-# Clinically-coherent symptom clusters. Used by training-data generation so the
-# synthetic set looks like real triage encounters, and by the symptom-suggestion
-# service to seed related-symptom recommendations.
 SCENARIOS = [
     # Acute coronary syndrome
     ["symptom__chest_pain", "symptom__radiating_chest_pain", "symptom__cold_sweats",

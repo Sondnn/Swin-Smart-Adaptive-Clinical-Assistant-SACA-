@@ -117,7 +117,6 @@ def assign_triage(row: dict) -> int:
         return 2
     if any(row.get(s, 0) == 1 for s in CAT2_SYMPTOMS):
         return 2
-
     if any(row.get(s, 0) == 1 for s in CAT3_SYMPTOMS) or row.get("symptom_severity", 0) >= 4:
         cat = 3
     elif any(row.get(s, 0) == 1 for s in CAT4_SYMPTOMS):

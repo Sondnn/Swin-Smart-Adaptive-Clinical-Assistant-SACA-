@@ -12,10 +12,10 @@ import sys
 from pathlib import Path
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
-RAW_DIR = BACKEND_DIR / "data" / "raw"
+RAW_DIR = BACKEND_DIR / "data" / "raw_v2"
 ML_DIR = BACKEND_DIR / "ml"
 
-REQUIRED_RAW = ["dataset.csv", "Symptom-severity.csv"]
+REQUIRED_RAW = ["Final_Augmented_dataset_Diseases_and_Symptoms.csv"]
 
 
 def check_raw_data() -> None:
@@ -24,8 +24,8 @@ def check_raw_data() -> None:
         print(f"ERROR: missing Kaggle files in {RAW_DIR}: {missing}", file=sys.stderr)
         print(
             "Download once with:\n"
-            "  cd backend/data/raw && kaggle datasets download "
-            "-d itachi9604/disease-symptom-description-dataset --unzip",
+            "  cd backend/data/raw_v2 && kaggle datasets download "
+            "-d dhivyeshrk/diseases-and-symptoms-dataset --unzip",
             file=sys.stderr,
         )
         sys.exit(1)
