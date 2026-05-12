@@ -1,0 +1,17 @@
+{
+  "source": "data/raw_triage/5v_cleandf.rdata",
+  "label_column": "esi",
+  "sample_rows_target": 50000,
+  "n_rows": 49999,
+  "n_rows_without_mapped_symptom": 5683,
+  "n_cc_columns_used": 200,
+  "n_cc_columns_dropped_missing_in_source": 0,
+  "n_cc_targets_dropped_missing_in_schema": 0,
+  "triage_distribution": {
+    "1": 472,
+    "2": 14653,
+    "3": 21166,
+    "4": 11200,
+    "5": 2508
+  }
+}

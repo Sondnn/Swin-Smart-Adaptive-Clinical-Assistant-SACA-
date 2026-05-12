@@ -3,7 +3,7 @@ import traceback
 from fastapi import APIRouter, File, Form, UploadFile
 from fastapi.responses import JSONResponse
 
-from config import MODEL_DIR
+from config import MODEL_DIR, TRIAGE_TRAINING_CSV
 from ml.predict_service import (
     PredictService,
     PredictRequest,
@@ -19,7 +19,7 @@ from nlp.nlp_service import ExtractSymptomsRequest, ExtractSymptomsResponse
 
 router = APIRouter()
 predict_service = PredictService(MODEL_DIR)
-symptom_suggestion_service = SymptomSuggestionService(MODEL_DIR, MODEL_DIR / "training_data.csv")
+symptom_suggestion_service = SymptomSuggestionService(MODEL_DIR, TRIAGE_TRAINING_CSV)
 
 ERROR_RESPONSES = {
     500: {

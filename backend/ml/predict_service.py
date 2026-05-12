@@ -59,7 +59,6 @@ class PredictResponse(BaseModel):
 
 
 def _apply_temperature(proba: np.ndarray, T: float) -> np.ndarray:
-    """Re-softmax log(proba)/T. Mirrors the calibration applied during training."""
     if T == 1.0:
         return proba
     eps = 1e-12
@@ -75,7 +74,6 @@ class PredictService:
         self.model = None
         self.feature_columns = None
         self.label_encoder = None
-        # Disease pipeline (optional — only loaded if files are present).
         self.disease_model = None
         self.disease_label_encoder = None
         self.disease_temperature = 1.0
@@ -139,7 +137,6 @@ class PredictService:
         encoded_pred = self.model.predict(case_df)[0]
         prediction = int(self.label_encoder.inverse_transform([encoded_pred])[0])
 
-        # 1. Prediction probabilities (how confident the model is per category)
         probabilities = {}
         if hasattr(self.model, "predict_proba"):
             proba = self.model.predict_proba(case_df)[0]
@@ -149,24 +146,20 @@ class PredictService:
                 for cls, p in zip(original_classes, proba)
             }
 
-        # 2. Confidence score (probability of the predicted class)
         confidence = probabilities.get(f"category_{prediction}", None)
 
-        # 3. Human-readable triage label
+        # ESI 1-5 labels (Emergency Severity Index).
         triage_labels = {
-            1: "Immediate",
-            2: "Emergency",
+            1: "Resuscitation",
+            2: "Emergent",
             3: "Urgent",
-            4: "Semi-Urgent",
+            4: "Less Urgent",
             5: "Non-Urgent",
-            6: "Referred",
         }
         triage_label = triage_labels.get(prediction, "Unknown")
 
-        # 4. Disease prediction (optional, depends on disease_model.joblib presence)
         disease_pred = self._predict_disease(case_df)
 
-        # 5. Echo back the input for traceability
         return {
             "triage_category": prediction,
             "triage_label": triage_label,

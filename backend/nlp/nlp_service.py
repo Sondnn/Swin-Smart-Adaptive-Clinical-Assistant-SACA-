@@ -16,8 +16,8 @@ try:
 except ImportError:
     sr = None
 
-BASE_DIR = Path(__file__).resolve().parents[1]
-MODEL_FEATURES_FILE = BASE_DIR / "models" / "model_features.json"
+from config import MODEL_FEATURES_FILE
+
 WMT_EN_DICT_FILE = Path(__file__).resolve().with_name("wmt_en_dict.json")
 
 # Maps language int (from API) to Google Speech API language code

@@ -1,7 +1,6 @@
 import datetime
 import json
 import time
-from pathlib import Path
 
 import joblib
 import numpy as np
@@ -19,16 +18,17 @@ from sklearn.model_selection import (
     GroupShuffleSplit,
     RandomizedSearchCV,
     StratifiedGroupKFold,
-    cross_val_score,
+    cross_validate,
 )
 from sklearn.preprocessing import LabelEncoder
 from xgboost import XGBClassifier
 
-
-BASE_DIR = Path(__file__).resolve().parents[1]
-DATA_PATH = BASE_DIR / "models" / "training_data.csv"
-MODELS_DIR = BASE_DIR / "models"
-REPORTS_DIR = BASE_DIR / "reports"
+from config import (
+    DISEASE_TRAINING_CSV,
+    MODEL_DIR,
+    REPORTS_DIR,
+    TRIAGE_TRAINING_CSV,
+)
 
 RANDOM_STATE = 42
 TEST_SIZE = 0.2
@@ -40,39 +40,47 @@ CALIBRATION_SIZE = 0.1
 
 
 def main():
-    MODELS_DIR.mkdir(exist_ok=True)
+    MODEL_DIR.mkdir(exist_ok=True)
     REPORTS_DIR.mkdir(exist_ok=True)
-    df = _load_dataset()
-    has_disease = "disease" in df.columns
-
-    df = _drop_rare_classes(df, "triage_category", RARE_TRIAGE_MIN)
-    feature_columns, X, y_triage, groups, triage_encoder = _prepare_triage_inputs(df)
-    disease_y_raw = (
-        df["disease"].astype(str).reset_index(drop=True) if has_disease else None
-    )
 
     grand_t0 = time.perf_counter()
-    triage_metrics = train_triage_model(
-        X, y_triage, groups, triage_encoder, feature_columns
-    )
-    disease_metrics = (
-        train_disease_model(X, disease_y_raw, groups) if has_disease else None
-    )
+    triage_metrics = run_triage()
+    disease_metrics = run_disease() if DISEASE_TRAINING_CSV.exists() else None
     total_seconds = round(time.perf_counter() - grand_t0, 2)
 
     _print_timing_summary(triage_metrics, disease_metrics, total_seconds)
     _write_metrics(triage_metrics, disease_metrics, total_seconds)
 
+
 # --------------------------------------------------------------------------- #
-# Data loading and prep
+# Pipeline
 # --------------------------------------------------------------------------- #
-def _load_dataset() -> pd.DataFrame:
-    df = pd.read_csv(DATA_PATH)
-    if "triage_category" not in df.columns:
-        raise ValueError("Dataset must contain 'triage_category' column")
-    if "group_id" not in df.columns:
-        raise ValueError("Dataset must contain 'group_id' column for group-aware split")
-    return df
+def run_triage():
+    df = pd.read_csv(TRIAGE_TRAINING_CSV)
+    for col in ("triage_category", "group_id"):
+        if col not in df.columns:
+            raise ValueError(f"Triage dataset must contain '{col}' column")
+    df = _drop_rare_classes(df, "triage_category", RARE_TRIAGE_MIN)
+
+    X = df.drop(columns=["triage_category", "group_id"])
+    feature_columns = list(X.columns)
+    encoder = LabelEncoder()
+    y = encoder.fit_transform(df["triage_category"])
+    groups = df["group_id"].to_numpy()
+
+    return train_triage_model(X, y, groups, encoder, feature_columns)
+
+
+def run_disease():
+    df = pd.read_csv(DISEASE_TRAINING_CSV)
+    for col in ("disease", "group_id"):
+        if col not in df.columns:
+            raise ValueError(f"Disease dataset must contain '{col}' column")
+
+    X = df.drop(columns=["disease", "group_id"])
+    disease_y_raw = df["disease"].astype(str).reset_index(drop=True)
+    groups = df["group_id"].to_numpy()
+    return train_disease_model(X, disease_y_raw, groups)
 
 
 def _drop_rare_classes(df: pd.DataFrame, col: str, min_count: int) -> pd.DataFrame:
@@ -83,17 +91,6 @@ def _drop_rare_classes(df: pd.DataFrame, col: str, min_count: int) -> pd.DataFra
         df = df[~df[col].isin(rare)].reset_index(drop=True)
     return df
 
-
-def _prepare_triage_inputs(df: pd.DataFrame):
-    drop_cols = ["triage_category", "group_id"] + (
-        ["disease"] if "disease" in df.columns else []
-    )
-    X = df.drop(columns=drop_cols)
-    feature_columns = list(X.columns)
-    encoder = LabelEncoder()
-    y = encoder.fit_transform(df["triage_category"])
-    groups = df["group_id"].to_numpy()
-    return feature_columns, X, y, groups, encoder
 
 # --------------------------------------------------------------------------- #
 # Model building blocks (shared by triage and disease)
@@ -114,13 +111,11 @@ def _build_xgb() -> XGBClassifier:
 
 
 def _fit_xgb(X_train, y_train, groups_train, xgb_param_grid):
-    """Fit XGB via group-aware RandomizedSearchCV and return the refit estimator."""
     cv = StratifiedGroupKFold(
         n_splits=N_FOLDS, shuffle=True, random_state=RANDOM_STATE
     )
-
     t0 = time.perf_counter()
-    xgb_search = RandomizedSearchCV(
+    search = RandomizedSearchCV(
         estimator=_build_xgb(),
         param_distributions=xgb_param_grid,
         n_iter=XGB_N_ITER,
@@ -130,22 +125,19 @@ def _fit_xgb(X_train, y_train, groups_train, xgb_param_grid):
         n_jobs=-1,
         refit=True,
     )
-    xgb_search.fit(X_train, y_train, groups=groups_train)
-    xgb_time = time.perf_counter() - t0
-
-    fit_info = {
-        "xgb_search_seconds": round(xgb_time, 2),
-        "best_xgb_params": xgb_search.best_params_,
-        "best_xgb_cv_neg_log_loss": float(xgb_search.best_score_),
+    search.fit(X_train, y_train, groups=groups_train)
+    return search.best_estimator_, {
+        "xgb_search_seconds": round(time.perf_counter() - t0, 2),
+        "best_xgb_params": search.best_params_,
+        "best_xgb_cv_neg_log_loss": float(search.best_score_),
     }
-    return xgb_search.best_estimator_, fit_info
 
 
 # --------------------------------------------------------------------------- #
 # Triage model
 # --------------------------------------------------------------------------- #
 def train_triage_model(X, y, groups, encoder, feature_columns):
-    print("\n=== Triage classifier ===")
+    print("\n--- Triage classifier (ESI 1-5) ---")
     t0 = time.perf_counter()
     outer = GroupShuffleSplit(
         n_splits=1, test_size=TEST_SIZE, random_state=RANDOM_STATE
@@ -154,11 +146,12 @@ def train_triage_model(X, y, groups, encoder, feature_columns):
     X_dev, X_test = X.iloc[train_idx], X.iloc[test_idx]
     y_dev, y_test = y[train_idx], y[test_idx]
     groups_dev = groups[train_idx]
+    print(f"  Train: {len(X_dev):,} | Test: {len(X_test):,} | Features: {len(feature_columns)}")
 
     xgb_grid = {
-        "n_estimators": [100, 200, 300],
-        "max_depth": [4, 6],
-        "learning_rate": [0.1, 0.15],
+        "n_estimators": [200, 300, 400],
+        "max_depth": [4, 6, 8],
+        "learning_rate": [0.05, 0.1, 0.15],
         "subsample": [0.85, 1.0],
         "colsample_bytree": [0.8, 1.0],
     }
@@ -167,14 +160,13 @@ def train_triage_model(X, y, groups, encoder, feature_columns):
     cv = StratifiedGroupKFold(
         n_splits=N_FOLDS, shuffle=True, random_state=RANDOM_STATE
     )
-    cv_acc = cross_val_score(
-        model, X_dev, y_dev, cv=cv, scoring="accuracy",
+    cv_results = cross_validate(
+        model, X_dev, y_dev, cv=cv,
+        scoring=["accuracy", "f1_macro"],
         n_jobs=-1, groups=groups_dev,
     )
-    cv_f1 = cross_val_score(
-        model, X_dev, y_dev, cv=cv, scoring="f1_macro",
-        n_jobs=-1, groups=groups_dev,
-    )
+    cv_acc = cv_results["test_accuracy"]
+    cv_f1 = cv_results["test_f1_macro"]
 
     y_pred = model.predict(X_test)
     y_test_orig = encoder.inverse_transform(y_test)
@@ -185,16 +177,20 @@ def train_triage_model(X, y, groups, encoder, feature_columns):
     macro_f1 = f1_score(y_test_orig, y_pred_orig, average="macro")
     weight_f1 = f1_score(y_test_orig, y_pred_orig, average="weighted")
     cm = confusion_matrix(y_test_orig, y_pred_orig, labels=classes_orig)
+    per_class_f1 = f1_score(y_test_orig, y_pred_orig, labels=classes_orig, average=None)
 
-    print(f"Triage test accuracy:  {acc:.4f}")
-    print(f"Triage test macro-F1:  {macro_f1:.4f}")
-    print(classification_report(y_test_orig, y_pred_orig, digits=3))
+    print(f"  CV accuracy : {cv_acc.mean():.4f} +/- {cv_acc.std():.4f}")
+    print(f"  CV macro-F1 : {cv_f1.mean():.4f} +/- {cv_f1.std():.4f}")
+    print(f"  Test acc    : {acc:.4f} | macro-F1: {macro_f1:.4f} | weighted-F1: {weight_f1:.4f}")
+    per_class_str = "  ".join(f"ESI {c}: {f:.3f}" for c, f in zip(classes_orig, per_class_f1))
+    print(f"  Per-class F1: {per_class_str}")
 
-    joblib.dump(model, MODELS_DIR / "triage_model.joblib")
-    joblib.dump(encoder, MODELS_DIR / "triage_label_encoder.joblib")
-    (MODELS_DIR / "model_features.json").write_text(
+    joblib.dump(model, MODEL_DIR / "triage_model.joblib")
+    joblib.dump(encoder, MODEL_DIR / "triage_label_encoder.joblib")
+    (MODEL_DIR / "model_features.json").write_text(
         json.dumps(feature_columns, indent=2)
     )
+    print("  Saved: triage_model.joblib, triage_label_encoder.joblib, model_features.json")
 
     total_seconds = round(time.perf_counter() - t0, 2)
     return {
@@ -209,6 +205,7 @@ def train_triage_model(X, y, groups, encoder, feature_columns):
         "test_macro_f1": float(macro_f1),
         "test_weighted_f1": float(weight_f1),
         "confusion_matrix": cm.tolist(),
+        "labels": classes_orig,
         "n_features": len(feature_columns),
         "n_train": int(len(X_dev)),
         "n_test": int(len(X_test)),
@@ -220,13 +217,11 @@ def train_triage_model(X, y, groups, encoder, feature_columns):
 # --------------------------------------------------------------------------- #
 # Disease model
 # --------------------------------------------------------------------------- #
-
 def train_disease_model(X, disease_y_raw, groups):
-    print("\n=== Disease classifier ===")
+    print("\n--- Disease classifier ---")
     t0 = time.perf_counter()
     X, disease_y_raw, groups = _filter_rare_diseases(X, disease_y_raw, groups)
 
-    # Group-aware 80/20 outer split.
     outer = GroupShuffleSplit(
         n_splits=1, test_size=TEST_SIZE, random_state=RANDOM_STATE
     )
@@ -235,13 +230,11 @@ def train_disease_model(X, disease_y_raw, groups):
     train_classes = sorted(set(disease_y_raw.iloc[train_idx]))
     encoder = LabelEncoder().fit(train_classes)
 
-    # XGB needs contiguous 0..N-1 labels; drop test rows whose class never appeared in train.
     test_mask = disease_y_raw.iloc[test_idx].isin(train_classes).to_numpy()
     test_idx = test_idx[test_mask]
     if (n_dropped := int((~test_mask).sum())):
         print(f"Dropped {n_dropped} test rows whose disease was unseen in train.")
 
-    # Carve a calibration slice out of the training set for temperature fitting.
     dev_groups = groups[train_idx]
     cal_split = GroupShuffleSplit(
         n_splits=1, test_size=CALIBRATION_SIZE, random_state=RANDOM_STATE
@@ -269,12 +262,9 @@ def train_disease_model(X, disease_y_raw, groups):
     }
     model, fit_info = _fit_xgb(X_train, y_train, groups_train, xgb_grid)
 
-    # Fit temperature on the held-out calibration slice.
     val_proba = model.predict_proba(X_val)
     temperature = _fit_temperature(val_proba, y_val)
-    print(f"Fitted temperature: T={temperature:.4f}")
 
-    # Evaluate test set with both raw and temperature-scaled probabilities.
     raw_proba = model.predict_proba(X_test)
     scaled_proba = _apply_temperature(raw_proba, temperature)
     pred = raw_proba.argmax(axis=1)
@@ -301,22 +291,28 @@ def train_disease_model(X, disease_y_raw, groups):
         "total_seconds": round(time.perf_counter() - t0, 2),
         **fit_info,
     }
+    print(f"  Train: {len(X_train):,} | Cal: {len(X_val):,} | Test: {len(X_test):,} | Classes: {len(encoder.classes_)}")
     print(
-        f"Disease — top1 {metrics['test_top1_accuracy']:.4f} | "
-        f"top3 {metrics['test_top3_accuracy']:.4f} | "
-        f"top5 {metrics['test_top5_accuracy']:.4f} | "
-        f"mean conf raw {metrics['test_top1_confidence_mean_raw']:.4f} → "
-        f"scaled {metrics['test_top1_confidence_mean_scaled']:.4f}"
+        f"  Test top-1: {metrics['test_top1_accuracy']:.4f} | "
+        f"top-3: {metrics['test_top3_accuracy']:.4f} | "
+        f"top-5: {metrics['test_top5_accuracy']:.4f} | "
+        f"macro-F1: {metrics['test_macro_f1']:.4f}"
+    )
+    print(
+        f"  Temperature T={temperature:.4f} | "
+        f"log-loss raw {metrics['test_log_loss_raw']:.4f} -> scaled {metrics['test_log_loss_scaled']:.4f} | "
+        f"mean conf raw {metrics['test_top1_confidence_mean_raw']:.4f} -> scaled {metrics['test_top1_confidence_mean_scaled']:.4f}"
     )
 
-    joblib.dump(model, MODELS_DIR / "disease_model.joblib")
-    joblib.dump(encoder, MODELS_DIR / "disease_label_encoder.joblib")
-    (MODELS_DIR / "disease_classes.json").write_text(
+    joblib.dump(model, MODEL_DIR / "disease_model.joblib")
+    joblib.dump(encoder, MODEL_DIR / "disease_label_encoder.joblib")
+    (MODEL_DIR / "disease_classes.json").write_text(
         json.dumps(encoder.classes_.tolist(), indent=2)
     )
-    (MODELS_DIR / "disease_temperature.json").write_text(
+    (MODEL_DIR / "disease_temperature.json").write_text(
         json.dumps({"temperature": float(temperature)}, indent=2)
     )
+    print("  Saved: disease_model.joblib, disease_label_encoder.joblib, disease_classes.json, disease_temperature.json")
     return metrics
 
 
@@ -341,9 +337,7 @@ def _filter_rare_diseases(X, disease_y_raw, groups):
 # --------------------------------------------------------------------------- #
 # Temperature scaling
 # --------------------------------------------------------------------------- #
-
 def _apply_temperature(probs: np.ndarray, T: float) -> np.ndarray:
-    """Re-softmax log(probs)/T. T<1 sharpens, T>1 smooths."""
     eps = 1e-12
     logp = np.log(np.clip(probs, eps, 1.0)) / T
     logp -= logp.max(axis=1, keepdims=True)
@@ -352,7 +346,6 @@ def _apply_temperature(probs: np.ndarray, T: float) -> np.ndarray:
 
 
 def _fit_temperature(probs: np.ndarray, y_true: np.ndarray) -> float:
-    """Find T that minimizes log-loss after temperature scaling."""
     labels = np.arange(probs.shape[1])
 
     def objective(T: float) -> float:
@@ -365,18 +358,23 @@ def _fit_temperature(probs: np.ndarray, y_true: np.ndarray) -> float:
 # --------------------------------------------------------------------------- #
 # Output
 # --------------------------------------------------------------------------- #
-
 def _print_timing_summary(triage_metrics, disease_metrics, total_seconds):
-    print("\n=== Training Time Calculation ===")
-
-    def _row(label, info):
-        print(f"  {label:<22} XGB-search {info['xgb_search_seconds']:6.1f}s | "
-              f"total {info['total_seconds']:6.1f}s")
-
-    _row("Triage:", triage_metrics)
+    print("\n--- Summary ---")
+    print(f"  {'Stage':<10} {'XGB search':>12} {'Total':>10}")
+    print(f"  {'-'*10} {'-'*12} {'-'*10}")
+    print(
+        f"  {'Triage':<10} "
+        f"{triage_metrics['xgb_search_seconds']:>10.1f}s "
+        f"{triage_metrics['total_seconds']:>9.1f}s"
+    )
     if disease_metrics is not None:
-        _row("Disease:", disease_metrics)
-    print(f"  {'GRAND TOTAL':<22} {total_seconds:6.1f}s")
+        print(
+            f"  {'Disease':<10} "
+            f"{disease_metrics['xgb_search_seconds']:>10.1f}s "
+            f"{disease_metrics['total_seconds']:>9.1f}s"
+        )
+    print(f"  {'-'*10} {'-'*12} {'-'*10}")
+    print(f"  {'Total':<10} {'':>12} {total_seconds:>9.1f}s")
 
 
 def _write_metrics(triage_metrics, disease_metrics, total_seconds):
