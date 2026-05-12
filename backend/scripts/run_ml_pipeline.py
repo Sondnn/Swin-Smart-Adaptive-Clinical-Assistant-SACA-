@@ -15,17 +15,46 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 RAW_DIR = BACKEND_DIR / "data" / "raw_v2"
 ML_DIR = BACKEND_DIR / "ml"
 
+KAGGLE_DATASET = "dhivyeshrk/diseases-and-symptoms-dataset"
 REQUIRED_RAW = ["Final_Augmented_dataset_Diseases_and_Symptoms.csv"]
+
+
+def download_raw_data() -> None:
+    RAW_DIR.mkdir(parents=True, exist_ok=True)
+    cmd = ["kaggle", "datasets", "download", "-d", KAGGLE_DATASET, "--unzip"]
+    print(f"\n>>> [download] {' '.join(cmd)}  (cwd={RAW_DIR})")
+    try:
+        result = subprocess.run(cmd, cwd=RAW_DIR)
+    except FileNotFoundError:
+        print(
+            "ERROR: `kaggle` CLI not found. Install and authenticate with:\n"
+            "  pip install kaggle\n"
+            "  # then place your API token at ~/.kaggle/kaggle.json "
+            "(Kaggle → Account → Create API Token)",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    if result.returncode != 0:
+        print(
+            f"ERROR: kaggle download failed (exit {result.returncode}). "
+            "Check that ~/.kaggle/kaggle.json exists and is chmod 600.",
+            file=sys.stderr,
+        )
+        sys.exit(result.returncode)
 
 
 def check_raw_data() -> None:
     missing = [f for f in REQUIRED_RAW if not (RAW_DIR / f).exists()]
-    if missing:
-        print(f"ERROR: missing Kaggle files in {RAW_DIR}: {missing}", file=sys.stderr)
+    if not missing:
+        return
+
+    print(f"Missing raw files in {RAW_DIR}: {missing} — downloading from Kaggle...")
+    download_raw_data()
+
+    still_missing = [f for f in REQUIRED_RAW if not (RAW_DIR / f).exists()]
+    if still_missing:
         print(
-            "Download once with:\n"
-            "  cd backend/data/raw_v2 && kaggle datasets download "
-            "-d dhivyeshrk/diseases-and-symptoms-dataset --unzip",
+            f"ERROR: still missing after download: {still_missing}",
             file=sys.stderr,
         )
         sys.exit(1)

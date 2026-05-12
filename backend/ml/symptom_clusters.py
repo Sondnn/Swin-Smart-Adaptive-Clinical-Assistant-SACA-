@@ -1,30 +1,141 @@
-SCENARIOS = [
-    # Acute coronary syndrome
-    ["symptom__chest_pain", "symptom__radiating_chest_pain", "symptom__cold_sweats",
-     "symptom__chest_pressure", "symptom__shortness_of_breath"],
-    # Stroke (FAST pattern)
-    ["symptom__sudden_weakness", "symptom__facial_droop", "symptom__one_sided_weakness",
-     "symptom__difficulty_speaking", "symptom__slurred_speech"],
-    # Anaphylaxis
-    ["symptom__anaphylaxis", "symptom__tongue_swelling", "symptom__lip_swelling",
-     "symptom__breathing_difficulty", "symptom__hives"],
-    # Sepsis / severe infection
-    ["symptom__high_fever", "symptom__chills", "symptom__confusion",
-     "symptom__rapid_breathing", "symptom__fast_heart_rate"],
-    # Pulmonary embolism
-    ["symptom__shortness_of_breath", "symptom__chest_pain", "symptom__pain_when_breathing",
-     "symptom__blood_clot_symptoms", "symptom__calf_pain"],
-    # Subarachnoid haemorrhage
-    ["symptom__sudden_severe_headache", "symptom__neck_stiffness", "symptom__vomiting",
-     "symptom__light_sensitivity"],
-    # Common cold (negative case for triage)
-    ["symptom__runny_nose", "symptom__sore_throat", "symptom__cough", "symptom__sneezing",
-     "symptom__nasal_congestion"],
-    # Migraine
-    ["symptom__migraine", "symptom__headache", "symptom__nausea", "symptom__light_sensitivity"],
-    # Gastro
-    ["symptom__vomiting", "symptom__diarrhoea", "symptom__abdominal_pain", "symptom__nausea"],
-    # UTI
-    ["symptom__painful_urination", "symptom__frequent_urination", "symptom__cloudy_urine",
-     "symptom__kidney_pain"],
-]
+SCENARIOS: dict[str, list[str]] = {
+    "acute_coronary_syndrome": [
+        "symptom__chest_pain", "symptom__radiating_chest_pain",
+        "symptom__chest_pressure", "symptom__chest_tightness",
+        "symptom__cold_sweats", "symptom__shortness_of_breath",
+        "symptom__arm_pain", "symptom__jaw_pain",
+        "symptom__nausea", "symptom__dizziness", "symptom__fast_heart_rate",
+    ],
+    "stroke": [
+        "symptom__sudden_weakness", "symptom__facial_droop",
+        "symptom__one_sided_weakness", "symptom__facial_or_limb_weakness",
+        "symptom__arm_weakness", "symptom__leg_weakness",
+        "symptom__difficulty_speaking", "symptom__slurred_speech",
+        "symptom__difficulty_understanding_speech",
+        "symptom__vision_loss", "symptom__double_vision",
+        "symptom__severe_headache", "symptom__loss_of_balance",
+        "symptom__confusion",
+    ],
+    "anaphylaxis": [
+        "symptom__anaphylaxis", "symptom__allergic_reaction",
+        "symptom__tongue_swelling", "symptom__lip_swelling",
+        "symptom__swollen_throat", "symptom__facial_swelling",
+        "symptom__itchy_throat", "symptom__hives",
+        "symptom__breathing_difficulty", "symptom__wheezing",
+        "symptom__difficulty_swallowing", "symptom__dizziness",
+        "symptom__rash", "symptom__itching",
+    ],
+    "sepsis": [
+        "symptom__high_fever", "symptom__fever", "symptom__chills",
+        "symptom__sweating", "symptom__confusion",
+        "symptom__altered_consciousness", "symptom__rapid_breathing",
+        "symptom__fast_heart_rate", "symptom__low_blood_pressure",
+        "symptom__very_unwell",
+    ],
+    "pulmonary_embolism": [
+        "symptom__shortness_of_breath", "symptom__chest_pain",
+        "symptom__pain_when_breathing", "symptom__blood_clot_symptoms",
+        "symptom__calf_pain", "symptom__leg_swelling",
+        "symptom__fast_heart_rate", "symptom__coughing_blood",
+        "symptom__dizziness",
+    ],
+    "subarachnoid_haemorrhage": [
+        "symptom__sudden_severe_headache", "symptom__severe_headache",
+        "symptom__neck_stiffness", "symptom__vomiting", "symptom__nausea",
+        "symptom__light_sensitivity", "symptom__confusion",
+        "symptom__altered_consciousness", "symptom__seizure",
+    ],
+
+    "common_cold": [
+        "symptom__runny_nose", "symptom__sore_throat", "symptom__cough",
+        "symptom__dry_cough", "symptom__sneezing",
+        "symptom__nasal_congestion", "symptom__post_nasal_drip",
+        "symptom__headache", "symptom__flu_like_symptoms", "symptom__fatigue",
+    ],
+    "migraine": [
+        "symptom__migraine", "symptom__headache", "symptom__severe_headache",
+        "symptom__nausea", "symptom__vomiting", "symptom__light_sensitivity",
+        "symptom__blurred_vision", "symptom__visual_disturbance",
+        "symptom__floaters", "symptom__neck_pain",
+    ],
+    "gastroenteritis": [
+        "symptom__vomiting", "symptom__continuous_vomiting",
+        "symptom__diarrhoea", "symptom__abdominal_pain", "symptom__nausea",
+        "symptom__loss_of_appetite", "symptom__fever", "symptom__chills",
+        "symptom__weakness", "symptom__dizziness",
+    ],
+    "urinary_tract_infection": [
+        "symptom__painful_urination", "symptom__frequent_urination",
+        "symptom__cloudy_urine", "symptom__smelly_urine",
+        "symptom__blood_in_urine", "symptom__kidney_pain",
+        "symptom__abdominal_pain", "symptom__fever",
+    ],
+    "asthma_or_copd_exacerbation": [
+        "symptom__wheezing", "symptom__shortness_of_breath",
+        "symptom__chest_tightness", "symptom__breathing_difficulty",
+        "symptom__cough", "symptom__rapid_breathing",
+        "symptom__chest_congestion",
+    ],
+    "pneumonia": [
+        "symptom__cough_with_phlegm", "symptom__productive_cough",
+        "symptom__fever", "symptom__high_fever", "symptom__chills",
+        "symptom__chest_pain", "symptom__pain_when_breathing",
+        "symptom__shortness_of_breath", "symptom__rapid_breathing",
+        "symptom__fatigue",
+    ],
+    "appendicitis": [
+        "symptom__abdominal_pain", "symptom__severe_abdominal_pain",
+        "symptom__nausea", "symptom__vomiting",
+        "symptom__loss_of_appetite", "symptom__fever",
+    ],
+    "kidney_stones": [
+        "symptom__flank_pain", "symptom__severe_abdominal_pain",
+        "symptom__nausea", "symptom__vomiting",
+        "symptom__blood_in_urine", "symptom__painful_urination",
+        "symptom__kidney_pain",
+    ],
+    "diabetic_ketoacidosis": [
+        "symptom__excessive_thirst", "symptom__frequent_urination",
+        "symptom__nausea", "symptom__vomiting", "symptom__fatigue",
+        "symptom__rapid_breathing", "symptom__fast_heart_rate",
+        "symptom__confusion", "symptom__very_unwell",
+        "symptom__abdominal_pain",
+    ],
+    "hypoglycaemia": [
+        "symptom__sweating", "symptom__cold_sweats", "symptom__tremor",
+        "symptom__dizziness", "symptom__confusion", "symptom__weakness",
+        "symptom__fast_heart_rate", "symptom__anxiety",
+        "symptom__slurred_speech",
+    ],
+    "meningitis": [
+        "symptom__high_fever", "symptom__fever", "symptom__neck_stiffness",
+        "symptom__severe_headache", "symptom__headache", "symptom__vomiting",
+        "symptom__light_sensitivity", "symptom__confusion",
+        "symptom__altered_consciousness", "symptom__rash",
+    ],
+    "dvt": [
+        "symptom__calf_pain", "symptom__leg_pain", "symptom__leg_swelling",
+        "symptom__ankle_swelling", "symptom__skin_redness",
+        "symptom__blood_clot_symptoms",
+    ],
+    "sinusitis_or_allergic_rhinitis": [
+        "symptom__sinus_pain", "symptom__sinus_pressure",
+        "symptom__runny_nose", "symptom__nasal_congestion",
+        "symptom__post_nasal_drip", "symptom__headache", "symptom__sneezing",
+        "symptom__hay_fever", "symptom__itchy_eyes",
+    ],
+    "conjunctivitis": [
+        "symptom__eye_pain", "symptom__eye_redness", "symptom__red_eye",
+        "symptom__eye_discharge", "symptom__itchy_eyes",
+        "symptom__watery_eyes",
+    ],
+    "vertigo": [
+        "symptom__vertigo", "symptom__dizziness", "symptom__loss_of_balance",
+        "symptom__nausea", "symptom__vomiting", "symptom__ringing_in_ears",
+        "symptom__hearing_loss",
+    ],
+    "sciatica": [
+        "symptom__back_pain", "symptom__leg_pain", "symptom__leg_weakness",
+        "symptom__tingling", "symptom__back_stiffness",
+    ],
+}

@@ -1,5 +1,6 @@
 import csv
 import json
+import logging
 from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Dict, List, Set
@@ -7,6 +8,8 @@ from typing import Dict, List, Set
 from pydantic import BaseModel
 
 from ml.symptom_clusters import SCENARIOS
+
+logger = logging.getLogger(__name__)
 
 SYMPTOM_PREFIX = "symptom__"
 MAX_SUGGESTIONS = 10
@@ -46,7 +49,13 @@ class SymptomSuggestionService:
 
         # For every cluster in `SCENARIOS`, every member maps to other members of every cluster it appears in.
         neighbours: Dict[str, Set[str]] = defaultdict(set)
-        for cluster in SCENARIOS:
+        for name, cluster in SCENARIOS.items():
+            unknown = [s for s in cluster if s not in self.feature_columns]
+            if unknown:
+                logger.warning(
+                    "symptom_clusters: scenario %r references %d symptom(s) not in model_features.json: %s",
+                    name, len(unknown), unknown,
+                )
             members = [s for s in cluster if s in self.feature_columns]
             for s in members:
                 neighbours[s].update(other for other in members if other != s)
