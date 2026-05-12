@@ -19,11 +19,11 @@
             </StackPanel>
 
             <StackPanel Margin="0,0,0,35">
-                <CheckBox Content="{services:Loc condition_hypertension}" Tag="Hypertension" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
-                <CheckBox Content="{services:Loc condition_diabetes}" Tag="Type 2 Diabetes" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
-                <CheckBox Content="{services:Loc condition_heart}" Tag="Heart Disease" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
-                <CheckBox Content="{services:Loc condition_asthma}" Tag="Asthma-COPD" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
-                <CheckBox Content="{services:Loc condition_depression}" Tag="Depression Anxiety" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
+                <CheckBox Content="{services:Loc condition_hypertension}" Tag="hypertension" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
+                <CheckBox Content="{services:Loc condition_diabetes}" Tag="type2_diabetes" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
+                <CheckBox Content="{services:Loc condition_heart}" Tag="heart_disease" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
+                <CheckBox Content="{services:Loc condition_asthma}" Tag="asthma_copd" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
+                <CheckBox Content="{services:Loc condition_depression}" Tag="depression_anxiety" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
                 <CheckBox x:Name="UnknownCheckBox"
                           Content="{services:Loc unknown_none}"
                           Tag="Unknown / None"
