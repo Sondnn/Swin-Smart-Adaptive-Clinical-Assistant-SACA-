@@ -25,7 +25,7 @@ namespace SACA.WindowsApp.Services
             ["age_older"] = "Older than 65",
             ["symptoms_title"] = "Select Any Symptoms",
             ["symptom_fever"] = "Fever",
-            ["symptom_diarrhea"] = "Diarrhea",
+            ["symptom_diarrhea"] = "Diarrhoea",
             ["symptom_cough"] = "Cough",
             ["symptom_vomiting"] = "Vomiting",
             ["symptom_dizziness"] = "Dizziness",

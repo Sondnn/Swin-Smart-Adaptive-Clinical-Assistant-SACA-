@@ -32,7 +32,7 @@
                         <TextBlock Text="{services:Loc symptom_fever}" TextAlignment="Center" TextWrapping="Wrap"/>
                     </StackPanel>
                 </CheckBox>
-                <CheckBox Tag="Diarrhea" Margin="6" Width="138">
+                <CheckBox Tag="Diarrhoea" Margin="6" Width="138">
                     <StackPanel>
                         <Image Source="/Assets/Icons/stomach-flu 1.png" Width="38" Height="38" Stretch="Uniform" Margin="0,0,0,4"/>
                         <TextBlock Text="{services:Loc symptom_diarrhea}" TextAlignment="Center" TextWrapping="Wrap"/>
