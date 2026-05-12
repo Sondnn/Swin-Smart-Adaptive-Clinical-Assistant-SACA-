@@ -7,11 +7,6 @@ import joblib
 import numpy as np
 import pandas as pd
 from scipy.optimize import minimize_scalar
-from sklearn.ensemble import (
-    ExtraTreesClassifier,
-    RandomForestClassifier,
-    VotingClassifier,
-)
 from sklearn.metrics import (
     accuracy_score,
     classification_report,
@@ -101,28 +96,8 @@ def _prepare_triage_inputs(df: pd.DataFrame):
     return feature_columns, X, y, groups, encoder
 
 # --------------------------------------------------------------------------- #
-# Ensemble building blocks (shared by triage and disease)
+# Model building blocks (shared by triage and disease)
 # --------------------------------------------------------------------------- #
-def _build_rf() -> RandomForestClassifier:
-    return RandomForestClassifier(
-        n_estimators=50,
-        max_depth=12,
-        random_state=RANDOM_STATE,
-        class_weight="balanced",
-        n_jobs=-1,
-    )
-
-
-def _build_et() -> ExtraTreesClassifier:
-    return ExtraTreesClassifier(
-        n_estimators=50,
-        max_depth=12,
-        random_state=RANDOM_STATE,
-        class_weight="balanced",
-        n_jobs=-1,
-    )
-
-
 def _build_xgb() -> XGBClassifier:
     return XGBClassifier(
         n_estimators=300,
@@ -138,19 +113,11 @@ def _build_xgb() -> XGBClassifier:
     )
 
 
-def _fit_voting_ensemble(X_train, y_train, groups_train, xgb_param_grid):
-    """Fit RF + ET + XGB(RandomizedSearchCV) and combine with soft voting."""
+def _fit_xgb(X_train, y_train, groups_train, xgb_param_grid):
+    """Fit XGB via group-aware RandomizedSearchCV and return the refit estimator."""
     cv = StratifiedGroupKFold(
         n_splits=N_FOLDS, shuffle=True, random_state=RANDOM_STATE
     )
-
-    t0 = time.perf_counter()
-    rf = _build_rf().fit(X_train, y_train)
-    rf_time = time.perf_counter() - t0
-
-    t0 = time.perf_counter()
-    et = _build_et().fit(X_train, y_train)
-    et_time = time.perf_counter() - t0
 
     t0 = time.perf_counter()
     xgb_search = RandomizedSearchCV(
@@ -166,24 +133,12 @@ def _fit_voting_ensemble(X_train, y_train, groups_train, xgb_param_grid):
     xgb_search.fit(X_train, y_train, groups=groups_train)
     xgb_time = time.perf_counter() - t0
 
-    ensemble = VotingClassifier(
-        estimators=[("rf", rf), ("et", et), ("xgb", xgb_search.best_estimator_)],
-        voting="soft",
-        n_jobs=-1,
-    )
-    t0 = time.perf_counter()
-    ensemble.fit(X_train, y_train)
-    ens_time = time.perf_counter() - t0
-
     fit_info = {
-        "rf_fit_seconds": round(rf_time, 2),
-        "et_fit_seconds": round(et_time, 2),
         "xgb_search_seconds": round(xgb_time, 2),
-        "ensemble_fit_seconds": round(ens_time, 2),
         "best_xgb_params": xgb_search.best_params_,
         "best_xgb_cv_neg_log_loss": float(xgb_search.best_score_),
     }
-    return ensemble, fit_info
+    return xgb_search.best_estimator_, fit_info
 
 
 # --------------------------------------------------------------------------- #
@@ -207,21 +162,21 @@ def train_triage_model(X, y, groups, encoder, feature_columns):
         "subsample": [0.85, 1.0],
         "colsample_bytree": [0.8, 1.0],
     }
-    ensemble, fit_info = _fit_voting_ensemble(X_dev, y_dev, groups_dev, xgb_grid)
+    model, fit_info = _fit_xgb(X_dev, y_dev, groups_dev, xgb_grid)
 
     cv = StratifiedGroupKFold(
         n_splits=N_FOLDS, shuffle=True, random_state=RANDOM_STATE
     )
     cv_acc = cross_val_score(
-        ensemble, X_dev, y_dev, cv=cv, scoring="accuracy",
+        model, X_dev, y_dev, cv=cv, scoring="accuracy",
         n_jobs=-1, groups=groups_dev,
     )
     cv_f1 = cross_val_score(
-        ensemble, X_dev, y_dev, cv=cv, scoring="f1_macro",
+        model, X_dev, y_dev, cv=cv, scoring="f1_macro",
         n_jobs=-1, groups=groups_dev,
     )
 
-    y_pred = ensemble.predict(X_test)
+    y_pred = model.predict(X_test)
     y_test_orig = encoder.inverse_transform(y_test)
     y_pred_orig = encoder.inverse_transform(y_pred)
     classes_orig = sorted(encoder.classes_.tolist())
@@ -235,7 +190,7 @@ def train_triage_model(X, y, groups, encoder, feature_columns):
     print(f"Triage test macro-F1:  {macro_f1:.4f}")
     print(classification_report(y_test_orig, y_pred_orig, digits=3))
 
-    joblib.dump(ensemble, MODELS_DIR / "triage_model.joblib")
+    joblib.dump(model, MODELS_DIR / "triage_model.joblib")
     joblib.dump(encoder, MODELS_DIR / "triage_label_encoder.joblib")
     (MODELS_DIR / "model_features.json").write_text(
         json.dumps(feature_columns, indent=2)
@@ -312,17 +267,15 @@ def train_disease_model(X, disease_y_raw, groups):
         "subsample": [0.85, 1.0],
         "colsample_bytree": [0.8, 1.0],
     }
-    ensemble, fit_info = _fit_voting_ensemble(
-        X_train, y_train, groups_train, xgb_grid
-    )
+    model, fit_info = _fit_xgb(X_train, y_train, groups_train, xgb_grid)
 
     # Fit temperature on the held-out calibration slice.
-    val_proba = ensemble.predict_proba(X_val)
+    val_proba = model.predict_proba(X_val)
     temperature = _fit_temperature(val_proba, y_val)
     print(f"Fitted temperature: T={temperature:.4f}")
 
     # Evaluate test set with both raw and temperature-scaled probabilities.
-    raw_proba = ensemble.predict_proba(X_test)
+    raw_proba = model.predict_proba(X_test)
     scaled_proba = _apply_temperature(raw_proba, temperature)
     pred = raw_proba.argmax(axis=1)
     labels = np.arange(len(encoder.classes_))
@@ -356,7 +309,7 @@ def train_disease_model(X, disease_y_raw, groups):
         f"scaled {metrics['test_top1_confidence_mean_scaled']:.4f}"
     )
 
-    joblib.dump(ensemble, MODELS_DIR / "disease_model.joblib")
+    joblib.dump(model, MODELS_DIR / "disease_model.joblib")
     joblib.dump(encoder, MODELS_DIR / "disease_label_encoder.joblib")
     (MODELS_DIR / "disease_classes.json").write_text(
         json.dumps(encoder.classes_.tolist(), indent=2)
@@ -417,10 +370,7 @@ def _print_timing_summary(triage_metrics, disease_metrics, total_seconds):
     print("\n=== Training Time Calculation ===")
 
     def _row(label, info):
-        print(f"  {label:<22} RF {info['rf_fit_seconds']:6.1f}s | "
-              f"ET {info['et_fit_seconds']:6.1f}s | "
-              f"XGB-search {info['xgb_search_seconds']:6.1f}s | "
-              f"ensemble fit {info['ensemble_fit_seconds']:6.1f}s | "
+        print(f"  {label:<22} XGB-search {info['xgb_search_seconds']:6.1f}s | "
               f"total {info['total_seconds']:6.1f}s")
 
     _row("Triage:", triage_metrics)

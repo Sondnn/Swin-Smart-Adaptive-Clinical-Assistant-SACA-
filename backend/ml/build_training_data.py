@@ -31,6 +31,27 @@ ADD_PROB = 0.3
 
 HIGH_ACUITY = set(CAT1_SYMPTOMS) | set(CAT2_SYMPTOMS) | set(CAT3_SYMPTOMS)
 
+TRISTATE_DISTRIBUTIONS = {
+    "gender":              {0: 0.47, 1: 0.47, 2: 0.06},
+    "age_over_65":         {0: 0.78, 1: 0.17, 2: 0.05},
+    "had_symptoms_before": {0: 0.65, 1: 0.25, 2: 0.10},
+    "had_contact":         {0: 0.75, 1: 0.15, 2: 0.10},
+}
+
+DURATION_BUCKETS = [1, 2, 4, 8, 12, 24, 48, 72, 120]
+DURATION_WEIGHTS = [4, 6, 8, 9, 10, 12, 10, 8, 6]
+
+
+def _sample_demographics(rng: random.Random) -> dict:
+    out = {
+        col: rng.choices(list(dist.keys()), weights=list(dist.values()), k=1)[0]
+        for col, dist in TRISTATE_DISTRIBUTIONS.items()
+    }
+    out["symptoms_duration"] = rng.choices(
+        DURATION_BUCKETS, weights=DURATION_WEIGHTS, k=1
+    )[0]
+    return out
+
 
 def _proxy_severity(present: set[str]) -> int:
     """Coarse 1-5 severity from how many high-acuity symptoms are present."""
@@ -44,13 +65,11 @@ def _proxy_severity(present: set[str]) -> int:
     return 2 if len(present) >= 2 else 1
 
 
-def _finalize_case(present: set[str], feature_columns: list[str]) -> dict:
+def _finalize_case(
+    present: set[str], feature_columns: list[str], demographics: dict
+) -> dict:
     case = {col: 0 for col in feature_columns}
-    case["gender"] = 2
-    case["age_over_65"] = 2
-    case["had_symptoms_before"] = 2
-    case["had_contact"] = 2
-    case["symptoms_duration"] = 24
+    case.update(demographics)
     for c in present:
         case[c] = 1
     case["symptom_severity"] = _proxy_severity(present)
@@ -116,14 +135,15 @@ def main():
             n_skipped += 1
             continue
 
-        base = _finalize_case(present, feature_columns)
+        demographics = _sample_demographics(rng)
+        base = _finalize_case(present, feature_columns, demographics)
         rows.append(base); diseases.append(disease); group_ids.append(idx)
 
         for _ in range(N_AUGMENTED_COPIES):
             aug_present = _augment(present, schema_symptom_cols, rng)
             if not aug_present:
                 continue
-            aug = _finalize_case(aug_present, feature_columns)
+            aug = _finalize_case(aug_present, feature_columns, demographics)
             rows.append(aug); diseases.append(disease); group_ids.append(idx)
             n_augmented += 1
 
