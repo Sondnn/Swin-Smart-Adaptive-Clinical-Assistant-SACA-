@@ -12,7 +12,7 @@
     <string name="welcome_body">This assessment will help you check how severe your symptoms are and help you know what to do next quickly.</string>
     <string name="welcome_get_started">Get Started</string>
 
-    <string name="home_action_bar_title">Clinical Assistant</string>
+    <string name="home_action_bar_title">SACA</string>
     <string name="home_drawer_section_assessment">Assessment</string>
     <string name="home_drawer_section_language">Language</string>
 

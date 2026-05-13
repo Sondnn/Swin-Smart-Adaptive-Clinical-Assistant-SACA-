@@ -5,14 +5,14 @@
 
     <string name="language_title">Smart Adaptive Clinical Assistant</string>
     <string name="language_subtitle">Kaya!</string>
-    <string name="language_option_english">Ingkirriji</string>
+    <string name="language_option_english">English</string>
     <string name="language_option_walmajarri">Walmajarri</string>
 
     <string name="welcome_title">Karlarra Nyurra Yirrarni</string>
     <string name="welcome_body">Nyurra yirrarni-rna nyuntu-ku yiwarr-ku nyuntu-ju karlarra nyurra-ju. Kujarra-rna nyuntu-ku yiwarr nyuntu-ju karlarra nyurra-ju.</string>
     <string name="welcome_get_started">Yirrarni-rna</string>
 
-    <string name="home_action_bar_title">Karlarra Nyurra Yirrarni</string>
+    <string name="home_action_bar_title">SACA</string>
     <string name="home_drawer_section_assessment">Yirrarni</string>
     <string name="home_drawer_section_language">Yimi</string>
 
