@@ -23,7 +23,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.ButtonDefaults
@@ -45,7 +44,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -61,10 +59,8 @@ import com.saca.smartadaptiveclinicalassistant.ui.theme.AppBackground
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown20
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Gray40
-import com.saca.smartadaptiveclinicalassistant.ui.theme.LexendFontFamily
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Orange
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Orange40
-import com.saca.smartadaptiveclinicalassistant.ui.theme.TextBrown
 import java.io.File
 import kotlin.collections.chunked
 
@@ -73,7 +69,6 @@ fun FormQuestionScaffold(
     modifier: Modifier = Modifier,
     appBarTitle: String,
     questionTitle: String,
-    backContentDescription: String,
     continueButtonText: String,
     isContinueAlwaysAllowed: Boolean = false,
     continueButtonStyle: AppButtonStyle = AppButtonStyle.Brown,
@@ -97,7 +92,7 @@ fun FormQuestionScaffold(
             AppBar(
                 title = appBarTitle,
                 iconButton = ActionBarIconButton.BACK,
-                iconContentDescription = backContentDescription,
+                iconContentDescription = stringResource(R.string.app_bar_button_back_content_description),
                 onIconButtonClick = onCancelClick
             )
         },
