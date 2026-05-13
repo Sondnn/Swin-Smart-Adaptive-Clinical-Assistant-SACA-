@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat.checkSelfPermission
 import com.saca.smartadaptiveclinicalassistant.R
+import com.saca.smartadaptiveclinicalassistant.common.getEnglishString
 import com.saca.smartadaptiveclinicalassistant.data.local.VoiceRecorder
 import com.saca.smartadaptiveclinicalassistant.presentation.components.ActionBarIconButton
 import com.saca.smartadaptiveclinicalassistant.presentation.components.AppBar
@@ -69,6 +70,7 @@ fun FormQuestionScaffold(
     modifier: Modifier = Modifier,
     appBarTitle: String,
     questionTitle: String,
+    @StringRes questionResId: Int,
     continueButtonText: String,
     isContinueAlwaysAllowed: Boolean = false,
     continueButtonStyle: AppButtonStyle = AppButtonStyle.Brown,
@@ -87,6 +89,10 @@ fun FormQuestionScaffold(
     @StringRes recordingErrorResId: Int? = null,
     onTranscribeAudio: ((File) -> Unit)? = null
 ) {
+    val optionResIds = options.map { option ->
+        option.labelResourceId
+    }
+
     Scaffold(
         topBar = {
             AppBar(
@@ -123,14 +129,27 @@ fun FormQuestionScaffold(
                 onOptionClick = onOptionClick
             )
 
-            if (voiceQuestionId != null && onTranscribeAudio != null) {
-                Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(24.dp))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    SpeakQuestionSection(
+                        questionResId = questionResId,
+                        optionResIds = optionResIds,
+                    )
+                }
 
-                VoiceInputSection(
-                    isTranscribing = isTranscribing,
-                    recordingErrorResId = recordingErrorResId,
-                    onTranscribeAudio = onTranscribeAudio,
-                )
+                if (voiceQuestionId != null && onTranscribeAudio != null) {
+                    Box(modifier = Modifier.weight(1f)) {
+                    VoiceInputSection(
+                        isTranscribing = isTranscribing,
+                        recordingErrorResId = recordingErrorResId,
+                        onTranscribeAudio = onTranscribeAudio,
+                    )
+                }
+                }
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -147,6 +166,30 @@ fun FormQuestionScaffold(
             )
         }
     }
+}
+
+@Composable
+private fun SpeakQuestionSection(
+    @StringRes questionResId: Int,
+    @StringRes optionResIds: List<Int>
+) {
+    val context = LocalContext.current
+    val questionSpeaker = rememberSpeaker()
+
+    val questionString = context.getEnglishString(questionResId)
+
+    val optionStrings = optionResIds.map {
+        context.getEnglishString(it)
+    }
+
+    val text = "$questionString. ${optionStrings.joinToString()}"
+
+    SpeakButton(
+        text = stringResource(R.string.triage_form_listen_button),
+        onClick = {
+            questionSpeaker.speakText(text)
+        }
+    )
 }
 
 @Composable

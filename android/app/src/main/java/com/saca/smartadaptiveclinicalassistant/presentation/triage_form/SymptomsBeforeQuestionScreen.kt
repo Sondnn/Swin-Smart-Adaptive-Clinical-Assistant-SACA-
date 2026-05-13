@@ -28,6 +28,7 @@ fun SymptomsBeforeQuestionScreen(
     FormQuestionScaffold(
         appBarTitle = stringResource(R.string.triage_form_action_bar_title),
         questionTitle = stringResource(R.string.triage_form_symptoms_before_title),
+        questionResId = R.string.triage_form_symptoms_before_title,
         backButtonText = stringResource(R.string.triage_form_back_button),
         continueButtonText = stringResource(R.string.triage_form_continue_button),
         options = options,

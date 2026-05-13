@@ -29,6 +29,7 @@ fun SickContactHistoryQuestionScreen(
     FormQuestionScaffold(
         appBarTitle = stringResource(R.string.triage_form_action_bar_title),
         questionTitle = stringResource(R.string.triage_form_sick_contact_history_title),
+        questionResId = R.string.triage_form_sick_contact_history_title,
         backButtonText = stringResource(R.string.triage_form_back_button),
         continueButtonText = stringResource(R.string.triage_form_assess_button),
         continueButtonStyle = AppButtonStyle.Orange,

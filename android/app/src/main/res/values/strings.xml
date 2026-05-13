@@ -33,7 +33,9 @@
     <string name="triage_form_symptom_describe_title">Describe Symptoms</string>
     <string name="triage_form_symptom_recorded">Symptoms Recorded</string>
     <string name="triage_form_symptom_details_placeholder">Type the details...</string>
-    <string name="triage_form_symptom_hold_to_record">Hold to Record</string>
+    <string name="triage_form_symptom_hold_to_record">Answer</string>
+    <string name="triage_form_listen_button">Listen</string>
+    <string name="triage_form_answer_button">Answer</string>
     <string name="triage_form_symptom_recording">Recording...</string>
     <string name="triage_form_symptom_transcribing">Transcribing...</string>
     <string name="triage_form_symptom_mic_label">Mic</string>
