@@ -16,7 +16,7 @@
     <string name="home_drawer_section_assessment">Yirrarni</string>
     <string name="home_drawer_section_language">Yimi</string>
 
-    <string name="triage_form_action_bar_title">Karlarra Nyurra Yirrarni</string>
+    <string name="triage_form_action_bar_title">Mirrijinkarti</string>
     <string name="triage_form_back_button">Kujarra</string>
     <string name="triage_form_continue_button">Yirrarni</string>
     <string name="triage_form_assess_button">Yirrarni-rna</string>
@@ -39,7 +39,7 @@
     <string name="triage_form_symptom_describe_title">Karlarra Yirrarni-rna</string>
     <string name="triage_form_symptom_details_placeholder">Yimi-rna...</string>
     <string name="triage_form_symptom_recorded">(WMT) Symptoms Recorded</string>
-    <string name="triage_form_symptom_hold_to_record">Jijirr-ma Yirrarni-ku</string>
+
     <string name="triage_form_listen_button">Listen</string>
     <string name="triage_form_answer_button">Answer</string>
     <string name="triage_form_symptom_recording">Yirrarni-rna…</string>

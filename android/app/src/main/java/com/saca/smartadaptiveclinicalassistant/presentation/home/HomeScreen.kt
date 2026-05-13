@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -37,14 +38,14 @@ fun HomeScreen(
     homeViewModel: HomeViewModel = koinViewModel(),
     sessionViewModel: SessionViewModel = koinViewModel(),
 ) {
-    val currentLanguageTag: String = sessionViewModel.languageTag
-    val languageButtonText = if (currentLanguageTag == LANGUAGE_TAG_ENGLISH) {
+    val languageButtonText = if (sessionViewModel.languageTag == LANGUAGE_TAG_ENGLISH) {
         stringResource(R.string.language_option_walmajarri)
     } else {
         stringResource(R.string.language_option_english)
     }
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             AppBar(
                 title = stringResource(R.string.home_action_bar_title),
@@ -60,7 +61,7 @@ fun HomeScreen(
                 homeViewModel.onGetStartedClicked()
                 onGetStarted()
             },
-            modifier = Modifier.padding(innerPadding),
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
         )
     }
 }
@@ -81,7 +82,7 @@ fun HomeContent(
             contentScale = ContentScale.Fit,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
-                .padding(bottom = 425.dp)
+                .padding(bottom = 400.dp)
                 .size(256.dp)
         )
 
