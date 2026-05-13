@@ -26,6 +26,8 @@ val appModule = module {
             .writeTimeout(60, TimeUnit.SECONDS)
             .build()
     }
+
+    Log.d("BaseURL", Constants.BASE_URL)
     single {
         Retrofit.Builder()
             .baseUrl(Constants.BASE_URL)

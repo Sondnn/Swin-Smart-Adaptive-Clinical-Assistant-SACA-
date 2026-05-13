@@ -33,6 +33,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.saca.smartadaptiveclinicalassistant.R
+import com.saca.smartadaptiveclinicalassistant.common.getLabelString
 import com.saca.smartadaptiveclinicalassistant.domain.model.TriageCategory
 import com.saca.smartadaptiveclinicalassistant.domain.model.TriageResult
 import com.saca.smartadaptiveclinicalassistant.presentation.components.ActionBarIconButton
@@ -251,7 +252,7 @@ private fun SymptomsSummary(symptoms: List<String>) {
                 )
 
                 Text(
-                    text = symptom,
+                    text = getLabelString(symptom),
                     style = MaterialTheme.typography.bodySmall,
                     color = TextDarkBrown,
                     modifier = Modifier.padding(start = 12.dp)

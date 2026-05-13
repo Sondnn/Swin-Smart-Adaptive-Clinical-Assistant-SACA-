@@ -48,6 +48,7 @@ import com.saca.smartadaptiveclinicalassistant.ui.theme.AppBackground
 import org.koin.androidx.compose.koinViewModel
 
 import com.saca.smartadaptiveclinicalassistant.R
+import com.saca.smartadaptiveclinicalassistant.common.getLabelString
 import com.saca.smartadaptiveclinicalassistant.data.local.VoiceRecorder
 import com.saca.smartadaptiveclinicalassistant.presentation.components.Title
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.ErrorMessage
@@ -153,7 +154,9 @@ fun SymptomQuestionScreen(
                 Spacer(modifier = Modifier.height(2.dp))
 
                 Text(
-                    text = triageFormViewModel.recordedSymptoms.toString(),
+                    text = triageFormViewModel.recordedSymptoms.joinToString(", ") {
+                        getLabelString(it)
+                    },
                     style = MaterialTheme.typography.bodyMedium,
                     color = TextDarkBrown,
                     fontWeight = FontWeight.SemiBold,
@@ -256,7 +259,6 @@ fun SymptomQuestionScreen(
                 onBackClick = onBackClick,
                 onContinueClick = {
                     coroutineScope.launch {
-                        // call api to extract symptoms before continue
                         val canContinue = triageFormViewModel.canContinueFromSymptomQuestion()
                         if (canContinue) {
                             onContinueClick()
