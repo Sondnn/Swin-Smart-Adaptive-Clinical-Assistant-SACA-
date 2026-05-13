@@ -145,11 +145,16 @@ fun FormQuestionScaffold(
                     Box(modifier = Modifier.weight(1f)) {
                     VoiceInputSection(
                         isTranscribing = isTranscribing,
-                        recordingErrorResId = recordingErrorResId,
                         onTranscribeAudio = onTranscribeAudio,
                     )
                 }
                 }
+            }
+
+            if (recordingErrorResId != null) {
+                Log.d("Form question recording", recordingErrorResId.toString())
+                Spacer(modifier = Modifier.height(10.dp))
+                ErrorMessage(text = stringResource(recordingErrorResId))
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -169,20 +174,23 @@ fun FormQuestionScaffold(
 }
 
 @Composable
-private fun SpeakQuestionSection(
+fun SpeakQuestionSection(
     @StringRes questionResId: Int,
-    @StringRes optionResIds: List<Int>
+    @StringRes optionResIds: List<Int> = emptyList()
 ) {
     val context = LocalContext.current
     val questionSpeaker = rememberSpeaker()
 
     val questionString = context.getEnglishString(questionResId)
+    var text = questionString
 
-    val optionStrings = optionResIds.map {
-        context.getEnglishString(it)
+    if (optionResIds.isNotEmpty()) {
+        val optionStrings = optionResIds.map {
+            context.getEnglishString(it)
+        }
+
+         text += optionStrings.joinToString()
     }
-
-    val text = "$questionString. ${optionStrings.joinToString()}"
 
     SpeakButton(
         text = stringResource(R.string.triage_form_listen_button),
@@ -195,7 +203,6 @@ private fun SpeakQuestionSection(
 @Composable
 private fun VoiceInputSection(
     isTranscribing: Boolean,
-    @StringRes recordingErrorResId: Int?,
     onTranscribeAudio: (File) -> Unit,
 ) {
     val context = LocalContext.current
@@ -251,53 +258,12 @@ private fun VoiceInputSection(
             )
         }
     )
-
-    if (recordingErrorResId != null) {
-        Log.d("Form question recording", recordingErrorResId.toString())
-        Spacer(modifier = Modifier.height(10.dp))
-        ErrorMessage(text = stringResource(recordingErrorResId))
-    }
 }
 private fun hasRecordAudioPermission(context: Context): Boolean {
     return checkSelfPermission(
         context,
         Manifest.permission.RECORD_AUDIO
     ) == PackageManager.PERMISSION_GRANTED
-}
-
-
-@Composable
-fun QuestionTextInput(
-    text: String,
-    placeholder: String,
-    onTextChanged: (String) -> Unit,
-) {
-    BasicTextField(
-        value = text,
-        onValueChange = onTextChanged,
-        textStyle = TextStyle(
-            color = Color.Black,
-        ),
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(130.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(Color.White)
-            .padding(14.dp),
-        decorationBox = { innerTextField ->
-            Box(modifier = Modifier.fillMaxWidth()) {
-                if (text.isEmpty()) {
-                    Text(
-                        text = placeholder,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.Gray,
-                    )
-                }
-
-                innerTextField()
-            }
-        }
-    )
 }
 
 @Composable
