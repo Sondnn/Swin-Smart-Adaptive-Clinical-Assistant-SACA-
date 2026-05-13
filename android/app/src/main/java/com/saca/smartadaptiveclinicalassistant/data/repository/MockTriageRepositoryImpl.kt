@@ -2,6 +2,7 @@ package com.saca.smartadaptiveclinicalassistant.data.repository
 
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.AnalysisSymptomsRequest
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.AnalysisSymptomsResponse
+import com.saca.smartadaptiveclinicalassistant.data.remote.dto.Disease
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.ParsedResponse
 import com.saca.smartadaptiveclinicalassistant.data.remote.dto.SpeechToTextResponse
 import com.saca.smartadaptiveclinicalassistant.domain.repository.TriageRepository
@@ -35,7 +36,12 @@ class MockTriageRepositoryImpl: TriageRepository {
 
 
     override suspend fun analysisSymptoms(request: AnalysisSymptomsRequest): Result<AnalysisSymptomsResponse> {
-        return Result.success(AnalysisSymptomsResponse(triageCategory = 3))
+        return Result.success(
+            AnalysisSymptomsResponse(
+                triageCategory = 3,
+                disease = Disease(disease = "flu")
+            )
+        )
     }
 }
 

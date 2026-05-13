@@ -105,21 +105,23 @@
     <string name="triage_result_analyzing">Karlarra yirrarni-rna...</string>
     <string name="triage_result_title">Karlarra Yirrarni Jukurra</string>
     <string name="triage_result_severity_label">Karlarra Jukurra</string>
-    <string name="triage_result_category_a">Karra Yirrarni</string>
-    <string name="triage_result_category_b">Kujarra Yirrarni</string>
-    <string name="triage_result_category_c">Yirrarni-wana</string>
-    <string name="triage_result_category_d">Karlarra Yirrarni</string>
-    <string name="triage_result_category_e">Jukurra Karlarra</string>
-    <string name="triage_result_category_f">Karlarra Nyurra</string>
+    <string name="triage_result_category_a">Karlarra Nyurra</string>
+    <string name="triage_result_category_b">Jukurra Karlarra</string>
+    <string name="triage_result_category_c">Karlarra Yirrarni</string>
+    <string name="triage_result_category_d">Yirrarni-wana</string>
+    <string name="triage_result_category_e">Kujarra Yirrarni</string>
+    <string name="triage_result_category_f">Karra Yirrarni</string>
 
     <string name="triage_result_recommendation_title">Yimi Karlarra</string>
     <string name="triage_result_recommendation_body">Yirrarni-rna karlarra nyuntu-ju. Kujarra karlarra-wana, yirrarni-rna karlarra-ku.</string>
-    <string name="triage_result_category_a_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra-wana yirrarni karlarra.</string>
-    <string name="triage_result_category_b_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra jukurra yirrarni.</string>
-    <string name="triage_result_category_c_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra yirrarni-wana yimi.</string>
-    <string name="triage_result_category_d_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra jukurra yirrarni-wana.</string>
-    <string name="triage_result_category_e_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra yirrarni kujarra.</string>
-    <string name="triage_result_category_f_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju 24 ngurra-wana karlarra yirrarni.</string>
+    <string name="triage_result_category_a_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju 24 ngurra-wana karlarra yirrarni.</string>
+    <string name="triage_result_category_b_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra yirrarni kujarra.</string>
+    <string name="triage_result_category_c_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra jukurra yirrarni-wana.</string>
+    <string name="triage_result_category_d_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra yirrarni-wana yimi.</string>
+    <string name="triage_result_category_e_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra jukurra yirrarni.</string>
+    <string name="triage_result_category_f_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra-wana yirrarni karlarra.</string>
+    <string name="triage_result_possible_condition_title">Possible Condition</string>
+    <string name="triage_result_possible_condition_unknown">Unknown</string>
     <string name="triage_result_symptoms_summary_title">Karlarra Yirrarni Jukurra</string>
 
     <string name="triage_result_summary_cold">Karlarra Mirrirr</string>

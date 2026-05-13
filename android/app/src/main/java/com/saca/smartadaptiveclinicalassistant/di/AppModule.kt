@@ -1,5 +1,6 @@
 package com.saca.smartadaptiveclinicalassistant.di
 
+import android.util.Log
 import com.saca.smartadaptiveclinicalassistant.common.Constants
 import com.saca.smartadaptiveclinicalassistant.data.remote.TriageApi
 import com.saca.smartadaptiveclinicalassistant.data.repository.TriageRepositoryImpl
