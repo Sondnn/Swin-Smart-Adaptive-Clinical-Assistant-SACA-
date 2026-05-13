@@ -12,3 +12,11 @@ fun Context.getEnglishString(@StringRes resId: Int): String {
     val context = createConfigurationContext(config)
     return context.getString(resId)
 }
+
+fun getLabelString(label: String): String {
+    return label
+        .replace("_", " ")
+        .replaceFirstChar {
+            it.uppercase()
+        }
+}

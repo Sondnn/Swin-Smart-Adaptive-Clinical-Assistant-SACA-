@@ -31,6 +31,11 @@ data class AnalysisSymptomsRequest(
 )
 
 data class AnalysisSymptomsResponse(
-    @SerializedName("triage_category") val triageCategory: Int
+    @SerializedName("triage_category") val triageCategory: Int,
+    val disease: Disease?
 )
 
+data class Disease(
+    @SerializedName("disease")
+    val disease: String,
+)

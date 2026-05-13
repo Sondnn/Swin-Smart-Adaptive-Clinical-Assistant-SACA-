@@ -5,6 +5,7 @@ import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -23,12 +25,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.saca.smartadaptiveclinicalassistant.R
+import com.saca.smartadaptiveclinicalassistant.common.getLabelString
 import com.saca.smartadaptiveclinicalassistant.domain.model.TriageCategory
 import com.saca.smartadaptiveclinicalassistant.domain.model.TriageResult
 import com.saca.smartadaptiveclinicalassistant.presentation.components.ActionBarIconButton
@@ -88,9 +93,6 @@ fun ResultScreen(
                     SymptomsSummary(uiState.symptoms)
                 }
                 else -> {
-                    Title(text = stringResource(R.string.triage_result_error_title))
-                    Spacer(modifier = Modifier.height(28.dp))
-                    ErrorCard()
                 }
             }
 
@@ -110,10 +112,14 @@ fun ResultScreen(
 @DrawableRes
 private fun triageCategoryIconRes(category: TriageCategory): Int {
     return when (category) {
-        TriageCategory.A, TriageCategory.B -> R.drawable.severity_category_1
-        TriageCategory.C, TriageCategory.D -> R.drawable.severity_category_2
+        TriageCategory.A -> R.drawable.severity_category_a
+        TriageCategory.B -> R.drawable.severity_category_b
+        TriageCategory.C -> R.drawable.severity_category_c
+        TriageCategory.D -> R.drawable.severity_category_d
+        TriageCategory.E -> R.drawable.severity_category_e
+        TriageCategory.F -> R.drawable.severity_category_f
         else -> {
-            R.drawable.severity_category_3
+            R.drawable.severity_category_f
         }
     }
 }
@@ -147,6 +153,7 @@ private fun ResultCard(result: TriageResult) {
     val iconResourceId = triageCategoryIconRes(result.triageCategory)
     val categoryTitle = stringResource(categoryTitleRes(result.triageCategory))
     val categoryRecommendation = stringResource(categoryRecommendationRes(result.triageCategory))
+    val possibleCondition = result.possibleCondition
 
     Column(
         modifier = Modifier
@@ -195,6 +202,22 @@ private fun ResultCard(result: TriageResult) {
             style = MaterialTheme.typography.bodySmall,
             color = TextDarkBrown
         )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Text(
+            text = stringResource(R.string.triage_result_possible_condition_title),
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextDarkBrown
+        )
+
+        Spacer(modifier = Modifier.height(6.dp))
+
+        Text(
+            text = possibleCondition?: stringResource(R.string.triage_result_possible_condition_unknown),
+            style = MaterialTheme.typography.bodySmall,
+            color = TextDarkBrown
+        )
     }
 }
 
@@ -229,7 +252,7 @@ private fun SymptomsSummary(symptoms: List<String>) {
                 )
 
                 Text(
-                    text = symptom,
+                    text = getLabelString(symptom),
                     style = MaterialTheme.typography.bodySmall,
                     color = TextDarkBrown,
                     modifier = Modifier.padding(start = 12.dp)

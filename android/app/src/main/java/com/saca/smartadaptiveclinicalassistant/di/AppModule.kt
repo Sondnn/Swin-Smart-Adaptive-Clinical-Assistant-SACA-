@@ -1,5 +1,6 @@
 package com.saca.smartadaptiveclinicalassistant.di
 
+import android.util.Log
 import com.saca.smartadaptiveclinicalassistant.common.Constants
 import com.saca.smartadaptiveclinicalassistant.data.remote.TriageApi
 import com.saca.smartadaptiveclinicalassistant.data.repository.TriageRepositoryImpl
@@ -25,6 +26,8 @@ val appModule = module {
             .writeTimeout(60, TimeUnit.SECONDS)
             .build()
     }
+
+    Log.d("BaseURL", Constants.BASE_URL)
     single {
         Retrofit.Builder()
             .baseUrl(Constants.BASE_URL)

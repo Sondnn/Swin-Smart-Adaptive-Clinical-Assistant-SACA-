@@ -292,6 +292,7 @@ class TriageFormViewModel(
                 result.fold(
                     onSuccess = { response ->
                         val applied = applyVoiceAnswer(questionId, response)
+                        Log.d("Record success", response.toString())
                         if (!applied) {
                             recordingErrorResId = R.string.triage_form_symptom_transcription_failed_message
                         }

@@ -20,6 +20,7 @@
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
+            android:configChanges="locale|layoutDirection"
             android:theme="@style/Theme.SmartAdaptiveClinicalAssistant">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

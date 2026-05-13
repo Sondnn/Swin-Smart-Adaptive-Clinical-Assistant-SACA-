@@ -26,6 +26,7 @@ class AnalyzeSymptomsUseCase(
 
         return triageRepository.analysisSymptoms(request).map { response ->
             val normalizedCategory = response.triageCategory.coerceIn(1, 6)
+            val possibleCondition = response.disease?.disease
             val triageCategory = when (normalizedCategory) {
                 1 -> TriageCategory.A
                 2 -> TriageCategory.B
@@ -38,7 +39,8 @@ class AnalyzeSymptomsUseCase(
 
             TriageResult(
                 triageCategory = triageCategory,
-                symptoms = form.symptoms
+                symptoms = form.symptoms,
+                possibleCondition = possibleCondition
             )
 
         }
