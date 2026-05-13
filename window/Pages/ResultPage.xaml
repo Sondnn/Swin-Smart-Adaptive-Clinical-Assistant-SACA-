@@ -1,44 +1,91 @@
-﻿<UserControl x:Class="SACA.WindowsApp.Pages.ResultPage"
+<UserControl x:Class="SACA.WindowsApp.Pages.ResultPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:services="clr-namespace:SACA.WindowsApp.Services">
 
     <Grid Background="{StaticResource AppBackgroundBrush}" Margin="40">
-        <Border Background="{StaticResource InputBackgroundBrush}"
-                BorderBrush="{StaticResource BorderBrush}"
-                BorderThickness="1"
-                Padding="35"
-                Width="600"
-                HorizontalAlignment="Center"
-                VerticalAlignment="Center"
-                CornerRadius="8">
-
-            <StackPanel>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Width="680" HorizontalAlignment="Center">
                 <TextBlock Text="{services:Loc result_title}"
                            Style="{StaticResource PageTitleTextStyle}"
-                           FontSize="32"
-                           Margin="0,0,0,25"/>
+                           FontSize="34"
+                           Margin="0,0,0,24"/>
 
-                <TextBlock x:Name="SeverityTextBlock"
-                           Foreground="{StaticResource PrimaryTextBrush}"
-                           FontSize="22"
-                           FontWeight="Bold"
-                           Margin="0,0,0,15"/>
+                <Border Background="{StaticResource InputBackgroundBrush}"
+                        BorderBrush="{StaticResource BorderBrush}"
+                        BorderThickness="1"
+                        Padding="28"
+                        CornerRadius="8"
+                        Margin="0,0,0,22">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,22">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="96"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
 
-                <TextBlock x:Name="RecommendationTextBlock"
-                           FontSize="17"
-                           TextWrapping="Wrap"
-                           Margin="0,0,0,25"/>
+                            <Image x:Name="SeverityIconImage"
+                                   Grid.Column="0"
+                                   Width="72"
+                                   Height="72"
+                                   Stretch="Uniform"
+                                   VerticalAlignment="Center"/>
 
-                <TextBlock Text="{services:Loc symptom_summary}"
-                           Style="{StaticResource SectionLabelTextStyle}"
-                           FontSize="20"
-                           Margin="0,0,0,10"/>
+                            <StackPanel Grid.Column="1"
+                                        VerticalAlignment="Center"
+                                        Margin="14,0,0,0">
+                                <TextBlock Text="{services:Loc severity_level}"
+                                           Foreground="{StaticResource MutedTextBrush}"
+                                           FontSize="16"
+                                           FontWeight="SemiBold"/>
+                                <TextBlock x:Name="SeverityLabelTextBlock"
+                                           Foreground="{StaticResource PrimaryTextBrush}"
+                                           FontSize="30"
+                                           FontWeight="Bold"
+                                           TextWrapping="Wrap"/>
+                            </StackPanel>
+                        </Grid>
 
-                <TextBlock x:Name="SummaryTextBlock"
-                           FontSize="16"
-                           TextWrapping="Wrap"
-                           Margin="0,0,0,30"/>
+                        <TextBlock Text="{services:Loc recommendation}"
+                                   Style="{StaticResource SectionLabelTextStyle}"
+                                   FontSize="20"
+                                   Margin="0,0,0,8"/>
+                        <TextBlock x:Name="RecommendationBodyTextBlock"
+                                   Foreground="{StaticResource BodyTextBrush}"
+                                   FontSize="16"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="{StaticResource PanelBackgroundBrush}"
+                        Padding="22"
+                        CornerRadius="8"
+                        Margin="0,0,0,18">
+                    <StackPanel>
+                        <TextBlock Text="{services:Loc symptom_summary}"
+                                   Style="{StaticResource SectionLabelTextStyle}"
+                                   FontSize="20"
+                                   Margin="0,0,0,10"/>
+                        <TextBlock x:Name="SummaryTextBlock"
+                                   FontSize="16"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="{StaticResource PanelBackgroundBrush}"
+                        Padding="22"
+                        CornerRadius="8"
+                        Margin="0,0,0,26">
+                    <StackPanel>
+                        <TextBlock Text="Diagnostic"
+                                   Style="{StaticResource SectionLabelTextStyle}"
+                                   FontSize="20"
+                                   Margin="0,0,0,10"/>
+                        <TextBlock x:Name="DiagnosticTextBlock"
+                                   FontSize="16"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button Content="{services:Loc start_again}"
@@ -54,6 +101,6 @@
                             Click="Ok_Click"/>
                 </StackPanel>
             </StackPanel>
-        </Border>
+        </ScrollViewer>
     </Grid>
 </UserControl>
