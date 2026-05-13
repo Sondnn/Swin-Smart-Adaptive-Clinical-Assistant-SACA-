@@ -8,6 +8,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -54,8 +55,8 @@ import com.saca.smartadaptiveclinicalassistant.presentation.components.Title
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.ErrorMessage
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.FormQuestionImageOption
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.QuestionImageOption
-import com.saca.smartadaptiveclinicalassistant.presentation.components.form.QuestionTextInput
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.RecordButton
+import com.saca.smartadaptiveclinicalassistant.presentation.components.form.SpeakQuestionSection
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown20
@@ -162,64 +163,77 @@ fun SymptomQuestionScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            RecordButton(
-                text = when {
-                    triageFormViewModel.isTranscribing -> {
-                        stringResource(R.string.triage_form_symptom_transcribing)
-                    }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    SpeakQuestionSection(
+                        questionResId = R.string.triage_form_symptom_question_speak,
+                    )
+                }
 
-                    isRecordButtonPressed -> {
-                        stringResource(R.string.triage_form_symptom_recording)
-                    }
+                Box(modifier = Modifier.weight(1f)) {
+                    RecordButton(
+                        text = when {
+                            triageFormViewModel.isTranscribing -> {
+                                stringResource(R.string.triage_form_symptom_transcribing)
+                            }
 
-                    else -> {
-                        stringResource(R.string.triage_form_symptom_hold_to_record)
-                    }
-                },
-                isRecording = isRecordButtonPressed,
-                isEnabled = !triageFormViewModel.isTranscribing,
-                onPress = {
-                    if (!hasRecordAudioPermission(context)) {
-                        requestRecordAudioPermission.launch(Manifest.permission.RECORD_AUDIO)
-                        return@RecordButton
-                    }
+                            isRecordButtonPressed -> {
+                                stringResource(R.string.triage_form_symptom_recording)
+                            }
 
-                    val startResult = voiceRecorder.startRecording(context)
-                    if (startResult.isFailure) {
-                        Log.e("TAG", "mes", startResult.exceptionOrNull())
-                        triageFormViewModel.showRecordingError(R.string.triage_form_symptom_recording_failed_message)
-                        return@RecordButton
-                    }
-
-                    isRecordButtonPressed = true
-                    triageFormViewModel.clearRecordingError()
-
-                    val didReleasePress = tryAwaitRelease()
-                    isRecordButtonPressed = false
-
-                    if (!didReleasePress) {
-                        voiceRecorder.cancelRecording()
-                        return@RecordButton
-                    }
-
-                    delay(200)
-                    val stopResult = voiceRecorder.stopRecording()
-                    stopResult.fold(
-                        onSuccess = { audioFile ->
-                            triageFormViewModel.transcribeAnswer(
-                                questionId = TriageFormViewModel.TriageQuestionId.SYMPTOM.value,
-                                audioFile = audioFile,
-                                languageTag = sessionViewModel.languageTag
-                            )
+                            else -> {
+                                stringResource(R.string.triage_form_symptom_hold_to_record)
+                            }
                         },
-                        onFailure = {
-                            triageFormViewModel.showRecordingError(
-                                R.string.triage_form_symptom_recording_failed_message
+                        isRecording = isRecordButtonPressed,
+                        isEnabled = !triageFormViewModel.isTranscribing,
+                        onPress = {
+                            if (!hasRecordAudioPermission(context)) {
+                                requestRecordAudioPermission.launch(Manifest.permission.RECORD_AUDIO)
+                                return@RecordButton
+                            }
+
+                            val startResult = voiceRecorder.startRecording(context)
+                            if (startResult.isFailure) {
+                                Log.e("TAG", "mes", startResult.exceptionOrNull())
+                                triageFormViewModel.showRecordingError(R.string.triage_form_symptom_recording_failed_message)
+                                return@RecordButton
+                            }
+
+                            isRecordButtonPressed = true
+                            triageFormViewModel.clearRecordingError()
+
+                            val didReleasePress = tryAwaitRelease()
+                            isRecordButtonPressed = false
+
+                            if (!didReleasePress) {
+                                voiceRecorder.cancelRecording()
+                                return@RecordButton
+                            }
+
+                            delay(200)
+                            val stopResult = voiceRecorder.stopRecording()
+                            stopResult.fold(
+                                onSuccess = { audioFile ->
+                                    triageFormViewModel.transcribeAnswer(
+                                        questionId = TriageFormViewModel.TriageQuestionId.SYMPTOM.value,
+                                        audioFile = audioFile,
+                                        languageTag = sessionViewModel.languageTag
+                                    )
+                                },
+                                onFailure = {
+                                    triageFormViewModel.showRecordingError(
+                                        R.string.triage_form_symptom_recording_failed_message
+                                    )
+                                }
                             )
                         }
                     )
                 }
-            )
+            }
 
             triageFormViewModel.recordingErrorResId?.let { messageResId ->
                 Spacer(modifier = Modifier.height(10.dp))
@@ -279,37 +293,6 @@ fun ShowMoreButton(
             fontSize = 20.sp,
             lineHeight = 24.sp,
             textAlign = TextAlign.Center
-        )
-    }
-}
-
-@Composable
-private fun OrDivider(text: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(1.dp)
-                .background(Brown.copy(alpha = 0.35f)),
-        )
-
-        Text(
-            text = text,
-            color = Brown,
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-            lineHeight = 32.sp,
-            modifier = Modifier.padding(horizontal = 16.dp),
-        )
-
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(1.dp)
-                .background(Brown.copy(alpha = 0.35f)),
         )
     }
 }

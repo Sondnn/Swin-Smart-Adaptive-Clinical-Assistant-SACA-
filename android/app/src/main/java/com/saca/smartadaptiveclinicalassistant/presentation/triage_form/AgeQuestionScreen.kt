@@ -28,9 +28,9 @@ fun AgeQuestionScreen(
     FormQuestionScaffold(
         appBarTitle = stringResource(R.string.triage_form_action_bar_title),
         questionTitle = stringResource(R.string.triage_form_age_title),
+        questionResId = R.string.triage_form_age_question_speak,
         backButtonText = stringResource(R.string.triage_form_back_button),
         continueButtonText = stringResource(R.string.triage_form_continue_button),
-        backContentDescription = stringResource(R.string.app_bar_button_back_content_description),
         options = options,
         selectedOptionId = triageFormViewModel.selectedAgeOptionId,
         currentStep = 2,

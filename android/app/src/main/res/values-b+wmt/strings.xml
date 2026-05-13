@@ -22,21 +22,26 @@
     <string name="triage_form_assess_button">Yirrarni-rna</string>
 
     <string name="triage_form_gender_title">Nyuntu Yirrarni</string>
+    <string name="triage_form_gender_question_speak">What is your gender?</string>
     <string name="triage_form_gender_option_male">Karli</string>
     <string name="triage_form_gender_option_female">Yapajarra</string>
     <string name="triage_form_gender_option_prefer_not_to_say">Karra yimi-rna</string>
 
     <string name="triage_form_age_title">Nyuntu Jukurra</string>
+    <string name="triage_form_age_question_speak">What is your age?</string>
     <string name="triage_form_age_option_older_adult_or_younger">65 ngurra-wana karrinyanu-wana</string>
     <string name="triage_form_age_option_over_older_adult">65 ngurra-wana karrinyanu-warlangu</string>
 
     <string name="triage_form_symptom_title">Nyuntu Karlarra Yirrarni</string>
+    <string name="triage_form_symptom_question_speak">What is your symptoms?</string>
     <string name="triage_form_symptom_show_more">Yirrarni Karlarra</string>
     <string name="triage_form_symptom_or">KUJARRA</string>
     <string name="triage_form_symptom_describe_title">Karlarra Yirrarni-rna</string>
     <string name="triage_form_symptom_details_placeholder">Yimi-rna...</string>
     <string name="triage_form_symptom_recorded">(WMT) Symptoms Recorded</string>
     <string name="triage_form_symptom_hold_to_record">Jijirr-ma Yirrarni-ku</string>
+    <string name="triage_form_listen_button">Listen</string>
+    <string name="triage_form_answer_button">Answer</string>
     <string name="triage_form_symptom_recording">Yirrarni-rna…</string>
     <string name="triage_form_symptom_transcribing">Yimi Yirrarni-rna...</string>
     <string name="triage_form_symptom_mic_label">Yimi-rna</string>
@@ -64,6 +69,7 @@
     <string name="triage_form_symptom_back_pain">Karlarra Yijiji</string>
 
     <string name="triage_form_severity_title">Karlarra Yirrarni Jukurra</string>
+    <string name="triage_form_severity_question_speak">What is the severity of your symptoms?</string>
     <string name="triage_form_severity_option_mild">Kujarra-wana</string>
     <string name="triage_form_severity_option_low">Karlarra-wana</string>
     <string name="triage_form_severity_option_moderate">Yirrarni-wana</string>
@@ -71,21 +77,25 @@
     <string name="triage_form_severity_option_severe">Karlarra Jukurra</string>
 
     <string name="triage_form_duration_title">Karlarra Nyurra Jukurra</string>
+    <string name="triage_form_duration_question_speak">How long have you had these symptoms?</string>
     <string name="triage_form_duration_option_less_than_day">Ngurra-wana kujarra</string>
     <string name="triage_form_duration_option_more_than_day">Ngurra-wana karlarra</string>
     <string name="triage_form_duration_option_unknown">Karra yimi</string>
 
     <string name="triage_form_symptoms_before_title">(WMT) Have you had these symptoms Before?</string>
+    <string name="triage_form_symptoms_before_question_speak">Have you had these symptoms Before?</string>
     <string name="triage_form_symptoms_before_option_yes">(WMT) Yes</string>
     <string name="triage_form_symptoms_before_option_no">(WMT) No</string>
     <string name="triage_form_symptoms_before_option_unknown">(WMT) Unknown</string>
 
     <string name="triage_form_sick_contact_history_title">(WMT) Have you been in contact with anyone who is sick recently?</string>
+    <string name="triage_form_sick_contact_history_question_speak">Have you been in contact with anyone who is sick recently?</string>
     <string name="triage_form_sick_contact_history_option_yes">(WMT) Yes</string>
     <string name="triage_form_sick_contact_history_option_no">(WMT) No</string>
     <string name="triage_form_sick_contact_history_option_unknown">(WMT) Unknown</string>
 
-    <string name="triage_form_chronic_conditions_history_title">(WMT) Do you have any chronic conditions?</string>
+    <string name="triage_form_chronic_conditions_title">(WMT) Do you have any chronic conditions?</string>
+    <string name="triage_form_chronic_conditions_question_speak">Do you have any chronic conditions?</string>
     <string name="triage_form_chronic_conditions_option_hypertension">(WMT) Hypertension</string>
     <string name="triage_form_chronic_conditions_option_type2_diabetes">(WMT) Type 2 Diabetes</string>
     <string name="triage_form_chronic_conditions_option_heart_disease">(WMT) Heart Disease</string>

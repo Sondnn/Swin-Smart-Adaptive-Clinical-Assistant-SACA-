@@ -20,22 +20,31 @@
     <string name="triage_form_back_button">Back</string>
     <string name="triage_form_continue_button">Continue</string>
     <string name="triage_form_assess_button">Assess</string>
+
     <string name="triage_form_gender_title">Your Gender</string>
+    <string name="triage_form_gender_question_speak">What is your gender?</string>
     <string name="triage_form_gender_option_male">Male</string>
     <string name="triage_form_gender_option_female">Female</string>
     <string name="triage_form_gender_option_prefer_not_to_say">Prefer not to say</string>
+
     <string name="triage_form_age_title">Your Age</string>
+    <string name="triage_form_age_question_speak">What is your age?</string>
     <string name="triage_form_age_option_older_adult_or_younger">65 years old or younger</string>
     <string name="triage_form_age_option_over_older_adult">Older than 65 years old</string>
+
     <string name="triage_form_symptom_title">Select Any Symptoms</string>
+    <string name="triage_form_symptom_question_speak">What is your symptoms?</string>
     <string name="triage_form_symptom_show_more">Show More</string>
     <string name="triage_form_symptom_or">OR</string>
     <string name="triage_form_symptom_describe_title">Describe Symptoms</string>
     <string name="triage_form_symptom_recorded">Symptoms Recorded</string>
     <string name="triage_form_symptom_details_placeholder">Type the details...</string>
-    <string name="triage_form_symptom_hold_to_record">Hold to Record</string>
-    <string name="triage_form_symptom_recording">Recording...</string>
-    <string name="triage_form_symptom_transcribing">Transcribing...</string>
+    <string name="triage_form_symptom_hold_to_record">Answer</string>
+
+    <string name="triage_form_listen_button">Listen</string>
+    <string name="triage_form_answer_button">Answer</string>
+    <string name="triage_form_symptom_recording">Answering</string>
+    <string name="triage_form_symptom_transcribing">Transcribing</string>
     <string name="triage_form_symptom_mic_label">Mic</string>
     <string name="triage_form_symptom_permission_denied_message">Microphone permission is required for voice recording.</string>
     <string name="triage_form_symptom_recording_failed_message">Could not process this recording. Please try again.</string>
@@ -57,30 +66,41 @@
     <string name="triage_form_symptom_joint_pain">Joint Pain</string>
     <string name="triage_form_symptom_abdominal_pain">Abdominal Pain</string>
     <string name="triage_form_symptom_back_pain">Back Pain</string>
+
     <string name="triage_form_severity_title">Severity of Symptoms</string>
+    <string name="triage_form_severity_question_speak">What is the severity of your symptoms?</string>
     <string name="triage_form_severity_option_mild">Mild</string>
     <string name="triage_form_severity_option_low">Low</string>
     <string name="triage_form_severity_option_moderate">Moderate</string>
     <string name="triage_form_severity_option_high">High</string>
     <string name="triage_form_severity_option_severe">Severe</string>
+
     <string name="triage_form_duration_title">Duration of Symptoms</string>
+    <string name="triage_form_duration_question_speak">How long have you had these symptoms?</string>
     <string name="triage_form_duration_option_less_than_day">Less than a day</string>
     <string name="triage_form_duration_option_more_than_day">More than a day</string>
     <string name="triage_form_duration_option_unknown">Unknown</string>
+
     <string name="triage_form_symptoms_before_title">Have you had these symptoms Before?</string>
+    <string name="triage_form_symptoms_before_question_speak">Have you had these symptoms Before?</string>
     <string name="triage_form_symptoms_before_option_yes">Yes</string>
     <string name="triage_form_symptoms_before_option_no">No</string>
     <string name="triage_form_symptoms_before_option_unknown">Unknown</string>
+
     <string name="triage_form_sick_contact_history_title">Have you been in contact with anyone who is sick recently?</string>
+    <string name="triage_form_sick_contact_history_question_speak">Have you been in contact with anyone who is sick recently?</string>
     <string name="triage_form_sick_contact_history_option_yes">Yes</string>
     <string name="triage_form_sick_contact_history_option_no">No</string>
     <string name="triage_form_sick_contact_history_option_unknown">Unknown</string>
-    <string name="triage_form_chronic_conditions_history_title">Do you have any chronic conditions?</string>
+
+    <string name="triage_form_chronic_conditions_title">Do you have any chronic conditions?</string>
+    <string name="triage_form_chronic_conditions_question_speak">Do you have any chronic conditions?</string>
     <string name="triage_form_chronic_conditions_option_hypertension">Hypertension</string>
     <string name="triage_form_chronic_conditions_option_type2_diabetes">Type 2 Diabetes</string>
     <string name="triage_form_chronic_conditions_option_heart_disease">Heart Disease</string>
     <string name="triage_form_chronic_conditions_option_asthma_copds">Asthma COPDS</string>
     <string name="triage_form_chronic_conditions_option_depression_anxiety">Depression Anxiety</string>
+
     <string name="triage_result_analyzing">Analyzing symptoms</string>
     <string name="triage_result_title">Triage Result</string>
     <string name="triage_result_severity_label">Severity Level</string>
