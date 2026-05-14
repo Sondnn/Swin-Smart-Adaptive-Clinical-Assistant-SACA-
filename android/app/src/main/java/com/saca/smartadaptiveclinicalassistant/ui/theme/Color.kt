@@ -13,13 +13,14 @@ val Pink40 = Color(0xFF7D5260)
 // Custom Colors
 val AppBackground = Color(0xFFFEF8F3)
 
-val DrawerBackground = Color(0xFFF8F8F8)
-
 val AppBackgroundTeal = Color(0xFF174C4F)
+
+val Teal = Color(0xFF3E9691)
 
 val Brown = Color(0xFFA25933)
 
 val Brown20 = Color(0xFFF9F1EB)
+
 val Brown40 = Color(0xFFF3E8E1)
 
 val Orange = Color(0xFFFFA600)

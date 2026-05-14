@@ -25,6 +25,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
+import com.saca.smartadaptiveclinicalassistant.ui.theme.Teal
 
 @Composable
 fun RecordButton(
@@ -34,9 +35,9 @@ fun RecordButton(
     onPress: suspend PressGestureScope.() -> Unit
 ) {
     val buttonBgColor = when {
-        !isEnabled -> Brown.copy(alpha = 0.45f)
-        isRecording -> Brown
-        else -> Brown
+        !isEnabled -> Teal.copy(alpha = 0.45f)
+        isRecording -> Teal
+        else -> Teal
     }
 
     Box(
