@@ -23,7 +23,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.data.local.Speaker
-import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
+import com.saca.smartadaptiveclinicalassistant.ui.theme.Teal
 
 @Composable
 fun SpeakButton(
@@ -34,7 +34,7 @@ fun SpeakButton(
     Button(
         onClick = onClick,
         colors = ButtonDefaults.buttonColors(
-            containerColor = Brown,
+            containerColor = Teal,
             contentColor = Color.White
         ),
         shape = RoundedCornerShape(6.dp),
