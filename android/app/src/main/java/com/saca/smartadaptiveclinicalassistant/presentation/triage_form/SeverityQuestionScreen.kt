@@ -19,10 +19,12 @@ fun SeverityQuestionScreen(
     triageFormViewModel: TriageFormViewModel = koinViewModel(),
     sessionViewModel: SessionViewModel = koinViewModel(),
 ) {
+
     val options = TriageFormViewModel.SeverityOption.entries.map {
         FormQuestionOption(
             id = it.value,
-            labelResourceId = it.labelRes
+            labelResourceId = it.labelRes,
+            iconResourceId = it.iconRes
         )
     }
 

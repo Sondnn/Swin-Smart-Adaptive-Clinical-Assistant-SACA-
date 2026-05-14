@@ -5,7 +5,8 @@ import androidx.annotation.StringRes
 
 data class FormQuestionOption(
     val id: String,
-    @param:StringRes val labelResourceId: Int
+    @param:StringRes val labelResourceId: Int,
+    @param:DrawableRes val iconResourceId: Int? = null
 )
 
 data class FormQuestionImageOption(
