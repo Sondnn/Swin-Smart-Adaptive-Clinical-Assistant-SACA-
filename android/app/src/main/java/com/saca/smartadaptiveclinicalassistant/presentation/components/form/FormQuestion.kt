@@ -6,6 +6,7 @@ import android.content.pm.PackageManager
 import android.util.Log
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -278,7 +279,7 @@ private fun QuestionOptions(
     ) {
         for (option in options) {
             QuestionOptionButton(
-                text = stringResource(option.labelResourceId),
+                option = option,
                 selected = selectedOptionIds.contains(option.id),
                 onClick = {
                     onOptionClick(option.id)
@@ -290,11 +291,12 @@ private fun QuestionOptions(
 
 @Composable
 fun QuestionOptionButton(
-    text: String,
+    option: FormQuestionOption,
     selected: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val text = stringResource(option.labelResourceId)
     val borderColor = if (selected) Orange else Color.Transparent
     val bgColor = if (selected) Orange40 else Brown20
 
@@ -310,12 +312,26 @@ fun QuestionOptionButton(
             .fillMaxWidth()
             .height(56.dp)
     ) {
-        Text(
-            text = text,
-            color = Brown,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center
-        )
+        Box(
+            modifier = Modifier.fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            if (option.iconResourceId != null) {
+                Image(
+                    painter = painterResource(option.iconResourceId),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .align(Alignment.CenterStart)
+                        .size(30.dp)
+                )
+            }
+            Text(
+                text = text,
+                color = Brown,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
+            )
+        }
     }
 }
 

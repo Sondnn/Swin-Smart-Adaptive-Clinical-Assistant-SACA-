@@ -26,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,6 +34,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.saca.smartadaptiveclinicalassistant.R
+import com.saca.smartadaptiveclinicalassistant.common.getEnglishString
 import com.saca.smartadaptiveclinicalassistant.common.getLabelString
 import com.saca.smartadaptiveclinicalassistant.domain.model.TriageCategory
 import com.saca.smartadaptiveclinicalassistant.domain.model.TriageResult
@@ -41,6 +43,9 @@ import com.saca.smartadaptiveclinicalassistant.presentation.components.AppBar
 import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButton
 import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButtonStyle
 import com.saca.smartadaptiveclinicalassistant.presentation.components.Title
+import com.saca.smartadaptiveclinicalassistant.presentation.components.form.SpeakButton
+import com.saca.smartadaptiveclinicalassistant.presentation.components.form.SpeakQuestionSection
+import com.saca.smartadaptiveclinicalassistant.presentation.components.form.rememberSpeaker
 import com.saca.smartadaptiveclinicalassistant.ui.theme.AppBackground
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown20
@@ -153,7 +158,23 @@ private fun ResultCard(result: TriageResult) {
     val iconResourceId = triageCategoryIconRes(result.triageCategory)
     val categoryTitle = stringResource(categoryTitleRes(result.triageCategory))
     val categoryRecommendation = stringResource(categoryRecommendationRes(result.triageCategory))
-    val possibleCondition = result.possibleCondition
+    val possibleCondition = result.possibleCondition?: stringResource(R.string.triage_result_possible_condition_unknown)
+    val context = LocalContext.current
+    val resultSpeaker = rememberSpeaker()
+
+    val resultStringIds = mutableListOf(
+        R.string.triage_result_severity_label,
+        categoryTitleRes(result.triageCategory),
+        R.string.triage_result_recommendation_title,
+        categoryRecommendationRes(result.triageCategory),
+        R.string.triage_result_possible_condition_title
+    )
+    val resultStrings = resultStringIds.map {
+        context.getEnglishString(it)
+    }.toMutableList()
+
+    resultStrings.add(possibleCondition)
+    val resultSpeakerText = resultStrings.joinToString()
 
     Column(
         modifier = Modifier
@@ -214,9 +235,18 @@ private fun ResultCard(result: TriageResult) {
         Spacer(modifier = Modifier.height(6.dp))
 
         Text(
-            text = possibleCondition?: stringResource(R.string.triage_result_possible_condition_unknown),
+            text = possibleCondition,
             style = MaterialTheme.typography.bodySmall,
             color = TextDarkBrown
+        )
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        SpeakButton(
+            text = stringResource(R.string.triage_form_listen_button),
+            onClick = {
+                resultSpeaker.speakText(resultSpeakerText)
+            }
         )
     }
 }
