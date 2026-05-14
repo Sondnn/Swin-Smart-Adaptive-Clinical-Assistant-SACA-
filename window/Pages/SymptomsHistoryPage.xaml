@@ -4,6 +4,39 @@
              xmlns:controls="clr-namespace:SACA.WindowsApp.Controls"
              xmlns:services="clr-namespace:SACA.WindowsApp.Services">
 
+    <UserControl.Resources>
+        <Style x:Key="SelectionCardRadioStyle" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{StaticResource BodyTextBrush}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Card"
+                                Background="{StaticResource InputBackgroundBrush}"
+                                BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="2"
+                                CornerRadius="8"
+                                Padding="18"
+                                MinHeight="72">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Card" Property="Background" Value="{StaticResource SelectedBackgroundBrush}"/>
+                                <Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
     <Grid Background="{StaticResource AppBackgroundBrush}" Margin="40">
         <StackPanel Width="560" HorizontalAlignment="Center" VerticalAlignment="Center">
 
@@ -28,16 +61,17 @@
                              Content="{services:Loc yes}"
                              GroupName="SymptomsHistory"
                              FontSize="18"
-                             Margin="0,0,0,16"/>
+                             Style="{StaticResource SelectionCardRadioStyle}"/>
                 <RadioButton x:Name="NoRadioButton"
                              Content="{services:Loc no}"
                              GroupName="SymptomsHistory"
                              FontSize="18"
-                             Margin="0,0,0,16"/>
+                             Style="{StaticResource SelectionCardRadioStyle}"/>
                 <RadioButton x:Name="UnknownRadioButton"
                              Content="{services:Loc unknown}"
                              GroupName="SymptomsHistory"
-                             FontSize="18"/>
+                             FontSize="18"
+                             Style="{StaticResource SelectionCardRadioStyle}"/>
             </StackPanel>
 
             <controls:VoiceRecorderControl x:Name="VoiceRecorder"

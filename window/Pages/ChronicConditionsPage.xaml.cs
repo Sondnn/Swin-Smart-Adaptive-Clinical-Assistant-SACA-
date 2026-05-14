@@ -22,6 +22,11 @@ namespace SACA.WindowsApp.Pages
             _mainWindow = mainWindow;
             VoiceRecorder.Configure(GetSpeechToTextLanguageCode);
             VoiceRecorder.TranscriptReceived += VoiceRecorder_TranscriptReceived;
+
+            if (_mainWindow.CurrentRequest.ChronicConditions.Any())
+            {
+                SelectCheckBoxes(_mainWindow.CurrentRequest.ChronicConditions);
+            }
         }
 
         private void Back_Click(object sender, RoutedEventArgs e)

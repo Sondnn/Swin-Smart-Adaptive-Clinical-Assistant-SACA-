@@ -4,8 +4,43 @@
              xmlns:controls="clr-namespace:SACA.WindowsApp.Controls"
              xmlns:services="clr-namespace:SACA.WindowsApp.Services">
 
+    <UserControl.Resources>
+        <Style x:Key="SelectionCardCheckBoxStyle" TargetType="CheckBox">
+            <Setter Property="Foreground" Value="{StaticResource BodyTextBrush}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="CheckBox">
+                        <Border x:Name="Card"
+                                Background="{StaticResource InputBackgroundBrush}"
+                                BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="2"
+                                CornerRadius="8"
+                                Padding="18"
+                                MinHeight="72">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Card" Property="Background" Value="{StaticResource SelectedBackgroundBrush}"/>
+                                <Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
     <Grid Background="{StaticResource AppBackgroundBrush}" Margin="40">
-        <StackPanel Width="560" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                      HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Width="560" HorizontalAlignment="Center">
 
             <StackPanel Orientation="Horizontal"
                         HorizontalAlignment="Center"
@@ -19,15 +54,16 @@
             </StackPanel>
 
             <StackPanel Margin="0,0,0,35">
-                <CheckBox Content="{services:Loc condition_hypertension}" Tag="hypertension" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
-                <CheckBox Content="{services:Loc condition_diabetes}" Tag="type2_diabetes" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
-                <CheckBox Content="{services:Loc condition_heart}" Tag="heart_disease" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
-                <CheckBox Content="{services:Loc condition_asthma}" Tag="asthma_copd" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
-                <CheckBox Content="{services:Loc condition_depression}" Tag="depression_anxiety" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
+                <CheckBox Content="{services:Loc condition_hypertension}" Tag="hypertension" FontSize="18" Style="{StaticResource SelectionCardCheckBoxStyle}" Checked="ConditionCheckBox_Checked"/>
+                <CheckBox Content="{services:Loc condition_diabetes}" Tag="type2_diabetes" FontSize="18" Style="{StaticResource SelectionCardCheckBoxStyle}" Checked="ConditionCheckBox_Checked"/>
+                <CheckBox Content="{services:Loc condition_heart}" Tag="heart_disease" FontSize="18" Style="{StaticResource SelectionCardCheckBoxStyle}" Checked="ConditionCheckBox_Checked"/>
+                <CheckBox Content="{services:Loc condition_asthma}" Tag="asthma_copd" FontSize="18" Style="{StaticResource SelectionCardCheckBoxStyle}" Checked="ConditionCheckBox_Checked"/>
+                <CheckBox Content="{services:Loc condition_depression}" Tag="depression_anxiety" FontSize="18" Style="{StaticResource SelectionCardCheckBoxStyle}" Checked="ConditionCheckBox_Checked"/>
                 <CheckBox x:Name="UnknownCheckBox"
                           Content="{services:Loc unknown_none}"
                           Tag="Unknown / None"
                           FontSize="18"
+                          Style="{StaticResource SelectionCardCheckBoxStyle}"
                           Checked="UnknownCheckBox_Checked"/>
             </StackPanel>
 
@@ -50,5 +86,6 @@
             </StackPanel>
 
         </StackPanel>
+        </ScrollViewer>
     </Grid>
 </UserControl>

@@ -19,6 +19,11 @@ namespace SACA.WindowsApp.Pages
             _mainWindow = mainWindow;
             VoiceRecorder.Configure(GetSpeechToTextLanguageCode);
             VoiceRecorder.TranscriptReceived += VoiceRecorder_TranscriptReceived;
+
+            if (!string.IsNullOrWhiteSpace(_mainWindow.CurrentRequest.RecentSickContact))
+            {
+                SelectRadioValue(_mainWindow.CurrentRequest.RecentSickContact);
+            }
         }
 
         private void Back_Click(object sender, RoutedEventArgs e)

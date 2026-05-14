@@ -6,10 +6,11 @@
     <Grid Background="{StaticResource AppBackgroundBrush}">
         <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
 
-            <TextBlock Text="📋"
-                       FontSize="48"
-                       TextAlignment="Center"
-                       Margin="0,0,0,20"/>
+            <Image Source="/Assets/Icons/analyze.png"
+                   Width="72"
+                   Height="72"
+                   Stretch="Uniform"
+                   Margin="0,0,0,20"/>
 
             <TextBlock Text="{services:Loc loading}"
                        Style="{StaticResource PageTitleTextStyle}"

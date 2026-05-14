@@ -31,16 +31,21 @@ namespace SACA.WindowsApp.Pages
             _mainWindow = mainWindow;
             VoiceRecorder.Configure(GetSpeechToTextLanguageCode);
             VoiceRecorder.TranscriptReceived += VoiceRecorder_TranscriptReceived;
+
+            if (!string.IsNullOrWhiteSpace(_mainWindow.CurrentRequest.Duration))
+            {
+                SelectRadioValue(_mainWindow.CurrentRequest.Duration);
+            }
         }
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            _mainWindow.NavigateToSymptoms();
+            _mainWindow.NavigateToSeverity();
         }
 
         private void Continue_Click(object sender, RoutedEventArgs e)
         {
-            string duration = GetComboBoxValue(DurationComboBox);
+            string duration = GetSelectedValue();
 
             if (string.IsNullOrWhiteSpace(duration))
             {
@@ -60,7 +65,7 @@ namespace SACA.WindowsApp.Pages
         private void VoiceRecorder_TranscriptReceived(object? sender, Controls.VoiceTranscribedEventArgs e)
         {
             _recordedDuration = ParsedResponseReader.ReadSingleValue(e.ParsedResponseJson);
-            SelectComboBoxValue(DurationComboBox, _recordedDuration);
+            SelectRadioValue(_recordedDuration);
             _mainWindow.CurrentRequest.AudioRecordingPath = e.RecordingPath;
             _mainWindow.CurrentRequest.AudioRecordingPaths.Add(e.RecordingPath);
             _mainWindow.CurrentRequest.VoiceTranscripts.Add($"Question {e.QuestionId}: {e.Transcript}");
@@ -73,33 +78,38 @@ namespace SACA.WindowsApp.Pages
                 : 0;
         }
 
-        private string GetComboBoxValue(ComboBox comboBox)
+        private string GetSelectedValue()
         {
-            if (comboBox.SelectedItem is ComboBoxItem item)
+            if (LessThanDayRadioButton.IsChecked == true)
             {
-                return item.Tag?.ToString() ?? item.Content?.ToString() ?? "";
+                return LessThanDayRadioButton.Tag?.ToString() ?? "";
+            }
+
+            if (MoreThanDayRadioButton.IsChecked == true)
+            {
+                return MoreThanDayRadioButton.Tag?.ToString() ?? "";
+            }
+
+            if (UnknownRadioButton.IsChecked == true)
+            {
+                return UnknownRadioButton.Tag?.ToString() ?? "";
             }
 
             return "";
         }
 
-        private static void SelectComboBoxValue(ComboBox comboBox, string value)
+        private void SelectRadioValue(string value)
         {
-            foreach (ComboBoxItem item in comboBox.Items)
-            {
-                string itemValue = item.Content?.ToString() ?? "";
-                string tagValue = item.Tag?.ToString() ?? "";
+            LessThanDayRadioButton.IsChecked = MatchesDuration(value, "Less than a day") || value.Contains("less", StringComparison.OrdinalIgnoreCase);
+            MoreThanDayRadioButton.IsChecked = MatchesDuration(value, "More than a day") || value.Contains("more", StringComparison.OrdinalIgnoreCase);
+            UnknownRadioButton.IsChecked = value.Contains("unknown", StringComparison.OrdinalIgnoreCase);
+        }
 
-                if (itemValue.Equals(value, StringComparison.OrdinalIgnoreCase)
-                    || tagValue.Equals(value, StringComparison.OrdinalIgnoreCase)
-                    || itemValue.Contains(value, StringComparison.OrdinalIgnoreCase)
-                    || tagValue.Contains(value, StringComparison.OrdinalIgnoreCase)
-                    || value.Contains(itemValue, StringComparison.OrdinalIgnoreCase))
-                {
-                    comboBox.SelectedItem = item;
-                    return;
-                }
-            }
+        private static bool MatchesDuration(string value, string option)
+        {
+            return value.Equals(option, StringComparison.OrdinalIgnoreCase)
+                || value.Contains(option, StringComparison.OrdinalIgnoreCase)
+                || option.Contains(value, StringComparison.OrdinalIgnoreCase);
         }
     }
 }

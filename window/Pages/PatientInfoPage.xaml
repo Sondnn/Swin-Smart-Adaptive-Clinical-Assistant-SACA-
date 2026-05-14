@@ -27,12 +27,16 @@
             </StackPanel>
             <ComboBox x:Name="GenderComboBox"
                       Height="40"
-                      Margin="0,5,0,20"
+                      Margin="0,5,0,12"
                       SelectionChanged="GenderComboBox_SelectionChanged">
                 <ComboBoxItem Content="{services:Loc gender_male}" Tag="Male"/>
                 <ComboBoxItem Content="{services:Loc gender_female}" Tag="Female"/>
                 <ComboBoxItem Content="{services:Loc gender_unknown}" Tag="Unknown / Prefer not to say"/>
             </ComboBox>
+
+            <controls:VoiceRecorderControl x:Name="GenderVoiceRecorder"
+                                           QuestionId="1"
+                                           Label="{services:Loc voice_gender}"/>
 
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBlock Text="{services:Loc age_title}"
@@ -42,14 +46,10 @@
             </StackPanel>
             <ComboBox x:Name="AgeComboBox"
                       Height="40"
-                      Margin="0,5,0,30">
+                      Margin="0,5,0,12">
                 <ComboBoxItem Content="{services:Loc age_younger}" Tag="65 years old or younger"/>
                 <ComboBoxItem Content="{services:Loc age_older}" Tag="Older than 65"/>
             </ComboBox>
-
-            <controls:VoiceRecorderControl x:Name="GenderVoiceRecorder"
-                                           QuestionId="1"
-                                           Label="{services:Loc voice_gender}"/>
 
             <controls:VoiceRecorderControl x:Name="AgeVoiceRecorder"
                                            QuestionId="2"

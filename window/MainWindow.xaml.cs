@@ -44,6 +44,11 @@ namespace SACA.WindowsApp
             MainContent.Content = new SymptomsPage(this);
         }
 
+        public void NavigateToSeverity()
+        {
+            MainContent.Content = new SeverityPage(this);
+        }
+
         public void NavigateToDuration()
         {
             MainContent.Content = new DurationPage(this);
