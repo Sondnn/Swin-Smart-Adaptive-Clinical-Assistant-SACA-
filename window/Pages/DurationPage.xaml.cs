@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -12,6 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using SACA.WindowsApp.Services;
 
 namespace SACA.WindowsApp.Pages
 {
@@ -22,6 +23,7 @@ namespace SACA.WindowsApp.Pages
     public partial class DurationPage : UserControl
     {
         private readonly MainWindow _mainWindow;
+        private string _recordedDuration = "";
 
         public DurationPage(MainWindow mainWindow)
         {
@@ -42,7 +44,12 @@ namespace SACA.WindowsApp.Pages
 
             if (string.IsNullOrWhiteSpace(duration))
             {
-                MessageBox.Show("Please select symptom duration.");
+                duration = _recordedDuration;
+            }
+
+            if (string.IsNullOrWhiteSpace(duration))
+            {
+                MessageBox.Show("Please select symptom duration, or answer using voice.");
                 return;
             }
 
@@ -52,26 +59,47 @@ namespace SACA.WindowsApp.Pages
 
         private void VoiceRecorder_TranscriptReceived(object? sender, Controls.VoiceTranscribedEventArgs e)
         {
+            _recordedDuration = ParsedResponseReader.ReadSingleValue(e.ParsedResponseJson);
+            SelectComboBoxValue(DurationComboBox, _recordedDuration);
             _mainWindow.CurrentRequest.AudioRecordingPath = e.RecordingPath;
             _mainWindow.CurrentRequest.AudioRecordingPaths.Add(e.RecordingPath);
-            _mainWindow.CurrentRequest.VoiceTranscripts.Add($"Duration: {e.Transcript}");
+            _mainWindow.CurrentRequest.VoiceTranscripts.Add($"Question {e.QuestionId}: {e.Transcript}");
         }
 
         private int GetSpeechToTextLanguageCode()
         {
             return _mainWindow.CurrentRequest.Language.Equals("English", StringComparison.OrdinalIgnoreCase)
                 ? 1
-                : 2;
+                : 0;
         }
 
         private string GetComboBoxValue(ComboBox comboBox)
         {
             if (comboBox.SelectedItem is ComboBoxItem item)
             {
-                return item.Content?.ToString() ?? "";
+                return item.Tag?.ToString() ?? item.Content?.ToString() ?? "";
             }
 
             return "";
+        }
+
+        private static void SelectComboBoxValue(ComboBox comboBox, string value)
+        {
+            foreach (ComboBoxItem item in comboBox.Items)
+            {
+                string itemValue = item.Content?.ToString() ?? "";
+                string tagValue = item.Tag?.ToString() ?? "";
+
+                if (itemValue.Equals(value, StringComparison.OrdinalIgnoreCase)
+                    || tagValue.Equals(value, StringComparison.OrdinalIgnoreCase)
+                    || itemValue.Contains(value, StringComparison.OrdinalIgnoreCase)
+                    || tagValue.Contains(value, StringComparison.OrdinalIgnoreCase)
+                    || value.Contains(itemValue, StringComparison.OrdinalIgnoreCase))
+                {
+                    comboBox.SelectedItem = item;
+                    return;
+                }
+            }
         }
     }
 }

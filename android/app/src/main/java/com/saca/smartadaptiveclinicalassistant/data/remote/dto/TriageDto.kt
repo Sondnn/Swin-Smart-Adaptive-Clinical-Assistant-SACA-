@@ -3,17 +3,19 @@ package com.saca.smartadaptiveclinicalassistant.data.remote.dto
 import com.google.gson.annotations.SerializedName
 
 data class SpeechToTextResponse(
-    @SerializedName("symptoms_description") val symptomsDescription: String
+    @SerializedName("question_id") val questionId: Int? = null,
+    @SerializedName("parsed_response") val parsedResponse: ParsedResponse? = null,
 )
 
-data class ExtractSymptomsRequest(
-    val language: Int,
-    @SerializedName("symptoms_description") val symptomsDescription: String,
-    val symptoms: List<String>,
-)
-
-data class ExtractSymptomsResponse(
-    val symptoms: List<String>
+data class ParsedResponse(
+    @SerializedName("gender") val gender: Int? = null,
+    @SerializedName("age_over_65") val ageOver65: Int? = null,
+    @SerializedName("symptoms") val symptoms: List<String>? = null,
+    @SerializedName("symptom_severity") val symptomSeverity: Int? = null,
+    @SerializedName("symptoms_duration") val symptomsDuration: Int? = null,
+    @SerializedName("chronic_conditions") val chronicConditions: List<String>? = null,
+    @SerializedName("had_symptoms_before") val hadSymptomsBefore: Int? = null,
+    @SerializedName("had_contact") val hadContact: Int? = null,
 )
 
 data class AnalysisSymptomsRequest(
@@ -29,6 +31,11 @@ data class AnalysisSymptomsRequest(
 )
 
 data class AnalysisSymptomsResponse(
-    @SerializedName("triage_category") val triageCategory: Int
+    @SerializedName("triage_category") val triageCategory: Int,
+    val disease: Disease?
 )
 
+data class Disease(
+    @SerializedName("disease")
+    val disease: String,
+)

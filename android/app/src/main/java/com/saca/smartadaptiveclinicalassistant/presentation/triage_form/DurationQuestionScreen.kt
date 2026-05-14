@@ -7,6 +7,7 @@ import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.presentation.components.AppButtonStyle
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.FormQuestionOption
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.FormQuestionScaffold
+import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -16,6 +17,7 @@ fun DurationQuestionScreen(
     onContinueClick: () -> Unit,
     modifier: Modifier = Modifier,
     triageFormViewModel: TriageFormViewModel = koinViewModel(),
+    sessionViewModel: SessionViewModel = koinViewModel(),
 ) {
     val options = TriageFormViewModel.DurationOption.entries.map {
         FormQuestionOption(
@@ -27,9 +29,9 @@ fun DurationQuestionScreen(
     FormQuestionScaffold(
         appBarTitle = stringResource(R.string.triage_form_action_bar_title),
         questionTitle = stringResource(R.string.triage_form_duration_title),
+        questionResId = R.string.triage_form_duration_question_speak,
         backButtonText = stringResource(R.string.triage_form_back_button),
         continueButtonText = stringResource(R.string.triage_form_continue_button),
-        backContentDescription = stringResource(R.string.app_bar_button_back_content_description),
         options = options,
         selectedOptionId = triageFormViewModel.selectedDurationOptionId,
         currentStep = 5,
@@ -39,5 +41,15 @@ fun DurationQuestionScreen(
         onOptionClick = triageFormViewModel::onDurationOptionSelected,
         onContinueClick = onContinueClick,
         modifier = modifier,
+        voiceQuestionId = TriageFormViewModel.TriageQuestionId.DURATION.value,
+        isTranscribing = triageFormViewModel.isTranscribing,
+        recordingErrorResId = triageFormViewModel.recordingErrorResId,
+        onTranscribeAudio = { audioFile ->
+            triageFormViewModel.transcribeAnswer(
+                questionId = TriageFormViewModel.TriageQuestionId.DURATION.value,
+                audioFile = audioFile,
+                languageTag = sessionViewModel.languageTag,
+            )
+        },
     )
 }

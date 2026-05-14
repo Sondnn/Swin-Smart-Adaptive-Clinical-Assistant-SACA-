@@ -20,6 +20,7 @@ val AppBackgroundTeal = Color(0xFF174C4F)
 val Brown = Color(0xFFA25933)
 
 val Brown20 = Color(0xFFF9F1EB)
+val Brown40 = Color(0xFFF3E8E1)
 
 val Orange = Color(0xFFFFA600)
 

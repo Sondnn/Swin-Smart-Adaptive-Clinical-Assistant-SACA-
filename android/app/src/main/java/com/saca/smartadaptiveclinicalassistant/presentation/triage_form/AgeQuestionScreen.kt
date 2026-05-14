@@ -6,6 +6,7 @@ import androidx.compose.ui.res.stringResource
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.FormQuestionOption
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.FormQuestionScaffold
+import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -15,6 +16,7 @@ fun AgeQuestionScreen(
     onContinueClick: () -> Unit,
     modifier: Modifier = Modifier,
     triageFormViewModel: TriageFormViewModel = koinViewModel(),
+    sessionViewModel: SessionViewModel = koinViewModel(),
 ) {
     val options = TriageFormViewModel.AgeOption.entries.map {
         FormQuestionOption(
@@ -26,9 +28,9 @@ fun AgeQuestionScreen(
     FormQuestionScaffold(
         appBarTitle = stringResource(R.string.triage_form_action_bar_title),
         questionTitle = stringResource(R.string.triage_form_age_title),
+        questionResId = R.string.triage_form_age_question_speak,
         backButtonText = stringResource(R.string.triage_form_back_button),
         continueButtonText = stringResource(R.string.triage_form_continue_button),
-        backContentDescription = stringResource(R.string.app_bar_button_back_content_description),
         options = options,
         selectedOptionId = triageFormViewModel.selectedAgeOptionId,
         currentStep = 2,
@@ -38,5 +40,15 @@ fun AgeQuestionScreen(
         onCancelClick = onCancelClick,
         onContinueClick = onContinueClick,
         modifier = modifier,
+        voiceQuestionId = TriageFormViewModel.TriageQuestionId.AGE.value,
+        isTranscribing = triageFormViewModel.isTranscribing,
+        recordingErrorResId = triageFormViewModel.recordingErrorResId,
+        onTranscribeAudio = { audioFile ->
+            triageFormViewModel.transcribeAnswer(
+                questionId = TriageFormViewModel.TriageQuestionId.AGE.value,
+                audioFile = audioFile,
+                languageTag = sessionViewModel.languageTag,
+            )
+        },
     )
 }

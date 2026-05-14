@@ -1,40 +1,49 @@
 <UserControl x:Class="SACA.WindowsApp.Pages.ChronicConditionsPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:controls="clr-namespace:SACA.WindowsApp.Controls">
+             xmlns:controls="clr-namespace:SACA.WindowsApp.Controls"
+             xmlns:services="clr-namespace:SACA.WindowsApp.Services">
 
     <Grid Background="{StaticResource AppBackgroundBrush}" Margin="40">
         <StackPanel Width="560" HorizontalAlignment="Center" VerticalAlignment="Center">
 
-            <TextBlock Text="Do you have any chronic condition?"
-                       Style="{StaticResource PageTitleTextStyle}"
-                       FontSize="30"
-                       TextWrapping="Wrap"
-                       Margin="0,0,0,30"/>
+            <StackPanel Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Margin="0,0,0,30">
+                <TextBlock Text="{services:Loc chronic_title}"
+                           Style="{StaticResource PageTitleTextStyle}"
+                           FontSize="30"
+                           TextWrapping="Wrap"
+                           VerticalAlignment="Center"/>
+                <controls:SpeakerButtonControl TextKey="speak_chronic"/>
+            </StackPanel>
 
             <StackPanel Margin="0,0,0,35">
-                <CheckBox Content="Hypertension" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
-                <CheckBox Content="Type 2 Diabetes" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
-                <CheckBox Content="Heart Disease" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
-                <CheckBox Content="Asthma-COPD" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
-                <CheckBox Content="Depression Anxiety" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
+                <CheckBox Content="{services:Loc condition_hypertension}" Tag="hypertension" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
+                <CheckBox Content="{services:Loc condition_diabetes}" Tag="type2_diabetes" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
+                <CheckBox Content="{services:Loc condition_heart}" Tag="heart_disease" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
+                <CheckBox Content="{services:Loc condition_asthma}" Tag="asthma_copd" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
+                <CheckBox Content="{services:Loc condition_depression}" Tag="depression_anxiety" FontSize="18" Margin="0,0,0,14" Checked="ConditionCheckBox_Checked"/>
                 <CheckBox x:Name="UnknownCheckBox"
-                          Content="Unknown / None"
+                          Content="{services:Loc unknown_none}"
+                          Tag="Unknown / None"
                           FontSize="18"
                           Checked="UnknownCheckBox_Checked"/>
             </StackPanel>
 
-            <controls:VoiceRecorderControl x:Name="VoiceRecorder"/>
+            <controls:VoiceRecorderControl x:Name="VoiceRecorder"
+                                           QuestionId="8"
+                                           Label="{services:Loc voice_chronic}"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Back"
+                <Button Content="{services:Loc back}"
                         Style="{StaticResource SecondaryButtonStyle}"
                         Width="120"
                         Height="40"
                         Margin="0,0,10,0"
                         Click="Back_Click"/>
 
-                <Button Content="Continue"
+                <Button Content="{services:Loc continue}"
                         Width="140"
                         Height="40"
                         Click="Continue_Click"/>

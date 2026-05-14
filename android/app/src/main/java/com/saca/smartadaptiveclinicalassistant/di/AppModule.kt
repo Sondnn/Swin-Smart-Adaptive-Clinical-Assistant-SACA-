@@ -1,11 +1,11 @@
 package com.saca.smartadaptiveclinicalassistant.di
 
+import android.util.Log
 import com.saca.smartadaptiveclinicalassistant.common.Constants
 import com.saca.smartadaptiveclinicalassistant.data.remote.TriageApi
 import com.saca.smartadaptiveclinicalassistant.data.repository.TriageRepositoryImpl
 import com.saca.smartadaptiveclinicalassistant.domain.repository.TriageRepository
 import com.saca.smartadaptiveclinicalassistant.domain.use_case.AnalyzeSymptomsUseCase
-import com.saca.smartadaptiveclinicalassistant.domain.use_case.ExtractSymptomsUseCase
 import com.saca.smartadaptiveclinicalassistant.domain.use_case.SpeechToTextUseCase
 import com.saca.smartadaptiveclinicalassistant.presentation.home.HomeViewModel
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
@@ -26,6 +26,8 @@ val appModule = module {
             .writeTimeout(60, TimeUnit.SECONDS)
             .build()
     }
+
+    Log.d("BaseURL", Constants.BASE_URL)
     single {
         Retrofit.Builder()
             .baseUrl(Constants.BASE_URL)
@@ -41,14 +43,14 @@ val appModule = module {
     single<TriageRepository> { TriageRepositoryImpl(get()) }
 
     single { SpeechToTextUseCase(get()) }
-    single { ExtractSymptomsUseCase(get()) }
+
     single { AnalyzeSymptomsUseCase(get()) }
 
     single { SessionViewModel() }
 
     viewModel { HomeViewModel() }
 
-    viewModel { TriageFormViewModel(get(), get()) }
+    viewModel { TriageFormViewModel(get()) }
 
     viewModel { TriageResultViewModel(get()) }
 }

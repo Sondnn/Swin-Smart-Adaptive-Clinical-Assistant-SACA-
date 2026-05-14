@@ -8,10 +8,12 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -19,19 +21,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -48,16 +48,19 @@ import com.saca.smartadaptiveclinicalassistant.ui.theme.AppBackground
 import org.koin.androidx.compose.koinViewModel
 
 import com.saca.smartadaptiveclinicalassistant.R
+import com.saca.smartadaptiveclinicalassistant.common.getLabelString
 import com.saca.smartadaptiveclinicalassistant.data.local.VoiceRecorder
 import com.saca.smartadaptiveclinicalassistant.presentation.components.Title
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.ErrorMessage
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.FormQuestionImageOption
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.QuestionImageOption
-import com.saca.smartadaptiveclinicalassistant.presentation.components.form.QuestionTextInput
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.RecordButton
+import com.saca.smartadaptiveclinicalassistant.presentation.components.form.SpeakQuestionSection
 import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown
 import com.saca.smartadaptiveclinicalassistant.ui.theme.Brown20
+import com.saca.smartadaptiveclinicalassistant.ui.theme.TextBrown
+import com.saca.smartadaptiveclinicalassistant.ui.theme.TextDarkBrown
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -94,6 +97,7 @@ fun SymptomQuestionScreen(
     val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             AppBar(
                 title = stringResource(R.string.triage_form_action_bar_title),
@@ -111,7 +115,6 @@ fun SymptomQuestionScreen(
                 .background(AppBackground)
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Spacer(modifier = Modifier.height(54.dp))
 
@@ -125,7 +128,7 @@ fun SymptomQuestionScreen(
                 options = options,
                 selectedOptionIds = triageFormViewModel.selectedSymptomIds,
                 isExpanded =  triageFormViewModel.isSymptomOptionsExpanded,
-                initialOptionCount = 3,
+                initialOptionCount = 6,
                 onOptionClick = triageFormViewModel::onSymptomOptionSelected
             )
 
@@ -138,95 +141,108 @@ fun SymptomQuestionScreen(
                 )
             }
 
+            Spacer(modifier = Modifier.height(48.dp))
+
+            if (triageFormViewModel.recordedSymptoms.isNotEmpty()) {
+                Text(
+                    text = stringResource(R.string.triage_form_symptom_recorded) + " :",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = TextBrown,
+                    fontWeight = FontWeight.SemiBold,
+                )
+
+                Spacer(modifier = Modifier.height(2.dp))
+
+                Text(
+                    text = triageFormViewModel.recordedSymptoms.joinToString(", ") {
+                        getLabelString(it)
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextDarkBrown,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+
             Spacer(modifier = Modifier.height(24.dp))
 
-            OrDivider(text = stringResource(R.string.triage_form_symptom_or))
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Box(modifier = Modifier.weight(1f)) {
+                    SpeakQuestionSection(
+                        questionResId = R.string.triage_form_symptom_question_speak,
+                    )
+                }
 
-            Spacer(modifier = Modifier.height(24.dp))
+                Box(modifier = Modifier.weight(1f)) {
+                    RecordButton(
+                        text = when {
+                            triageFormViewModel.isTranscribing -> {
+                                stringResource(R.string.triage_form_symptom_transcribing)
+                            }
 
-            Title(
-                text = stringResource(R.string.triage_form_symptom_describe_title)
-            )
+                            isRecordButtonPressed -> {
+                                stringResource(R.string.triage_form_symptom_recording)
+                            }
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            QuestionTextInput(
-                text = triageFormViewModel.symptomDescriptionText,
-                placeholder = stringResource(R.string.triage_form_symptom_details_placeholder),
-                onTextChanged = triageFormViewModel::onSymptomDescriptionChanged
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            RecordButton(
-                text = when {
-                    triageFormViewModel.isTranscribing -> {
-                        stringResource(R.string.triage_form_symptom_transcribing)
-                    }
-
-                    isRecordButtonPressed -> {
-                        stringResource(R.string.triage_form_symptom_recording)
-                    }
-
-                    else -> {
-                        stringResource(R.string.triage_form_symptom_hold_to_record)
-                    }
-                },
-                isRecording = isRecordButtonPressed,
-                isEnabled = !triageFormViewModel.isTranscribing,
-                onPress = {
-                    if (!hasRecordAudioPermission(context)) {
-                        requestRecordAudioPermission.launch(Manifest.permission.RECORD_AUDIO)
-                        return@RecordButton
-                    }
-
-                    val startResult = voiceRecorder.startRecording(context)
-                    if (startResult.isFailure) {
-                        Log.e("TAG", "mes", startResult.exceptionOrNull())
-                        triageFormViewModel.showRecordingError(R.string.triage_form_symptom_recording_failed_message)
-                        return@RecordButton
-                    }
-
-                    isRecordButtonPressed = true
-                    triageFormViewModel.clearRecordingError()
-
-                    val didReleasePress = tryAwaitRelease()
-                    isRecordButtonPressed = false
-
-                    if (!didReleasePress) {
-                        voiceRecorder.cancelRecording()
-                        return@RecordButton
-                    }
-
-                    delay(200)
-                    val stopResult = voiceRecorder.stopRecording()
-                    stopResult.fold(
-                        onSuccess = { audioFile ->
-                            triageFormViewModel.transcribeRecordedAudio(
-                                audioFile = audioFile,
-                                languageTag = sessionViewModel.languageTag
-                            )
+                            else -> {
+                                stringResource(R.string.triage_form_answer_button)
+                            }
                         },
-                        onFailure = {
-                            triageFormViewModel.showRecordingError(
-                                R.string.triage_form_symptom_recording_failed_message
+                        isRecording = isRecordButtonPressed,
+                        isEnabled = !triageFormViewModel.isTranscribing,
+                        onPress = {
+                            if (!hasRecordAudioPermission(context)) {
+                                requestRecordAudioPermission.launch(Manifest.permission.RECORD_AUDIO)
+                                return@RecordButton
+                            }
+
+                            val startResult = voiceRecorder.startRecording(context)
+                            if (startResult.isFailure) {
+                                Log.e("TAG", "mes", startResult.exceptionOrNull())
+                                triageFormViewModel.showRecordingError(R.string.triage_form_symptom_recording_failed_message)
+                                return@RecordButton
+                            }
+
+                            isRecordButtonPressed = true
+                            triageFormViewModel.clearRecordingError()
+
+                            val didReleasePress = tryAwaitRelease()
+                            isRecordButtonPressed = false
+
+                            if (!didReleasePress) {
+                                voiceRecorder.cancelRecording()
+                                return@RecordButton
+                            }
+
+                            delay(200)
+                            val stopResult = voiceRecorder.stopRecording()
+                            stopResult.fold(
+                                onSuccess = { audioFile ->
+                                    triageFormViewModel.transcribeAnswer(
+                                        questionId = TriageFormViewModel.TriageQuestionId.SYMPTOM.value,
+                                        audioFile = audioFile,
+                                        languageTag = sessionViewModel.languageTag
+                                    )
+                                },
+                                onFailure = {
+                                    triageFormViewModel.showRecordingError(
+                                        R.string.triage_form_symptom_recording_failed_message
+                                    )
+                                }
                             )
                         }
                     )
                 }
-            )
+            }
 
             triageFormViewModel.recordingErrorResId?.let { messageResId ->
                 Spacer(modifier = Modifier.height(10.dp))
                 ErrorMessage(text = stringResource(messageResId))
             }
 
-            triageFormViewModel.extractSymptomsErrorResId?.let { messageResId ->
-                Spacer(modifier = Modifier.height(10.dp))
-                ErrorMessage(text = stringResource(messageResId))
-            }
-
-            if (triageFormViewModel.shouldShowSymptomError) {
+            if (triageFormViewModel.shouldShowNoSymptomError) {
                 Spacer(modifier = Modifier.height(10.dp))
                 ErrorMessage(text = stringResource(R.string.triage_form_symptom_validation_error))
             }
@@ -239,12 +255,11 @@ fun SymptomQuestionScreen(
                 continueButtonText = stringResource(R.string.triage_form_continue_button),
                 currentStep = 3,
                 totalSteps = 5,
-                canContinue = !triageFormViewModel.isExtractingSymptoms && !triageFormViewModel.isTranscribing,
+                canContinue = !triageFormViewModel.isTranscribing,
                 onBackClick = onBackClick,
                 onContinueClick = {
                     coroutineScope.launch {
-                        // call api to extract symptoms before continue
-                        val canContinue = triageFormViewModel.extractSymptoms(sessionViewModel.languageTag)
+                        val canContinue = triageFormViewModel.canContinueFromSymptomQuestion()
                         if (canContinue) {
                             onContinueClick()
                         }
@@ -279,37 +294,6 @@ fun ShowMoreButton(
             fontSize = 20.sp,
             lineHeight = 24.sp,
             textAlign = TextAlign.Center
-        )
-    }
-}
-
-@Composable
-private fun OrDivider(text: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(1.dp)
-                .background(Brown.copy(alpha = 0.35f)),
-        )
-
-        Text(
-            text = text,
-            color = Brown,
-            fontWeight = FontWeight.Bold,
-            fontSize = 20.sp,
-            lineHeight = 32.sp,
-            modifier = Modifier.padding(horizontal = 16.dp),
-        )
-
-        Box(
-            modifier = Modifier
-                .weight(1f)
-                .height(1.dp)
-                .background(Brown.copy(alpha = 0.35f)),
         )
     }
 }

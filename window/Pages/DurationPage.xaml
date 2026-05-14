@@ -1,38 +1,50 @@
 ﻿<UserControl x:Class="SACA.WindowsApp.Pages.DurationPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:controls="clr-namespace:SACA.WindowsApp.Controls">
+             xmlns:controls="clr-namespace:SACA.WindowsApp.Controls"
+             xmlns:services="clr-namespace:SACA.WindowsApp.Services">
 
     <Grid Background="{StaticResource AppBackgroundBrush}" Margin="40">
         <StackPanel Width="520" HorizontalAlignment="Center" VerticalAlignment="Center">
 
-            <TextBlock Text="How long have you had these symptoms"
-                       Style="{StaticResource PageTitleTextStyle}"
-                       FontSize="30"
-                       TextWrapping="Wrap"
-                       TextAlignment="Center"
-                       Margin="0,0,0,30"/>
+            <Grid Width="520" Margin="0,0,0,30">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="{services:Loc duration_title}"
+                           Grid.Column="0"
+                           Style="{StaticResource PageTitleTextStyle}"
+                           FontSize="30"
+                           TextWrapping="Wrap"
+                           TextAlignment="Center"
+                           VerticalAlignment="Center"/>
+                <controls:SpeakerButtonControl Grid.Column="1"
+                                               TextKey="speak_duration"/>
+            </Grid>
 
             <ComboBox x:Name="DurationComboBox"
                       Height="45"
                       Margin="0,0,0,30">
-                <ComboBoxItem Content="Just began"/>
-                <ComboBoxItem Content="A couple days"/>
-                <ComboBoxItem Content="More than a week"/>
-                <ComboBoxItem Content="Unknown"/>
+                <ComboBoxItem Content="{services:Loc duration_just_began}" Tag="Just began"/>
+                <ComboBoxItem Content="{services:Loc duration_couple_days}" Tag="A couple days"/>
+                <ComboBoxItem Content="{services:Loc duration_more_week}" Tag="More than a week"/>
+                <ComboBoxItem Content="{services:Loc unknown}" Tag="Unknown"/>
             </ComboBox>
 
-            <controls:VoiceRecorderControl x:Name="VoiceRecorder"/>
+            <controls:VoiceRecorderControl x:Name="VoiceRecorder"
+                                           QuestionId="6"
+                                           Label="{services:Loc voice_duration}"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Back"
+                <Button Content="{services:Loc back}"
                         Style="{StaticResource SecondaryButtonStyle}"
                         Width="120"
                         Height="40"
                         Margin="0,0,10,0"
                         Click="Back_Click"/>
 
-                <Button Content="Continue"
+                <Button Content="{services:Loc continue}"
                         Width="140"
                         Height="40"
                         Click="Continue_Click"/>

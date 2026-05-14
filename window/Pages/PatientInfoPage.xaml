@@ -1,51 +1,69 @@
 ﻿<UserControl x:Class="SACA.WindowsApp.Pages.PatientInfoPage"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:controls="clr-namespace:SACA.WindowsApp.Controls">
+             xmlns:controls="clr-namespace:SACA.WindowsApp.Controls"
+             xmlns:services="clr-namespace:SACA.WindowsApp.Services">
 
     <Grid Background="{StaticResource AppBackgroundBrush}" Margin="40">
         <StackPanel Width="520" HorizontalAlignment="Center" VerticalAlignment="Center">
 
-            <TextBlock Text="Triage Assessment"
+            <TextBlock Text="{services:Loc triage_assessment}"
                        Foreground="{StaticResource PrimaryTextBrush}"
                        FontSize="18"
                        FontWeight="SemiBold"
                        Margin="0,0,0,30"/>
 
-            <TextBlock Text="Patient Details"
+            <TextBlock Text="{services:Loc triage_assessment}"
                        Style="{StaticResource PageTitleTextStyle}"
                        FontSize="30"
                        Margin="0,0,0,25"
                        TextAlignment="Center"/>
 
-            <TextBlock Text="Gender" Style="{StaticResource SectionLabelTextStyle}"/>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="{services:Loc gender_title}"
+                           Style="{StaticResource SectionLabelTextStyle}"
+                           VerticalAlignment="Center"/>
+                <controls:SpeakerButtonControl TextKey="speak_gender"/>
+            </StackPanel>
             <ComboBox x:Name="GenderComboBox"
                       Height="40"
                       Margin="0,5,0,20"
                       SelectionChanged="GenderComboBox_SelectionChanged">
-                <ComboBoxItem Content="Male"/>
-                <ComboBoxItem Content="Female"/>
+                <ComboBoxItem Content="{services:Loc gender_male}" Tag="Male"/>
+                <ComboBoxItem Content="{services:Loc gender_female}" Tag="Female"/>
+                <ComboBoxItem Content="{services:Loc gender_unknown}" Tag="Unknown / Prefer not to say"/>
             </ComboBox>
 
-            <TextBlock Text="Your Age" Style="{StaticResource SectionLabelTextStyle}"/>
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBlock Text="{services:Loc age_title}"
+                           Style="{StaticResource SectionLabelTextStyle}"
+                           VerticalAlignment="Center"/>
+                <controls:SpeakerButtonControl TextKey="speak_age"/>
+            </StackPanel>
             <ComboBox x:Name="AgeComboBox"
                       Height="40"
                       Margin="0,5,0,30">
-                <ComboBoxItem Content="65 years old or younger"/>
-                <ComboBoxItem Content="Older than 65"/>
+                <ComboBoxItem Content="{services:Loc age_younger}" Tag="65 years old or younger"/>
+                <ComboBoxItem Content="{services:Loc age_older}" Tag="Older than 65"/>
             </ComboBox>
 
-            <controls:VoiceRecorderControl x:Name="VoiceRecorder"/>
+            <controls:VoiceRecorderControl x:Name="GenderVoiceRecorder"
+                                           QuestionId="1"
+                                           Label="{services:Loc voice_gender}"/>
+
+            <controls:VoiceRecorderControl x:Name="AgeVoiceRecorder"
+                                           QuestionId="2"
+                                           Label="{services:Loc voice_age}"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button Content="Back"
+                <Button Content="{services:Loc back}"
                         Style="{StaticResource SecondaryButtonStyle}"
                         Width="120"
                         Height="40"
                         Margin="0,0,10,0"
                         Click="Back_Click"/>
 
-                <Button Content="Continue"
+                <Button Content="{services:Loc continue}"
                         Width="140"
                         Height="40"
                         Click="Continue_Click"/>

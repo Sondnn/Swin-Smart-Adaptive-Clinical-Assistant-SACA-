@@ -5,37 +5,43 @@
 
     <string name="language_title">Smart Adaptive Clinical Assistant</string>
     <string name="language_subtitle">Kaya!</string>
-    <string name="language_option_english">Ingkirriji</string>
+    <string name="language_option_english">English</string>
     <string name="language_option_walmajarri">Walmajarri</string>
 
     <string name="welcome_title">Karlarra Nyurra Yirrarni</string>
     <string name="welcome_body">Nyurra yirrarni-rna nyuntu-ku yiwarr-ku nyuntu-ju karlarra nyurra-ju. Kujarra-rna nyuntu-ku yiwarr nyuntu-ju karlarra nyurra-ju.</string>
     <string name="welcome_get_started">Yirrarni-rna</string>
 
-    <string name="home_action_bar_title">Karlarra Nyurra Yirrarni</string>
+    <string name="home_action_bar_title">SACA</string>
     <string name="home_drawer_section_assessment">Yirrarni</string>
     <string name="home_drawer_section_language">Yimi</string>
 
-    <string name="triage_form_action_bar_title">Karlarra Nyurra Yirrarni</string>
+    <string name="triage_form_action_bar_title">Mirrijinkarti</string>
     <string name="triage_form_back_button">Kujarra</string>
     <string name="triage_form_continue_button">Yirrarni</string>
     <string name="triage_form_assess_button">Yirrarni-rna</string>
 
     <string name="triage_form_gender_title">Nyuntu Yirrarni</string>
+    <string name="triage_form_gender_question_speak">What is your gender?</string>
     <string name="triage_form_gender_option_male">Karli</string>
     <string name="triage_form_gender_option_female">Yapajarra</string>
     <string name="triage_form_gender_option_prefer_not_to_say">Karra yimi-rna</string>
 
     <string name="triage_form_age_title">Nyuntu Jukurra</string>
+    <string name="triage_form_age_question_speak">What is your age?</string>
     <string name="triage_form_age_option_older_adult_or_younger">65 ngurra-wana karrinyanu-wana</string>
     <string name="triage_form_age_option_over_older_adult">65 ngurra-wana karrinyanu-warlangu</string>
 
     <string name="triage_form_symptom_title">Nyuntu Karlarra Yirrarni</string>
+    <string name="triage_form_symptom_question_speak">What is your symptoms?</string>
     <string name="triage_form_symptom_show_more">Yirrarni Karlarra</string>
     <string name="triage_form_symptom_or">KUJARRA</string>
     <string name="triage_form_symptom_describe_title">Karlarra Yirrarni-rna</string>
     <string name="triage_form_symptom_details_placeholder">Yimi-rna...</string>
-    <string name="triage_form_symptom_hold_to_record">Jijirr-ma Yirrarni-ku</string>
+    <string name="triage_form_symptom_recorded">(WMT) Symptoms Recorded</string>
+
+    <string name="triage_form_listen_button">Listen</string>
+    <string name="triage_form_answer_button">Answer</string>
     <string name="triage_form_symptom_recording">Yirrarni-rna…</string>
     <string name="triage_form_symptom_transcribing">Yimi Yirrarni-rna...</string>
     <string name="triage_form_symptom_mic_label">Yimi-rna</string>
@@ -63,6 +69,7 @@
     <string name="triage_form_symptom_back_pain">Karlarra Yijiji</string>
 
     <string name="triage_form_severity_title">Karlarra Yirrarni Jukurra</string>
+    <string name="triage_form_severity_question_speak">What is the severity of your symptoms?</string>
     <string name="triage_form_severity_option_mild">Kujarra-wana</string>
     <string name="triage_form_severity_option_low">Karlarra-wana</string>
     <string name="triage_form_severity_option_moderate">Yirrarni-wana</string>
@@ -70,21 +77,25 @@
     <string name="triage_form_severity_option_severe">Karlarra Jukurra</string>
 
     <string name="triage_form_duration_title">Karlarra Nyurra Jukurra</string>
+    <string name="triage_form_duration_question_speak">How long have you had these symptoms?</string>
     <string name="triage_form_duration_option_less_than_day">Ngurra-wana kujarra</string>
     <string name="triage_form_duration_option_more_than_day">Ngurra-wana karlarra</string>
     <string name="triage_form_duration_option_unknown">Karra yimi</string>
 
     <string name="triage_form_symptoms_before_title">(WMT) Have you had these symptoms Before?</string>
+    <string name="triage_form_symptoms_before_question_speak">Have you had these symptoms Before?</string>
     <string name="triage_form_symptoms_before_option_yes">(WMT) Yes</string>
     <string name="triage_form_symptoms_before_option_no">(WMT) No</string>
     <string name="triage_form_symptoms_before_option_unknown">(WMT) Unknown</string>
 
     <string name="triage_form_sick_contact_history_title">(WMT) Have you been in contact with anyone who is sick recently?</string>
+    <string name="triage_form_sick_contact_history_question_speak">Have you been in contact with anyone who is sick recently?</string>
     <string name="triage_form_sick_contact_history_option_yes">(WMT) Yes</string>
     <string name="triage_form_sick_contact_history_option_no">(WMT) No</string>
     <string name="triage_form_sick_contact_history_option_unknown">(WMT) Unknown</string>
 
-    <string name="triage_form_chronic_conditions_history_title">(WMT) Do you have any chronic conditions?</string>
+    <string name="triage_form_chronic_conditions_title">(WMT) Do you have any chronic conditions?</string>
+    <string name="triage_form_chronic_conditions_question_speak">Do you have any chronic conditions?</string>
     <string name="triage_form_chronic_conditions_option_hypertension">(WMT) Hypertension</string>
     <string name="triage_form_chronic_conditions_option_type2_diabetes">(WMT) Type 2 Diabetes</string>
     <string name="triage_form_chronic_conditions_option_heart_disease">(WMT) Heart Disease</string>
@@ -94,21 +105,23 @@
     <string name="triage_result_analyzing">Karlarra yirrarni-rna...</string>
     <string name="triage_result_title">Karlarra Yirrarni Jukurra</string>
     <string name="triage_result_severity_label">Karlarra Jukurra</string>
-    <string name="triage_result_category_a">Karra Yirrarni</string>
-    <string name="triage_result_category_b">Kujarra Yirrarni</string>
-    <string name="triage_result_category_c">Yirrarni-wana</string>
-    <string name="triage_result_category_d">Karlarra Yirrarni</string>
-    <string name="triage_result_category_e">Jukurra Karlarra</string>
-    <string name="triage_result_category_f">Karlarra Nyurra</string>
+    <string name="triage_result_category_a">Karlarra Nyurra</string>
+    <string name="triage_result_category_b">Jukurra Karlarra</string>
+    <string name="triage_result_category_c">Karlarra Yirrarni</string>
+    <string name="triage_result_category_d">Yirrarni-wana</string>
+    <string name="triage_result_category_e">Kujarra Yirrarni</string>
+    <string name="triage_result_category_f">Karra Yirrarni</string>
 
     <string name="triage_result_recommendation_title">Yimi Karlarra</string>
     <string name="triage_result_recommendation_body">Yirrarni-rna karlarra nyuntu-ju. Kujarra karlarra-wana, yirrarni-rna karlarra-ku.</string>
-    <string name="triage_result_category_a_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra-wana yirrarni karlarra.</string>
-    <string name="triage_result_category_b_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra jukurra yirrarni.</string>
-    <string name="triage_result_category_c_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra yirrarni-wana yimi.</string>
-    <string name="triage_result_category_d_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra jukurra yirrarni-wana.</string>
-    <string name="triage_result_category_e_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra yirrarni kujarra.</string>
-    <string name="triage_result_category_f_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju 24 ngurra-wana karlarra yirrarni.</string>
+    <string name="triage_result_category_a_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju 24 ngurra-wana karlarra yirrarni.</string>
+    <string name="triage_result_category_b_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra yirrarni kujarra.</string>
+    <string name="triage_result_category_c_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra jukurra yirrarni-wana.</string>
+    <string name="triage_result_category_d_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra yirrarni-wana yimi.</string>
+    <string name="triage_result_category_e_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra jukurra yirrarni.</string>
+    <string name="triage_result_category_f_recommendation">Karlarra-ku yirrarni-rna nyuntu-ju karlarra-wana yirrarni karlarra.</string>
+    <string name="triage_result_possible_condition_title">Possible Condition</string>
+    <string name="triage_result_possible_condition_unknown">Unknown</string>
     <string name="triage_result_symptoms_summary_title">Karlarra Yirrarni Jukurra</string>
 
     <string name="triage_result_summary_cold">Karlarra Mirrirr</string>

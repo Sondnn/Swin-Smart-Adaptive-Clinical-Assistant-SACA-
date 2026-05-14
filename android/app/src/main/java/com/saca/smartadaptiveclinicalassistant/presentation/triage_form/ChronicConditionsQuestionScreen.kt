@@ -6,6 +6,7 @@ import androidx.compose.ui.res.stringResource
 import com.saca.smartadaptiveclinicalassistant.R
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.FormQuestionOption
 import com.saca.smartadaptiveclinicalassistant.presentation.components.form.FormQuestionScaffold
+import com.saca.smartadaptiveclinicalassistant.presentation.session.SessionViewModel
 import org.koin.androidx.compose.koinViewModel
 
 @Composable
@@ -15,6 +16,7 @@ fun ChronicConditionsQuestionScreen(
     onContinueClick: () -> Unit,
     modifier: Modifier = Modifier,
     triageFormViewModel: TriageFormViewModel = koinViewModel(),
+    sessionViewModel: SessionViewModel = koinViewModel(),
 ) {
     val options = TriageFormViewModel.ChronicConditionsOption.entries.map {
         FormQuestionOption(
@@ -25,10 +27,11 @@ fun ChronicConditionsQuestionScreen(
 
     FormQuestionScaffold(
         appBarTitle = stringResource(R.string.triage_form_action_bar_title),
-        questionTitle = stringResource(R.string.triage_form_chronic_conditions_history_title),
+        questionTitle = stringResource(R.string.triage_form_chronic_conditions_title),
+        questionResId = R.string.triage_form_chronic_conditions_question_speak,
         backButtonText = stringResource(R.string.triage_form_back_button),
         continueButtonText = stringResource(R.string.triage_form_continue_button),
-        backContentDescription = stringResource(R.string.app_bar_button_back_content_description),
+        isContinueAlwaysAllowed = true,
         options = options,
         selectedOptionIds = triageFormViewModel.selectedChronicConditionsOptionIds,
         currentStep = 7,
@@ -37,6 +40,16 @@ fun ChronicConditionsQuestionScreen(
         onOptionClick = triageFormViewModel::onChronicConditionsOptionSelected,
         onCancelClick = onCancelClick,
         onContinueClick = onContinueClick,
-        modifier = modifier
+        modifier = modifier,
+        voiceQuestionId = TriageFormViewModel.TriageQuestionId.CHRONIC_CONDITIONS.value,
+        isTranscribing = triageFormViewModel.isTranscribing,
+        recordingErrorResId = triageFormViewModel.recordingErrorResId,
+        onTranscribeAudio = { audioFile ->
+            triageFormViewModel.transcribeAnswer(
+                questionId = TriageFormViewModel.TriageQuestionId.CHRONIC_CONDITIONS.value,
+                audioFile = audioFile,
+                languageTag = sessionViewModel.languageTag,
+            )
+        },
     )
 }
