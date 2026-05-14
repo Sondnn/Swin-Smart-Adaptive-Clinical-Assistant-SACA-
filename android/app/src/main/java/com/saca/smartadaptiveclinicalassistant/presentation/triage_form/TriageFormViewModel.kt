@@ -48,13 +48,14 @@ class TriageFormViewModel(
 
     enum class SeverityOption(
         val value: String,
-        val labelRes: Int
+        val labelRes: Int,
+        val iconRes: Int
     ) {
-        MILD("mild", R.string.triage_form_severity_option_mild),
-        LOW("low", R.string.triage_form_severity_option_low),
-        MODERATE("moderate", R.string.triage_form_severity_option_moderate),
-        HIGH("high", R.string.triage_form_severity_option_high),
-        SEVERE("severe", R.string.triage_form_severity_option_severe),
+        MILD("mild", R.string.triage_form_severity_option_mild, R.drawable.ic_severity_mild),
+        LOW("low", R.string.triage_form_severity_option_low, R.drawable.ic_severity_low),
+        MODERATE("moderate", R.string.triage_form_severity_option_moderate, R.drawable.ic_severity_moderate),
+        HIGH("high", R.string.triage_form_severity_option_high, R.drawable.ic_severity_high),
+        SEVERE("severe", R.string.triage_form_severity_option_severe, R.drawable.ic_severity_severe),
     }
 
     enum class DurationOption(
