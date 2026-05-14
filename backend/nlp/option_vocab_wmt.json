@@ -1,0 +1,43 @@
+{
+  "_note": "Walmadjari spellings for non-symptom form answers. Used by rapidfuzz keyword matching against the rough STT transcript when language=0. Entries pulled from android/app/src/main/res/values-b+wmt/strings.xml; placeholder marker `(WMT)` in that file means the source string is not yet a real translation and we leave alternatives empty. ALL ENTRIES NEED COMMUNITY REVIEW before clinical use.",
+
+  "gender": {
+    "0": ["yapajarra"],
+    "1": ["karli"],
+    "2": ["karra yimi", "karra yimi-rna"]
+  },
+
+  "age_over_65": {
+    "0": ["65 ngurra-wana karrinyanu-wana", "ngurra-wana karrinyanu-wana"],
+    "1": ["65 ngurra-wana karrinyanu-warlangu", "ngurra-wana karrinyanu-warlangu"],
+    "2": ["karra yimi"]
+  },
+
+  "symptom_severity": {
+    "1": ["kujarra-wana"],
+    "2": ["karlarra-wana"],
+    "3": ["yirrarni-wana"],
+    "4": ["jukurra-wana"],
+    "5": ["karlarra jukurra"]
+  },
+
+  "symptoms_duration": {
+    "0": ["ngurra-wana kujarra"],
+    "1": ["ngurra-wana karlarra"],
+    "2": ["karra yimi"]
+  },
+
+  "yes_no": {
+    "1": [],
+    "0": [],
+    "2": ["karra yimi"]
+  },
+
+  "chronic_conditions": {
+    "hypertension": [],
+    "type_2_diabetes": [],
+    "heart_disease": [],
+    "asthma_copd": [],
+    "depression_anxiety": []
+  }
+}
