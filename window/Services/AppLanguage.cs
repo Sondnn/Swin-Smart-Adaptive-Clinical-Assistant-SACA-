@@ -44,6 +44,8 @@ namespace SACA.WindowsApp.Services
             ["severity_high"] = "High",
             ["severity_severe"] = "Severe",
             ["duration_title"] = "How long have you had these symptoms",
+            ["duration_less_day"] = "Less than a day",
+            ["duration_more_day"] = "More than a day",
             ["duration_just_began"] = "Just began",
             ["duration_couple_days"] = "A couple days",
             ["duration_more_week"] = "More than a week",
@@ -88,6 +90,7 @@ namespace SACA.WindowsApp.Services
             ["severity_level"] = "Severity Level",
             ["recommendation"] = "Recommendation",
             ["symptom_summary"] = "Symptom Summary",
+            ["possible_condition"] = "Possible Condition",
             ["start_again"] = "Start Again",
             ["ok"] = "OK"
         };
@@ -132,6 +135,8 @@ namespace SACA.WindowsApp.Services
             ["severity_high"] = "Jukurra-wana",
             ["severity_severe"] = "Karlarra Jukurra",
             ["duration_title"] = "Karlarra Nyurra Jukurra",
+            ["duration_less_day"] = "Ngurra-wana kujarra",
+            ["duration_more_day"] = "Ngurra-wana karlarra",
             ["duration_just_began"] = "Ngurra-wana kujarra",
             ["duration_couple_days"] = "Ngurra-wana karlarra",
             ["duration_more_week"] = "Ngurra-wana karlarra",
@@ -176,6 +181,7 @@ namespace SACA.WindowsApp.Services
             ["severity_level"] = "Karlarra Jukurra",
             ["recommendation"] = "Yimi Karlarra",
             ["symptom_summary"] = "Karlarra Yirrarni Jukurra",
+            ["possible_condition"] = "Possible Condition",
             ["start_again"] = "Yirrarni-rna Kujarra",
             ["ok"] = "Yuwayi"
         };

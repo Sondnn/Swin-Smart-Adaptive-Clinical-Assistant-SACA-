@@ -4,6 +4,39 @@
              xmlns:controls="clr-namespace:SACA.WindowsApp.Controls"
              xmlns:services="clr-namespace:SACA.WindowsApp.Services">
 
+    <UserControl.Resources>
+        <Style x:Key="SelectionCardRadioStyle" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{StaticResource BodyTextBrush}"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Margin" Value="0,0,0,12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Card"
+                                Background="{StaticResource InputBackgroundBrush}"
+                                BorderBrush="{StaticResource BorderBrush}"
+                                BorderThickness="2"
+                                CornerRadius="8"
+                                Padding="18"
+                                MinHeight="72">
+                            <ContentPresenter VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Card" Property="Background" Value="{StaticResource SelectedBackgroundBrush}"/>
+                                <Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource AccentBrush}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
     <Grid Background="{StaticResource AppBackgroundBrush}" Margin="40">
         <StackPanel Width="520" HorizontalAlignment="Center" VerticalAlignment="Center">
 
@@ -23,14 +56,26 @@
                                                TextKey="speak_duration"/>
             </Grid>
 
-            <ComboBox x:Name="DurationComboBox"
-                      Height="45"
-                      Margin="0,0,0,30">
-                <ComboBoxItem Content="{services:Loc duration_just_began}" Tag="Just began"/>
-                <ComboBoxItem Content="{services:Loc duration_couple_days}" Tag="A couple days"/>
-                <ComboBoxItem Content="{services:Loc duration_more_week}" Tag="More than a week"/>
-                <ComboBoxItem Content="{services:Loc unknown}" Tag="Unknown"/>
-            </ComboBox>
+            <StackPanel Margin="0,0,0,24">
+                <RadioButton x:Name="LessThanDayRadioButton"
+                             Content="{services:Loc duration_less_day}"
+                             GroupName="Duration"
+                             Tag="Less than a day"
+                             FontSize="18"
+                             Style="{StaticResource SelectionCardRadioStyle}"/>
+                <RadioButton x:Name="MoreThanDayRadioButton"
+                             Content="{services:Loc duration_more_day}"
+                             GroupName="Duration"
+                             Tag="More than a day"
+                             FontSize="18"
+                             Style="{StaticResource SelectionCardRadioStyle}"/>
+                <RadioButton x:Name="UnknownRadioButton"
+                             Content="{services:Loc unknown}"
+                             GroupName="Duration"
+                             Tag="Unknown"
+                             FontSize="18"
+                             Style="{StaticResource SelectionCardRadioStyle}"/>
+            </StackPanel>
 
             <controls:VoiceRecorderControl x:Name="VoiceRecorder"
                                            QuestionId="6"
