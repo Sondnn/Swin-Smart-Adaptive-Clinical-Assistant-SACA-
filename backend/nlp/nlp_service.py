@@ -16,15 +16,29 @@ try:
 except ImportError:
     sr = None
 
+try:
+    from rapidfuzz import fuzz
+except ImportError:
+    fuzz = None
+
 from config import MODEL_FEATURES_FILE
+from nlp.walmadjari_stt import transcribe_walmadjari
 
 WMT_EN_DICT_FILE = Path(__file__).resolve().with_name("wmt_en_dict.json")
+WMT_OPTION_VOCAB_FILE = Path(__file__).resolve().with_name("option_vocab_wmt.json")
 
-# Maps language int (from API) to Google Speech API language code
+# Language codes:
+#   1 = English (en-AU) -- handled by Google STT
+#   0 = Walmadjari -- handled by walmadjari_stt.transcribe_walmadjari, the Walmadjari value here is informational; routing branches on the int.
 LANGUAGE_MAP = {
     1: "en-AU",
-    0: "...",  # Replace with supported indigenous language code
+    0: "wmt",
 }
+
+# Minimum fuzz.partial_ratio score for a Walmadjari option spelling to count
+# as a match against the rough transcript. Tuned high-ish because the STT is
+# already noisy; lowering will increase false positives.
+WMT_OPTION_MATCH_THRESHOLD = 75
 
 def load_wmt_en_dict() -> dict:
     try:
@@ -32,7 +46,31 @@ def load_wmt_en_dict() -> dict:
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
+
+def load_wmt_option_vocab() -> dict:
+    try:
+        return json.loads(WMT_OPTION_VOCAB_FILE.read_text(encoding="utf-8"))
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
 WMT_EN_DICT = load_wmt_en_dict()
+WMT_OPTION_VOCAB = load_wmt_option_vocab()
+
+
+def _wmt_best_option_match(transcript: str, options: dict[str, list[str]]) -> str | None:
+    if fuzz is None or not transcript:
+        return None
+    best_key: str | None = None
+    best_score = WMT_OPTION_MATCH_THRESHOLD - 1
+    for key, phrases in options.items():
+        for phrase in phrases:
+            if not phrase:
+                continue
+            score = fuzz.partial_ratio(phrase.lower(), transcript.lower())
+            if score > best_score:
+                best_score = score
+                best_key = key
+    return best_key
 
 FALLBACK_STOPWORDS = {
     "a", "an", "and", "are", "as", "at", "be", "by", "for", "from",
@@ -156,14 +194,6 @@ def convert_wav_to_text(wav_file_path: str, language: int = 1) -> str:
     if language not in LANGUAGE_MAP:
         raise ValueError(f"Unsupported language code: {language}. Use 1 (English) or 0 (Indigenous).")
 
-    language_code = LANGUAGE_MAP[language]
-
-    if sr is None:
-        raise ImportError(
-            "Missing dependency 'speech_recognition'.\n"
-            "Install backend requirements to enable audio transcription."
-        )
-
     if not os.path.isfile(wav_file_path):
         raise FileNotFoundError(f"WAV file not found: {wav_file_path}")
 
@@ -175,6 +205,18 @@ def convert_wav_to_text(wav_file_path: str, language: int = 1) -> str:
             f"Invalid WAV audio file: {wav_file_path}. File must be RIFF/PCM WAV."
         ) from exc
 
+    if language == 0:
+        transcript = transcribe_walmadjari(wav_file_path)
+        print(f"Transcription (wmt, backend={os.environ.get('WMT_ASR_BACKEND', 'whisper')}): {transcript}")
+        return transcript
+
+    if sr is None:
+        raise ImportError(
+            "Missing dependency 'speech_recognition'.\n"
+            "Install backend requirements to enable audio transcription."
+        )
+
+    language_code = LANGUAGE_MAP[language]
     recognizer = sr.Recognizer()
     with sr.AudioFile(wav_file_path) as source:
         audio = recognizer.record(source)
@@ -439,20 +481,56 @@ def process_audio_response(file_obj, language: int = 1, question_id: int = None)
         tmp_path = tmp.name
 
     try:
-        transcript = convert_wav_to_text(tmp_path, language=language)
+        raw_transcript = convert_wav_to_text(tmp_path, language=language)
         if language not in LANGUAGE_MAP:
             raise ValueError(f"Unsupported language code: {language}. Use 1 (English) or 0 (Indigenous).")
+        wmt_transcript: str | None = None
         if language == 0:
-            audio_to_process = translate_indigenous_to_english(transcript)
+            wmt_transcript = raw_transcript.lower().strip()
+            transcript = translate_indigenous_to_english(raw_transcript).lower().strip()
         else:
-            audio_to_process = transcript
-        transcript = audio_to_process.lower().strip()
+            transcript = raw_transcript.lower().strip()
         parser = _QUESTION_PARSERS.get(question_id)
-        if parser:
-            return parser(transcript)
-        return None
+        if not parser:
+            return None
+        result = parser(transcript)
+        if result is None and wmt_transcript is not None:
+            result = _match_wmt_options(question_id, wmt_transcript)
+        return result
     finally:
         os.unlink(tmp_path)
+
+
+def _match_wmt_options(question_id: int, wmt_transcript: str) -> dict | None:
+    if question_id == 1:
+        key = _wmt_best_option_match(wmt_transcript, WMT_OPTION_VOCAB.get("gender", {}))
+        return {"gender": key} if key else None
+    if question_id == 2:
+        key = _wmt_best_option_match(wmt_transcript, WMT_OPTION_VOCAB.get("age_over_65", {}))
+        return {"age_over_65": key} if key else None
+    if question_id == 5:
+        key = _wmt_best_option_match(wmt_transcript, WMT_OPTION_VOCAB.get("symptom_severity", {}))
+        return {"symptom_severity": key} if key else None
+    if question_id == 6:
+        key = _wmt_best_option_match(wmt_transcript, WMT_OPTION_VOCAB.get("symptoms_duration", {}))
+        return {"symptoms_duration": key} if key else None
+    if question_id == 7:
+        key = _wmt_best_option_match(wmt_transcript, WMT_OPTION_VOCAB.get("yes_no", {}))
+        return {"had_symptoms_before": key} if key else None
+    if question_id == 8:
+        matched = set()
+        for cond, phrases in WMT_OPTION_VOCAB.get("chronic_conditions", {}).items():
+            if fuzz is None:
+                break
+            for phrase in phrases:
+                if phrase and fuzz.partial_ratio(phrase.lower(), wmt_transcript) >= WMT_OPTION_MATCH_THRESHOLD:
+                    matched.add(cond)
+                    break
+        return {"chronic_conditions": matched} if matched else None
+    if question_id == 9:
+        key = _wmt_best_option_match(wmt_transcript, WMT_OPTION_VOCAB.get("yes_no", {}))
+        return {"had_contact": key} if key else None
+    return None
 
 def main() -> None:
     

@@ -7,5 +7,7 @@ pandas
 python-multipart
 python-dotenv
 SpeechRecognition
+faster-whisper
+rapidfuzz
 xgboost
 pyreadr
