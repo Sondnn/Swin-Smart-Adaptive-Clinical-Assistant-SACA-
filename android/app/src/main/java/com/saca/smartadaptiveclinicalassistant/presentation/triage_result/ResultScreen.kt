@@ -10,13 +10,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -61,6 +64,7 @@ fun ResultScreen(
     val uiState = triageResultViewModel.uiState
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0),
         topBar = {
             AppBar(
                 title = stringResource(R.string.home_action_bar_title),
@@ -71,45 +75,53 @@ fun ResultScreen(
         },
         modifier = modifier.fillMaxSize(),
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize()
-                .background(AppBackground)
-                .padding(horizontal = 16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Spacer(modifier = Modifier.height(42.dp))
 
-            when (uiState) {
-                is TriageResultUIState.Success -> {
-                    val result = uiState.triageResult
-                    Title(text = stringResource(R.string.triage_result_title))
-                    Spacer(modifier = Modifier.height(28.dp))
-                    ResultCard(result = result)
-                    Spacer(modifier = Modifier.height(12.dp))
-                    SymptomsSummary(result.symptoms)
-                }
-                is TriageResultUIState.Error -> {
-                    Title(text = stringResource(R.string.triage_result_error_title))
-                    Spacer(modifier = Modifier.height(28.dp))
-                    ErrorCard()
-                    Spacer(modifier = Modifier.height(12.dp))
-                    SymptomsSummary(uiState.symptoms)
-                }
-                else -> {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .background(AppBackground)
+        ) {
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(horizontal = 16.dp)
+                    .padding(bottom = 100.dp), // space for button
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+
+                Spacer(modifier = Modifier.height(42.dp))
+
+                when (uiState) {
+                    is TriageResultUIState.Success -> {
+                        val result = uiState.triageResult
+                        Title(text = stringResource(R.string.triage_result_title))
+                        Spacer(modifier = Modifier.height(28.dp))
+                        ResultCard(result = result)
+                        Spacer(modifier = Modifier.height(12.dp))
+                        SymptomsSummary(result.symptoms)
+                    }
+
+                    is TriageResultUIState.Error -> {
+                        Title(text = stringResource(R.string.triage_result_error_title))
+                        Spacer(modifier = Modifier.height(28.dp))
+                        ErrorCard()
+                        Spacer(modifier = Modifier.height(12.dp))
+                        SymptomsSummary(uiState.symptoms)
+                    }
                 }
             }
-
-            Spacer(modifier = Modifier.weight(1f))
 
             AppButton(
                 text = stringResource(R.string.triage_result_ok_button),
                 style = AppButtonStyle.Brown,
-                onClick = onOkClick
+                onClick = onOkClick,
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(horizontal = 16.dp, vertical = 28.dp)
             )
-
-            Spacer(modifier = Modifier.height(28.dp))
         }
     }
 }
