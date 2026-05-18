@@ -1,5 +1,7 @@
 from typing import List
 from collections.abc import Iterable
+from datetime import datetime, timezone
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -21,11 +23,20 @@ try:
 except ImportError:
     fuzz = None
 
+try:
+    import jellyfish
+except ImportError:
+    jellyfish = None
+
 from config import MODEL_FEATURES_FILE
 from nlp.walmadjari_stt import transcribe_walmadjari
 
 WMT_EN_DICT_FILE = Path(__file__).resolve().with_name("wmt_en_dict.json")
 WMT_OPTION_VOCAB_FILE = Path(__file__).resolve().with_name("option_vocab_wmt.json")
+WMT_LOG_PATH = Path(os.environ.get(
+    "WMT_LOG_PATH",
+    str(Path(__file__).resolve().parents[1] / "logs" / "wmt_transcripts.jsonl"),
+))
 
 # Language codes:
 #   1 = English (en-AU) -- handled by Google STT
@@ -35,10 +46,11 @@ LANGUAGE_MAP = {
     0: "wmt",
 }
 
-# Minimum fuzz.partial_ratio score for a Walmadjari option spelling to count
-# as a match against the rough transcript. Tuned high-ish because the STT is
-# already noisy; lowering will increase false positives.
+# Minimum score (0-100, max of char-fuzz and phonetic-fuzz) for an option
+# spelling to count as a match. Tuned high-ish because the STT is noisy.
 WMT_OPTION_MATCH_THRESHOLD = 75
+
+WMT_OPTION_MATCH_MARGIN = 5
 
 def load_wmt_en_dict() -> dict:
     try:
@@ -57,20 +69,52 @@ WMT_EN_DICT = load_wmt_en_dict()
 WMT_OPTION_VOCAB = load_wmt_option_vocab()
 
 
-def _wmt_best_option_match(transcript: str, options: dict[str, list[str]]) -> str | None:
+def _phonetic_encode(text: str) -> str:
+    if jellyfish is None or not text:
+        return ""
+    cleaned = re.sub(r"[^a-z\s]", " ", text.lower())
+    return " ".join(filter(None, (jellyfish.metaphone(w) for w in cleaned.split())))
+
+
+def _score_phrase(phrase: str, transcript: str) -> int:
+    if fuzz is None:
+        return 0
+    p_lower = phrase.lower()
+    t_lower = transcript.lower()
+    char_score = fuzz.partial_ratio(p_lower, t_lower)
+    p_phon = _phonetic_encode(phrase)
+    t_phon = _phonetic_encode(transcript)
+    phon_score = fuzz.partial_ratio(p_phon, t_phon) if p_phon and t_phon else 0
+    return int(max(char_score, phon_score))
+
+
+def _wmt_best_option_match(
+    transcript: str, options: dict[str, list[str]]
+) -> tuple[str | None, int]:
     if fuzz is None or not transcript:
-        return None
-    best_key: str | None = None
-    best_score = WMT_OPTION_MATCH_THRESHOLD - 1
+        return None, 0
+
+    per_key_best: dict[str, int] = {}
     for key, phrases in options.items():
         for phrase in phrases:
             if not phrase:
                 continue
-            score = fuzz.partial_ratio(phrase.lower(), transcript.lower())
-            if score > best_score:
-                best_score = score
-                best_key = key
-    return best_key
+            score = _score_phrase(phrase, transcript)
+            if score > per_key_best.get(key, -1):
+                per_key_best[key] = score
+
+    if not per_key_best:
+        return None, 0
+
+    ranked = sorted(per_key_best.items(), key=lambda kv: kv[1], reverse=True)
+    top_key, top_score = ranked[0]
+    runner_score = ranked[1][1] if len(ranked) > 1 else 0
+
+    if top_score < WMT_OPTION_MATCH_THRESHOLD:
+        return None, top_score
+    if (top_score - runner_score) < WMT_OPTION_MATCH_MARGIN:
+        return None, top_score
+    return top_key, top_score
 
 FALLBACK_STOPWORDS = {
     "a", "an", "and", "are", "as", "at", "be", "by", "for", "from",
@@ -475,62 +519,160 @@ _QUESTION_PARSERS = {
     #10: _parse_escalation_triggers, #not implemented yet
 }
 
-def process_audio_response(file_obj, language: int = 1, question_id: int = None) -> dict | None:
+def process_audio_response(file_obj, language: int = 1, question_id: int = None) -> dict:
+    """Run STT + parse for one question.
+
+    Always returns a dict shaped:
+        {"parsed_response": dict | None,
+         "confidence":      float | None,   # 0..1, None for English (Google STT)
+         "transcript":      str}            # raw STT output
+    """
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
         shutil.copyfileobj(file_obj, tmp)
         tmp_path = tmp.name
 
     try:
-        raw_transcript = convert_wav_to_text(tmp_path, language=language)
         if language not in LANGUAGE_MAP:
             raise ValueError(f"Unsupported language code: {language}. Use 1 (English) or 0 (Indigenous).")
+
+        raw_transcript = convert_wav_to_text(tmp_path, language=language)
         wmt_transcript: str | None = None
         if language == 0:
             wmt_transcript = raw_transcript.lower().strip()
             transcript = translate_indigenous_to_english(raw_transcript).lower().strip()
         else:
             transcript = raw_transcript.lower().strip()
+
         parser = _QUESTION_PARSERS.get(question_id)
-        if not parser:
-            return None
-        result = parser(transcript)
-        if result is None and wmt_transcript is not None:
-            result = _match_wmt_options(question_id, wmt_transcript)
-        return result
+        parsed: dict | None = None
+        confidence: float | None = None
+        match_source = "none"
+
+        if parser:
+            parsed = parser(transcript)
+            if parsed is not None:
+                # English parser hit: confidence is "exact" for the keywords it found
+                confidence = 1.0
+                match_source = "english_parser"
+
+        if parsed is None and wmt_transcript is not None:
+            parsed, raw_score = _match_wmt_options(question_id, wmt_transcript)
+            if parsed is not None:
+                confidence = raw_score / 100.0
+                match_source = "wmt_fallback"
+
+        if language == 0:
+            _log_wmt_transcript(
+                tmp_path=tmp_path,
+                question_id=question_id,
+                raw_transcript=raw_transcript,
+                translated_transcript=transcript,
+                parsed=parsed,
+                confidence=confidence,
+                match_source=match_source,
+            )
+
+        return {
+            "parsed_response": parsed,
+            "confidence": confidence,
+            "transcript": raw_transcript,
+        }
     finally:
         os.unlink(tmp_path)
 
 
-def _match_wmt_options(question_id: int, wmt_transcript: str) -> dict | None:
+def _match_wmt_options(
+    question_id: int, wmt_transcript: str
+) -> tuple[dict | None, int]:
+    """Return (parsed_dict | None, raw_score).
+
+    raw_score is the 0-100 partial_ratio of the winning option (or the
+    best-but-not-quite-matching option, for logging). For chronic-conditions
+    (multi-select) it's the min score across matched conditions, so the
+    overall confidence reflects the weakest accepted match.
+    """
+    def _wrap(answer_field: str, vocab_key: str):
+        key, score = _wmt_best_option_match(
+            wmt_transcript, WMT_OPTION_VOCAB.get(vocab_key, {})
+        )
+        return ({answer_field: key} if key else None), score
+
     if question_id == 1:
-        key = _wmt_best_option_match(wmt_transcript, WMT_OPTION_VOCAB.get("gender", {}))
-        return {"gender": key} if key else None
+        return _wrap("gender", "gender")
     if question_id == 2:
-        key = _wmt_best_option_match(wmt_transcript, WMT_OPTION_VOCAB.get("age_over_65", {}))
-        return {"age_over_65": key} if key else None
+        return _wrap("age_over_65", "age_over_65")
     if question_id == 5:
-        key = _wmt_best_option_match(wmt_transcript, WMT_OPTION_VOCAB.get("symptom_severity", {}))
-        return {"symptom_severity": key} if key else None
+        return _wrap("symptom_severity", "symptom_severity")
     if question_id == 6:
-        key = _wmt_best_option_match(wmt_transcript, WMT_OPTION_VOCAB.get("symptoms_duration", {}))
-        return {"symptoms_duration": key} if key else None
+        return _wrap("symptoms_duration", "symptoms_duration")
     if question_id == 7:
-        key = _wmt_best_option_match(wmt_transcript, WMT_OPTION_VOCAB.get("yes_no", {}))
-        return {"had_symptoms_before": key} if key else None
-    if question_id == 8:
-        matched = set()
-        for cond, phrases in WMT_OPTION_VOCAB.get("chronic_conditions", {}).items():
-            if fuzz is None:
-                break
-            for phrase in phrases:
-                if phrase and fuzz.partial_ratio(phrase.lower(), wmt_transcript) >= WMT_OPTION_MATCH_THRESHOLD:
-                    matched.add(cond)
-                    break
-        return {"chronic_conditions": matched} if matched else None
+        return _wrap("had_symptoms_before", "yes_no")
     if question_id == 9:
-        key = _wmt_best_option_match(wmt_transcript, WMT_OPTION_VOCAB.get("yes_no", {}))
-        return {"had_contact": key} if key else None
-    return None
+        return _wrap("had_contact", "yes_no")
+    if question_id == 8:
+        matched: dict[str, int] = {}
+        for cond, phrases in WMT_OPTION_VOCAB.get("chronic_conditions", {}).items():
+            best_score = 0
+            for phrase in phrases:
+                if not phrase:
+                    continue
+                score = _score_phrase(phrase, wmt_transcript)
+                if score > best_score:
+                    best_score = score
+            if best_score >= WMT_OPTION_MATCH_THRESHOLD:
+                matched[cond] = best_score
+        if not matched:
+            return None, 0
+        return {"chronic_conditions": set(matched.keys())}, min(matched.values())
+    return None, 0
+
+
+def _log_wmt_transcript(
+    *,
+    tmp_path: str,
+    question_id: int | None,
+    raw_transcript: str,
+    translated_transcript: str,
+    parsed: dict | None,
+    confidence: float | None,
+    match_source: str,
+) -> None:
+    """Append one JSONL record for a Walmadjari STT request.
+
+    Best-effort: any IO error is swallowed so logging never breaks the
+    request. Disable by setting WMT_LOG_PATH=/dev/null.
+    """
+    try:
+        if str(WMT_LOG_PATH) == os.devnull:
+            return
+        WMT_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        wav_sha1 = ""
+        try:
+            with open(tmp_path, "rb") as fh:
+                wav_sha1 = hashlib.sha1(fh.read()).hexdigest()
+        except OSError:
+            pass
+        # JSON can't serialize sets (chronic_conditions); coerce.
+        parsed_jsonable = parsed
+        if isinstance(parsed, dict):
+            parsed_jsonable = {
+                k: (sorted(v) if isinstance(v, set) else v) for k, v in parsed.items()
+            }
+        record = {
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "wav_sha1": wav_sha1,
+            "question_id": question_id,
+            "backend": os.environ.get("WMT_ASR_BACKEND", "whisper"),
+            "raw_transcript": raw_transcript,
+            "translated_transcript": translated_transcript,
+            "parsed": parsed_jsonable,
+            "confidence": confidence,
+            "match_source": match_source,
+        }
+        with WMT_LOG_PATH.open("a", encoding="utf-8") as out:
+            out.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
 
 def main() -> None:
     

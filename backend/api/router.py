@@ -106,9 +106,16 @@ async def speech_to_text_page(
     files: UploadFile = File(...),
 ):
     try:
-        parsed_response = nlp_service.process_audio_response(files.file, language=language, question_id=question_id)
-        return {"question_id": question_id, 
-                "parsed_response": parsed_response}
+        result = nlp_service.process_audio_response(files.file, language=language, question_id=question_id)
+        parsed = result["parsed_response"]
+        if isinstance(parsed, dict):
+            parsed = {k: (sorted(v) if isinstance(v, set) else v) for k, v in parsed.items()}
+        return {
+            "question_id": question_id,
+            "parsed_response": parsed,
+            "confidence": result["confidence"],
+            "transcript": result["transcript"],
+        }
     except Exception as e:
         return JSONResponse(
             status_code=500,

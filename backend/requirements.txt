@@ -9,5 +9,6 @@ python-dotenv
 SpeechRecognition
 faster-whisper
 rapidfuzz
+jellyfish
 xgboost
 pyreadr
