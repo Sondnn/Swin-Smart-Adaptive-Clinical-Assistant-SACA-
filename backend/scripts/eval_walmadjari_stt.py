@@ -1,26 +1,3 @@
-"""Evaluation harness for the Walmadjari STT pipeline.
-
-Reads WAV files from `backend/data/wmt_audio/` and an expected-answers JSON
-sidecar, runs each clip through `process_audio_response`, and prints
-predicted vs expected. Safe to run with no audio present -- it just reports
-that the directory is empty.
-
-Expected layout:
-
-    backend/data/wmt_audio/
-        manifest.json       # list of {file, question_id, expected}
-        sample_001.wav
-        sample_002.wav
-        ...
-
-manifest.json entry shape:
-    {"file": "sample_001.wav", "question_id": 1, "expected": {"gender": "0"}}
-
-Usage:
-    WMT_ASR_BACKEND=whisper python backend/scripts/eval_walmadjari_stt.py
-    WMT_ASR_BACKEND=phoneme python backend/scripts/eval_walmadjari_stt.py
-"""
-
 from __future__ import annotations
 
 import json
@@ -54,13 +31,18 @@ def main() -> int:
     for entry in manifest:
         wav_path = AUDIO_DIR / entry["file"]
         with wav_path.open("rb") as f:
-            actual = process_audio_response(f, language=0, question_id=entry["question_id"])
+            result = process_audio_response(f, language=0, question_id=entry["question_id"])
+        actual = result["parsed_response"]
+        if isinstance(actual, dict):
+            actual = {k: (sorted(v) if isinstance(v, set) else v) for k, v in actual.items()}
         expected = entry["expected"]
         match = actual == expected
         if match:
             correct += 1
         status = "OK" if match else "MISS"
-        print(f"  [{status}] q={entry['question_id']:<2} file={entry['file']:<24} expected={expected} actual={actual}")
+        conf = result.get("confidence")
+        conf_str = f"{conf:.2f}" if isinstance(conf, (int, float)) else "n/a"
+        print(f"  [{status}] q={entry['question_id']:<2} file={entry['file']:<24} conf={conf_str} expected={expected} actual={actual}")
 
     if manifest:
         print(f"Accuracy: {correct}/{len(manifest)} ({100 * correct / len(manifest):.1f}%)")
