@@ -1,17 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using SACA.WindowsApp.Services;
 
 namespace SACA.WindowsApp.Pages
@@ -19,30 +8,22 @@ namespace SACA.WindowsApp.Pages
     /// <summary>
     /// Interaction logic for PatientInfoPage.xaml
     /// </summary>
-
     public partial class PatientInfoPage : UserControl
     {
         private readonly MainWindow _mainWindow;
         private string _recordedGender = "";
-        private string _recordedAge = "";
 
         public PatientInfoPage(MainWindow mainWindow)
         {
             InitializeComponent();
             _mainWindow = mainWindow;
             GenderVoiceRecorder.Configure(GetSpeechToTextLanguageCode);
-            AgeVoiceRecorder.Configure(GetSpeechToTextLanguageCode);
             GenderVoiceRecorder.TranscriptReceived += VoiceRecorder_TranscriptReceived;
-            AgeVoiceRecorder.TranscriptReceived += VoiceRecorder_TranscriptReceived;
-        }
 
-        private void GenderComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            var gender = GetComboBoxValue(GenderComboBox);
-            bool isFemale = gender == "Female";
-
-            //PregnancyLabel.Visibility = isFemale ? Visibility.Visible : Visibility.Collapsed;
-            //PregnancyComboBox.Visibility = isFemale ? Visibility.Visible : Visibility.Collapsed;
+            if (!string.IsNullOrWhiteSpace(_mainWindow.CurrentRequest.Gender))
+            {
+                SelectRadioValue(_mainWindow.CurrentRequest.Gender);
+            }
         }
 
         private void Back_Click(object sender, RoutedEventArgs e)
@@ -52,47 +33,27 @@ namespace SACA.WindowsApp.Pages
 
         private void Continue_Click(object sender, RoutedEventArgs e)
         {
-            string gender = GetComboBoxValue(GenderComboBox);
-            string age = GetComboBoxValue(AgeComboBox);
+            string gender = GetSelectedValue();
 
             if (string.IsNullOrWhiteSpace(gender))
             {
                 gender = _recordedGender;
             }
 
-            if (string.IsNullOrWhiteSpace(age))
+            if (string.IsNullOrWhiteSpace(gender))
             {
-                age = _recordedAge;
-            }
-
-            if (string.IsNullOrWhiteSpace(gender) || string.IsNullOrWhiteSpace(age))
-            {
-                MessageBox.Show("Please select gender and age group, or answer both using voice.");
+                MessageBox.Show("Please select gender, or answer using voice.");
                 return;
             }
 
             _mainWindow.CurrentRequest.Gender = gender;
-            //_mainWindow.CurrentRequest.PregnancyStatus = GetComboBoxValue(PregnancyComboBox);
-            _mainWindow.CurrentRequest.AgeGroup = age;
-
-            _mainWindow.NavigateToSymptoms();
+            _mainWindow.NavigateToAge();
         }
 
         private void VoiceRecorder_TranscriptReceived(object? sender, Controls.VoiceTranscribedEventArgs e)
         {
-            string parsedValue = ParsedResponseReader.ReadSingleValue(e.ParsedResponseJson);
-
-            if (e.QuestionId == 1)
-            {
-                _recordedGender = MapGenderResponse(parsedValue);
-                SelectComboBoxValue(GenderComboBox, _recordedGender);
-            }
-            else if (e.QuestionId == 2)
-            {
-                _recordedAge = parsedValue;
-                SelectComboBoxValue(AgeComboBox, parsedValue);
-            }
-
+            _recordedGender = MapGenderResponse(ParsedResponseReader.ReadSingleValue(e.ParsedResponseJson));
+            SelectRadioValue(_recordedGender);
             _mainWindow.CurrentRequest.AudioRecordingPath = e.RecordingPath;
             _mainWindow.CurrentRequest.AudioRecordingPaths.Add(e.RecordingPath);
             _mainWindow.CurrentRequest.VoiceTranscripts.Add($"Question {e.QuestionId}: {e.Transcript}");
@@ -105,33 +66,34 @@ namespace SACA.WindowsApp.Pages
                 : 0;
         }
 
-        private string GetComboBoxValue(ComboBox comboBox)
+        private string GetSelectedValue()
         {
-            if (comboBox.SelectedItem is ComboBoxItem item)
+            if (MaleRadioButton.IsChecked == true)
             {
-                return item.Tag?.ToString() ?? item.Content?.ToString() ?? "";
+                return MaleRadioButton.Tag?.ToString() ?? "";
+            }
+
+            if (FemaleRadioButton.IsChecked == true)
+            {
+                return FemaleRadioButton.Tag?.ToString() ?? "";
+            }
+
+            if (UnknownRadioButton.IsChecked == true)
+            {
+                return UnknownRadioButton.Tag?.ToString() ?? "";
             }
 
             return "";
         }
 
-        private static void SelectComboBoxValue(ComboBox comboBox, string value)
+        private void SelectRadioValue(string value)
         {
-            foreach (ComboBoxItem item in comboBox.Items)
-            {
-                string itemValue = item.Content?.ToString() ?? "";
-                string tagValue = item.Tag?.ToString() ?? "";
+            string normalisedValue = value.Trim();
 
-                if (itemValue.Equals(value, StringComparison.OrdinalIgnoreCase)
-                    || tagValue.Equals(value, StringComparison.OrdinalIgnoreCase)
-                    || itemValue.Contains(value, StringComparison.OrdinalIgnoreCase)
-                    || tagValue.Contains(value, StringComparison.OrdinalIgnoreCase)
-                    || value.Contains(itemValue, StringComparison.OrdinalIgnoreCase))
-                {
-                    comboBox.SelectedItem = item;
-                    return;
-                }
-            }
+            MaleRadioButton.IsChecked = normalisedValue.Equals("Male", StringComparison.OrdinalIgnoreCase);
+            FemaleRadioButton.IsChecked = normalisedValue.Equals("Female", StringComparison.OrdinalIgnoreCase);
+            UnknownRadioButton.IsChecked = normalisedValue.Contains("unknown", StringComparison.OrdinalIgnoreCase)
+                || normalisedValue.Contains("prefer", StringComparison.OrdinalIgnoreCase);
         }
 
         private static string MapGenderResponse(string value)

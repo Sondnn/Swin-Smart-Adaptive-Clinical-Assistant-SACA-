@@ -9,5 +9,28 @@
 
     <Grid>
         <ContentControl x:Name="MainContent"/>
+
+        <StackPanel x:Name="LanguageSwitcher"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Top"
+                    Margin="0,16,16,0"
+                    Panel.ZIndex="10">
+            <Button x:Name="EnglishButton"
+                    Content="English"
+                    Width="108"
+                    Height="38"
+                    FontSize="14"
+                    Padding="10,6"
+                    Margin="0,0,8,0"
+                    Click="EnglishLanguage_Click"/>
+            <Button x:Name="WalmajarriButton"
+                    Content="Walmajarri"
+                    Width="118"
+                    Height="38"
+                    FontSize="14"
+                    Padding="10,6"
+                    Click="WalmajarriLanguage_Click"/>
+        </StackPanel>
     </Grid>
 </Window>
