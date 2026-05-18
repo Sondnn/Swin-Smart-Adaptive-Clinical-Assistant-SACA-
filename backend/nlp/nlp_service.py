@@ -18,21 +18,10 @@ try:
 except ImportError:
     sr = None
 
-try:
-    from rapidfuzz import fuzz
-except ImportError:
-    fuzz = None
-
-try:
-    import jellyfish
-except ImportError:
-    jellyfish = None
-
 from config import MODEL_FEATURES_FILE
 from nlp.walmadjari_stt import transcribe_walmadjari
 
 WMT_EN_DICT_FILE = Path(__file__).resolve().with_name("wmt_en_dict.json")
-WMT_OPTION_VOCAB_FILE = Path(__file__).resolve().with_name("option_vocab_wmt.json")
 WMT_LOG_PATH = Path(os.environ.get(
     "WMT_LOG_PATH",
     str(Path(__file__).resolve().parents[1] / "logs" / "wmt_transcripts.jsonl"),
@@ -40,17 +29,14 @@ WMT_LOG_PATH = Path(os.environ.get(
 
 # Language codes:
 #   1 = English (en-AU) -- handled by Google STT
-#   0 = Walmadjari -- handled by walmadjari_stt.transcribe_walmadjari, the Walmadjari value here is informational; routing branches on the int.
+#   0 = Walmadjari -- fixed-answer questions go through audio matching (see
+#       nlp/wmt_audio_matcher.py); free-form symptoms (q=3) go through Whisper
+#       + word translation.
 LANGUAGE_MAP = {
     1: "en-AU",
     0: "wmt",
 }
 
-# Minimum score (0-100, max of char-fuzz and phonetic-fuzz) for an option
-# spelling to count as a match. Tuned high-ish because the STT is noisy.
-WMT_OPTION_MATCH_THRESHOLD = 75
-
-WMT_OPTION_MATCH_MARGIN = 5
 
 def load_wmt_en_dict() -> dict:
     try:
@@ -59,62 +45,8 @@ def load_wmt_en_dict() -> dict:
         return {}
 
 
-def load_wmt_option_vocab() -> dict:
-    try:
-        return json.loads(WMT_OPTION_VOCAB_FILE.read_text(encoding="utf-8"))
-    except (FileNotFoundError, json.JSONDecodeError):
-        return {}
-
 WMT_EN_DICT = load_wmt_en_dict()
-WMT_OPTION_VOCAB = load_wmt_option_vocab()
 
-
-def _phonetic_encode(text: str) -> str:
-    if jellyfish is None or not text:
-        return ""
-    cleaned = re.sub(r"[^a-z\s]", " ", text.lower())
-    return " ".join(filter(None, (jellyfish.metaphone(w) for w in cleaned.split())))
-
-
-def _score_phrase(phrase: str, transcript: str) -> int:
-    if fuzz is None:
-        return 0
-    p_lower = phrase.lower()
-    t_lower = transcript.lower()
-    char_score = fuzz.partial_ratio(p_lower, t_lower)
-    p_phon = _phonetic_encode(phrase)
-    t_phon = _phonetic_encode(transcript)
-    phon_score = fuzz.partial_ratio(p_phon, t_phon) if p_phon and t_phon else 0
-    return int(max(char_score, phon_score))
-
-
-def _wmt_best_option_match(
-    transcript: str, options: dict[str, list[str]]
-) -> tuple[str | None, int]:
-    if fuzz is None or not transcript:
-        return None, 0
-
-    per_key_best: dict[str, int] = {}
-    for key, phrases in options.items():
-        for phrase in phrases:
-            if not phrase:
-                continue
-            score = _score_phrase(phrase, transcript)
-            if score > per_key_best.get(key, -1):
-                per_key_best[key] = score
-
-    if not per_key_best:
-        return None, 0
-
-    ranked = sorted(per_key_best.items(), key=lambda kv: kv[1], reverse=True)
-    top_key, top_score = ranked[0]
-    runner_score = ranked[1][1] if len(ranked) > 1 else 0
-
-    if top_score < WMT_OPTION_MATCH_THRESHOLD:
-        return None, top_score
-    if (top_score - runner_score) < WMT_OPTION_MATCH_MARGIN:
-        return None, top_score
-    return top_key, top_score
 
 FALLBACK_STOPWORDS = {
     "a", "an", "and", "are", "as", "at", "be", "by", "for", "from",
@@ -519,13 +451,34 @@ _QUESTION_PARSERS = {
     #10: _parse_escalation_triggers, #not implemented yet
 }
 
-def process_audio_response(file_obj, language: int = 1, question_id: int = None) -> dict:
-    """Run STT + parse for one question.
+# Questions whose Walmadjari answers are matched directly against pre-recorded
+# reference WAVs (audio-to-audio matching, no STT). Question 3 (free-form
+# symptoms) stays on the Whisper + word-translation + text-parser path.
+WMT_AUDIO_MATCH_QUESTIONS = {1, 2, 5, 6, 7, 8, 9}
 
-    Always returns a dict shaped:
-        {"parsed_response": dict | None,
-         "confidence":      float | None,   # 0..1, None for English (Google STT)
-         "transcript":      str}            # raw STT output
+_FIELD_FOR_QUESTION = {
+    1: "gender",
+    2: "age_over_65",
+    5: "symptom_severity",
+    6: "symptoms_duration",
+    7: "had_symptoms_before",
+    8: "chronic_conditions",
+    9: "had_contact",
+}
+
+
+def process_audio_response(file_obj, language: int = 1, question_id: int = None) -> dict:
+    """Run the right pipeline for one question, return a uniform envelope:
+
+        {"parsed_response":    dict | None,
+         "confidence":         float | None,   # 0..1 (None for English/Google STT)
+         "transcript":         str,            # raw STT text, "" when audio-matched
+         "matched_reference":  str}            # reference WAV name, "" when text-matched
+
+    English (language=1) always goes through Google STT + text parsers.
+    Walmadjari (language=0):
+      - q=3 (symptoms, free-form): Whisper + wmt->en word translation + parser
+      - everything else: MFCC+DTW match against backend/data/wmt_references/
     """
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
         shutil.copyfileobj(file_obj, tmp)
@@ -535,10 +488,41 @@ def process_audio_response(file_obj, language: int = 1, question_id: int = None)
         if language not in LANGUAGE_MAP:
             raise ValueError(f"Unsupported language code: {language}. Use 1 (English) or 0 (Indigenous).")
 
+        # ---- Walmadjari audio-match path (fixed-answer questions) -----------
+        if language == 0 and question_id in WMT_AUDIO_MATCH_QUESTIONS:
+            from nlp.wmt_audio_matcher import match_audio
+            m = match_audio(tmp_path, question_id)
+            parsed = None
+            if m.answer_key is not None:
+                field = _FIELD_FOR_QUESTION[question_id]
+                if question_id == 8:
+                    # Multi-select; for now one matched ref -> one condition. Future:
+                    # run the matcher in multi-keyword mode against a sliding window.
+                    parsed = {field: {m.answer_key}}
+                else:
+                    parsed = {field: m.answer_key}
+            _log_wmt_transcript(
+                tmp_path=tmp_path,
+                question_id=question_id,
+                raw_transcript="",
+                translated_transcript="",
+                parsed=parsed,
+                confidence=m.similarity if m.answer_key else None,
+                match_source="audio_match",
+                extra={"matched_reference": m.matched_reference,
+                       "cost": round(m.cost, 4),
+                       "refs_considered": m.refs_considered},
+            )
+            return {
+                "parsed_response": parsed,
+                "confidence": m.similarity if m.answer_key else None,
+                "transcript": "",
+                "matched_reference": m.matched_reference,
+            }
+
+        # ---- Text path: English, OR Walmadjari symptoms (q=3) ---------------
         raw_transcript = convert_wav_to_text(tmp_path, language=language)
-        wmt_transcript: str | None = None
         if language == 0:
-            wmt_transcript = raw_transcript.lower().strip()
             transcript = translate_indigenous_to_english(raw_transcript).lower().strip()
         else:
             transcript = raw_transcript.lower().strip()
@@ -546,20 +530,10 @@ def process_audio_response(file_obj, language: int = 1, question_id: int = None)
         parser = _QUESTION_PARSERS.get(question_id)
         parsed: dict | None = None
         confidence: float | None = None
-        match_source = "none"
-
         if parser:
             parsed = parser(transcript)
             if parsed is not None:
-                # English parser hit: confidence is "exact" for the keywords it found
                 confidence = 1.0
-                match_source = "english_parser"
-
-        if parsed is None and wmt_transcript is not None:
-            parsed, raw_score = _match_wmt_options(question_id, wmt_transcript)
-            if parsed is not None:
-                confidence = raw_score / 100.0
-                match_source = "wmt_fallback"
 
         if language == 0:
             _log_wmt_transcript(
@@ -569,62 +543,17 @@ def process_audio_response(file_obj, language: int = 1, question_id: int = None)
                 translated_transcript=transcript,
                 parsed=parsed,
                 confidence=confidence,
-                match_source=match_source,
+                match_source="text_parser",
             )
 
         return {
             "parsed_response": parsed,
             "confidence": confidence,
             "transcript": raw_transcript,
+            "matched_reference": "",
         }
     finally:
         os.unlink(tmp_path)
-
-
-def _match_wmt_options(
-    question_id: int, wmt_transcript: str
-) -> tuple[dict | None, int]:
-    """Return (parsed_dict | None, raw_score).
-
-    raw_score is the 0-100 partial_ratio of the winning option (or the
-    best-but-not-quite-matching option, for logging). For chronic-conditions
-    (multi-select) it's the min score across matched conditions, so the
-    overall confidence reflects the weakest accepted match.
-    """
-    def _wrap(answer_field: str, vocab_key: str):
-        key, score = _wmt_best_option_match(
-            wmt_transcript, WMT_OPTION_VOCAB.get(vocab_key, {})
-        )
-        return ({answer_field: key} if key else None), score
-
-    if question_id == 1:
-        return _wrap("gender", "gender")
-    if question_id == 2:
-        return _wrap("age_over_65", "age_over_65")
-    if question_id == 5:
-        return _wrap("symptom_severity", "symptom_severity")
-    if question_id == 6:
-        return _wrap("symptoms_duration", "symptoms_duration")
-    if question_id == 7:
-        return _wrap("had_symptoms_before", "yes_no")
-    if question_id == 9:
-        return _wrap("had_contact", "yes_no")
-    if question_id == 8:
-        matched: dict[str, int] = {}
-        for cond, phrases in WMT_OPTION_VOCAB.get("chronic_conditions", {}).items():
-            best_score = 0
-            for phrase in phrases:
-                if not phrase:
-                    continue
-                score = _score_phrase(phrase, wmt_transcript)
-                if score > best_score:
-                    best_score = score
-            if best_score >= WMT_OPTION_MATCH_THRESHOLD:
-                matched[cond] = best_score
-        if not matched:
-            return None, 0
-        return {"chronic_conditions": set(matched.keys())}, min(matched.values())
-    return None, 0
 
 
 def _log_wmt_transcript(
@@ -636,11 +565,11 @@ def _log_wmt_transcript(
     parsed: dict | None,
     confidence: float | None,
     match_source: str,
+    extra: dict | None = None,
 ) -> None:
-    """Append one JSONL record for a Walmadjari STT request.
-
-    Best-effort: any IO error is swallowed so logging never breaks the
-    request. Disable by setting WMT_LOG_PATH=/dev/null.
+    """Append one JSONL record for a Walmadjari request. Best-effort: any IO
+    error is swallowed so logging never breaks the request. Disable by
+    setting WMT_LOG_PATH=/dev/null.
     """
     try:
         if str(WMT_LOG_PATH) == os.devnull:
@@ -652,7 +581,6 @@ def _log_wmt_transcript(
                 wav_sha1 = hashlib.sha1(fh.read()).hexdigest()
         except OSError:
             pass
-        # JSON can't serialize sets (chronic_conditions); coerce.
         parsed_jsonable = parsed
         if isinstance(parsed, dict):
             parsed_jsonable = {
@@ -662,13 +590,14 @@ def _log_wmt_transcript(
             "ts": datetime.now(timezone.utc).isoformat(),
             "wav_sha1": wav_sha1,
             "question_id": question_id,
-            "backend": os.environ.get("WMT_ASR_BACKEND", "whisper"),
             "raw_transcript": raw_transcript,
             "translated_transcript": translated_transcript,
             "parsed": parsed_jsonable,
             "confidence": confidence,
             "match_source": match_source,
         }
+        if extra:
+            record.update(extra)
         with WMT_LOG_PATH.open("a", encoding="utf-8") as out:
             out.write(json.dumps(record, ensure_ascii=False) + "\n")
     except Exception:
