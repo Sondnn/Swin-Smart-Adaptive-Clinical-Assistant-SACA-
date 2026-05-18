@@ -32,7 +32,7 @@ namespace SACA.WindowsApp.Pages
 
         private void Back_Click(object sender, RoutedEventArgs e)
         {
-            _mainWindow.NavigateToPatientInfo();
+            _mainWindow.NavigateToAge();
         }
 
         private void Continue_Click(object sender, RoutedEventArgs e)
