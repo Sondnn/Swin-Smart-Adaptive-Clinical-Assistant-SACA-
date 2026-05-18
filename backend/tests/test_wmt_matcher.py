@@ -12,87 +12,138 @@ from nlp import nlp_service as svc
 
 
 # ---------------------------------------------------------------------------
-# _wmt_best_option_match -- generic scorer
+# _wmt_best_option_match -- generic scorer, returns (key|None, score)
 # ---------------------------------------------------------------------------
 
 class TestBestOptionMatch:
     def test_exact_match(self):
-        options = {"a": ["yapajarra"], "b": ["karli"]}
-        assert svc._wmt_best_option_match("yapajarra", options) == "a"
+        key, score = svc._wmt_best_option_match("yapajarra", {"a": ["yapajarra"], "b": ["karli"]})
+        assert key == "a"
+        assert score == 100
 
     def test_match_inside_noisy_transcript(self):
         # partial_ratio should find the phrase embedded in surrounding noise
-        options = {"a": ["yapajarra"], "b": ["karli"]}
-        assert svc._wmt_best_option_match("umm yapajarra please", options) == "a"
+        key, _ = svc._wmt_best_option_match("umm yapajarra please", {"a": ["yapajarra"], "b": ["karli"]})
+        assert key == "a"
 
     def test_close_misspelling_within_threshold(self):
-        options = {"a": ["yapajarra"]}
-        # single dropped char -- still well above threshold
-        assert svc._wmt_best_option_match("yapajara", options) == "a"
+        key, _ = svc._wmt_best_option_match("yapajara", {"a": ["yapajarra"]})
+        assert key == "a"
 
     def test_rejects_below_threshold(self):
-        options = {"a": ["yapajarra"]}
-        assert svc._wmt_best_option_match("totally different", options) is None
+        key, _ = svc._wmt_best_option_match("totally different", {"a": ["yapajarra"]})
+        assert key is None
 
     def test_empty_transcript_returns_none(self):
-        options = {"a": ["yapajarra"]}
-        assert svc._wmt_best_option_match("", options) is None
+        key, _ = svc._wmt_best_option_match("", {"a": ["yapajarra"]})
+        assert key is None
 
     def test_empty_options_returns_none(self):
-        assert svc._wmt_best_option_match("yapajarra", {}) is None
+        key, _ = svc._wmt_best_option_match("yapajarra", {})
+        assert key is None
 
     def test_skips_empty_phrases(self):
-        # entries with [] (placeholder vocab) must not cause a crash or false match
-        options = {"a": [], "b": ["karli"]}
-        assert svc._wmt_best_option_match("karli", options) == "b"
-        assert svc._wmt_best_option_match("anything", {"a": []}) is None
+        key, _ = svc._wmt_best_option_match("karli", {"a": [], "b": ["karli"]})
+        assert key == "b"
+        key, _ = svc._wmt_best_option_match("anything", {"a": []})
+        assert key is None
 
     def test_picks_highest_scoring_option(self):
-        options = {
-            "low":  ["karlarra-wana"],
-            "mild": ["kujarra-wana"],
-        }
-        # transcript is exactly "kujarra-wana" -- should beat "karlarra-wana"
-        assert svc._wmt_best_option_match("kujarra-wana", options) == "mild"
+        options = {"low": ["karlarra-wana"], "mild": ["kujarra-wana"]}
+        key, _ = svc._wmt_best_option_match("kujarra-wana", options)
+        assert key == "mild"
 
     def test_case_insensitive(self):
-        options = {"a": ["YapaJARRA"]}
-        assert svc._wmt_best_option_match("yapajarra", options) == "a"
+        key, _ = svc._wmt_best_option_match("yapajarra", {"a": ["YapaJARRA"]})
+        assert key == "a"
 
     def test_returns_none_when_rapidfuzz_unavailable(self, monkeypatch):
         monkeypatch.setattr(svc, "fuzz", None)
-        assert svc._wmt_best_option_match("yapajarra", {"a": ["yapajarra"]}) is None
+        key, _ = svc._wmt_best_option_match("yapajarra", {"a": ["yapajarra"]})
+        assert key is None
+
+    def test_margin_rejects_close_ties(self, monkeypatch):
+        """Two options scoring within WMT_OPTION_MATCH_MARGIN of each other return None."""
+        class StubFuzz:
+            scores = {"option_a": 90, "option_b": 88}
+            @classmethod
+            def partial_ratio(cls, a, b):
+                # cheat: read intended score from the phrase string itself
+                for k, v in cls.scores.items():
+                    if k in a or k in b:
+                        return v
+                return 0
+        monkeypatch.setattr(svc, "fuzz", StubFuzz)
+        monkeypatch.setattr(svc, "jellyfish", None)  # disable phonetic so scoring is pure stub
+        key, _ = svc._wmt_best_option_match("transcript", {"a": ["option_a"], "b": ["option_b"]})
+        assert key is None
 
 
 # ---------------------------------------------------------------------------
-# _match_wmt_options -- per-question routing
+# Phonetic matching -- regression-pins the v2 win
+# ---------------------------------------------------------------------------
+
+class TestPhoneticMatching:
+    def test_phonetic_rescues_whisper_drift(self):
+        """The actual case that motivated v2: macOS English TTS reading
+        'kujarra wana' comes out of Whisper as 'kijeroana'. Char-fuzz scored
+        50 (below threshold 75); metaphone scores ~86. Both sides encode to
+        similar metaphone keys, so the matcher should now find it."""
+        options = {"1": ["kujarra-wana"], "4": ["jukurra-wana"]}
+        key, score = svc._wmt_best_option_match("kijeroana", options)
+        assert key == "1"
+        assert score >= svc.WMT_OPTION_MATCH_THRESHOLD
+
+    def test_phonetic_does_not_match_unrelated_noise(self):
+        key, _ = svc._wmt_best_option_match("totally unrelated talk", {"1": ["kujarra-wana"]})
+        assert key is None
+
+    def test_phonetic_encode_handles_punctuation(self):
+        # Hyphens, capitalization, accents shouldn't break the encoder
+        a = svc._phonetic_encode("Kujarra-Wana!")
+        b = svc._phonetic_encode("kujarra wana")
+        assert a == b
+
+    def test_phonetic_encode_empty_string(self):
+        assert svc._phonetic_encode("") == ""
+
+    def test_phonetic_encode_returns_empty_when_jellyfish_missing(self, monkeypatch):
+        monkeypatch.setattr(svc, "jellyfish", None)
+        assert svc._phonetic_encode("kujarra wana") == ""
+
+
+# ---------------------------------------------------------------------------
+# _match_wmt_options -- per-question routing, returns (parsed|None, score)
 # ---------------------------------------------------------------------------
 
 class TestMatchWmtOptions:
 
     # --- gender (q=1) ------------------------------------------------------
     def test_gender_female(self):
-        assert svc._match_wmt_options(1, "yapajarra") == {"gender": "0"}
+        parsed, score = svc._match_wmt_options(1, "yapajarra")
+        assert parsed == {"gender": "0"}
+        assert score >= svc.WMT_OPTION_MATCH_THRESHOLD
 
     def test_gender_male(self):
-        assert svc._match_wmt_options(1, "karli karli") == {"gender": "1"}
+        parsed, _ = svc._match_wmt_options(1, "karli karli")
+        assert parsed == {"gender": "1"}
 
     def test_gender_prefer_not_to_say(self):
-        assert svc._match_wmt_options(1, "karra yimi-rna") == {"gender": "2"}
+        parsed, _ = svc._match_wmt_options(1, "karra yimi-rna")
+        assert parsed == {"gender": "2"}
 
     def test_gender_no_match(self):
-        assert svc._match_wmt_options(1, "completely unrelated text") is None
+        parsed, _ = svc._match_wmt_options(1, "completely unrelated text")
+        assert parsed is None
 
     # --- age over 65 (q=2) -------------------------------------------------
     def test_age_over_65(self):
-        assert svc._match_wmt_options(
-            2, "65 ngurra-wana karrinyanu-warlangu"
-        ) == {"age_over_65": "1"}
+        parsed, _ = svc._match_wmt_options(2, "65 ngurra-wana karrinyanu-warlangu")
+        assert parsed == {"age_over_65": "1"}
 
     def test_age_under_65(self):
-        assert svc._match_wmt_options(
-            2, "65 ngurra-wana karrinyanu-wana"
-        ) == {"age_over_65": "0"}
+        parsed, _ = svc._match_wmt_options(2, "65 ngurra-wana karrinyanu-wana")
+        assert parsed == {"age_over_65": "0"}
 
     # --- severity (q=5) ----------------------------------------------------
     @pytest.mark.parametrize("phrase,expected", [
@@ -103,35 +154,42 @@ class TestMatchWmtOptions:
         ("karlarra jukurra", "5"),
     ])
     def test_severity_all_levels(self, phrase, expected):
-        assert svc._match_wmt_options(5, phrase) == {"symptom_severity": expected}
+        parsed, _ = svc._match_wmt_options(5, phrase)
+        assert parsed == {"symptom_severity": expected}
 
     # --- duration (q=6) ----------------------------------------------------
     def test_duration_less_than_day(self):
-        assert svc._match_wmt_options(6, "ngurra-wana kujarra") == {"symptoms_duration": "0"}
+        parsed, _ = svc._match_wmt_options(6, "ngurra-wana kujarra")
+        assert parsed == {"symptoms_duration": "0"}
 
     def test_duration_more_than_day(self):
-        assert svc._match_wmt_options(6, "ngurra-wana karlarra") == {"symptoms_duration": "1"}
+        parsed, _ = svc._match_wmt_options(6, "ngurra-wana karlarra")
+        assert parsed == {"symptoms_duration": "1"}
 
     def test_duration_unknown(self):
-        assert svc._match_wmt_options(6, "karra yimi") == {"symptoms_duration": "2"}
+        parsed, _ = svc._match_wmt_options(6, "karra yimi")
+        assert parsed == {"symptoms_duration": "2"}
 
     # --- yes/no (q=7 had_symptoms_before, q=9 had_contact) -----------------
     def test_had_symptoms_before_unknown(self):
-        assert svc._match_wmt_options(7, "karra yimi") == {"had_symptoms_before": "2"}
+        parsed, _ = svc._match_wmt_options(7, "karra yimi")
+        assert parsed == {"had_symptoms_before": "2"}
 
     def test_had_contact_unknown(self):
-        assert svc._match_wmt_options(9, "karra yimi") == {"had_contact": "2"}
+        parsed, _ = svc._match_wmt_options(9, "karra yimi")
+        assert parsed == {"had_contact": "2"}
 
     def test_yes_no_yes_returns_none_until_vocab_filled(self):
         # placeholder: source strings are still "(WMT) Yes" -- vocab list is
         # empty by design until a Walmadjari speaker reviews. This test pins
         # that contract so removing it intentionally trips a review.
-        assert svc._match_wmt_options(7, "yes please") is None
+        parsed, _ = svc._match_wmt_options(7, "yes please")
+        assert parsed is None
 
     # --- chronic conditions (q=8, multi-select) ----------------------------
     def test_chronic_conditions_empty_vocab_returns_none(self):
-        # all chronic_conditions phrase lists are empty placeholders today
-        assert svc._match_wmt_options(8, "anything") is None
+        parsed, _ = svc._match_wmt_options(8, "anything")
+        assert parsed is None
 
     def test_chronic_conditions_matches_when_vocab_populated(self, monkeypatch):
         patched = {
@@ -145,28 +203,30 @@ class TestMatchWmtOptions:
             },
         }
         monkeypatch.setattr(svc, "WMT_OPTION_VOCAB", patched)
-        result = svc._match_wmt_options(8, "nyurra-pressure and also ngarrku-sugar")
-        assert result == {"chronic_conditions": {"hypertension", "type_2_diabetes"}}
+        parsed, score = svc._match_wmt_options(8, "nyurra-pressure and also ngarrku-sugar")
+        assert parsed == {"chronic_conditions": {"hypertension", "type_2_diabetes"}}
+        assert score >= svc.WMT_OPTION_MATCH_THRESHOLD
 
     # --- routing -----------------------------------------------------------
     def test_unknown_question_id_returns_none(self):
-        assert svc._match_wmt_options(999, "yapajarra") is None
+        parsed, _ = svc._match_wmt_options(999, "yapajarra")
+        assert parsed is None
 
     def test_question_3_symptoms_not_routed_here(self):
-        # q=3 (symptoms) goes through the English dict + parser path, not the
-        # option-vocab fallback. The fallback router should not handle it.
-        assert svc._match_wmt_options(3, "ngalak") is None
+        parsed, _ = svc._match_wmt_options(3, "ngalak")
+        assert parsed is None
 
 
 # ---------------------------------------------------------------------------
-# Threshold boundary -- pins the tuning so silent drift gets caught
+# Threshold + margin -- pin the tuning so silent drift gets caught
 # ---------------------------------------------------------------------------
 
 class TestThreshold:
     def test_threshold_value(self):
-        # If this constant changes, every parametrized score above may shift.
-        # Update tests deliberately rather than letting a tweak slide through.
         assert svc.WMT_OPTION_MATCH_THRESHOLD == 75
+
+    def test_margin_value(self):
+        assert svc.WMT_OPTION_MATCH_MARGIN == 5
 
     def test_score_just_above_threshold_matches(self, monkeypatch):
         class StubFuzz:
@@ -174,7 +234,9 @@ class TestThreshold:
             def partial_ratio(a, b):
                 return svc.WMT_OPTION_MATCH_THRESHOLD + 1
         monkeypatch.setattr(svc, "fuzz", StubFuzz)
-        assert svc._wmt_best_option_match("x", {"a": ["x"]}) == "a"
+        monkeypatch.setattr(svc, "jellyfish", None)
+        key, _ = svc._wmt_best_option_match("x", {"a": ["x"]})
+        assert key == "a"
 
     def test_score_just_below_threshold_rejected(self, monkeypatch):
         class StubFuzz:
@@ -182,4 +244,6 @@ class TestThreshold:
             def partial_ratio(a, b):
                 return svc.WMT_OPTION_MATCH_THRESHOLD - 1
         monkeypatch.setattr(svc, "fuzz", StubFuzz)
-        assert svc._wmt_best_option_match("x", {"a": ["x"]}) is None
+        monkeypatch.setattr(svc, "jellyfish", None)
+        key, _ = svc._wmt_best_option_match("x", {"a": ["x"]})
+        assert key is None

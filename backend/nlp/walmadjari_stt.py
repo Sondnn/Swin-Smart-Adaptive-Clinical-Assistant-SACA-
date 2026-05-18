@@ -25,7 +25,7 @@ class WhisperTranscriber(WalmadjariTranscriber):
 
     def transcribe(self, wav_path: str) -> str:
         self._ensure_model()
-        segments, _info = self._model.transcribe(wav_path, language=None, beam_size=1)
+        segments, _info = self._model.transcribe(wav_path, language="en", beam_size=1)
         return " ".join(seg.text for seg in segments).strip().lower()
 
 

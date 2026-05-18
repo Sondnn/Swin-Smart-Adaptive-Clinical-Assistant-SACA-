@@ -8,8 +8,8 @@
   },
 
   "age_over_65": {
-    "0": ["65 ngurra-wana karrinyanu-wana", "ngurra-wana karrinyanu-wana"],
-    "1": ["65 ngurra-wana karrinyanu-warlangu", "ngurra-wana karrinyanu-warlangu"],
+    "0": ["karrinyanu-wana"],
+    "1": ["karrinyanu-warlangu"],
     "2": ["karra yimi"]
   },
 
