@@ -23,17 +23,39 @@ Testing in `http://127.0.0.1:8000/docs`
 
 `/speech-to-text-page` accepts a WAV plus `language` (1=English, 0=Walmadjari) and `question_id`, and returns a structured answer code for that question. The English path uses Google STT (`en-AU`). The Walmadjari path runs locally — see below.
 
-##### Walmadjari STT (in a nutshell)
+##### Walmadjari handling (in a nutshell)
 
-No mainstream ASR supports Walmadjari, so this is a **keyword-spotting** pipeline, not real transcription:
+Walmadjari isn't supported by any mainstream ASR. Rather than trying to transcribe it, we use **audio-to-audio matching**: a reference WAV is recorded for each expected answer, and incoming audio is matched against those references using MFCC features + Dynamic Time Warping.
 
-1. **Transcribe.** `backend/nlp/walmadjari_stt.py` runs the audio through one of two backends, selected by env var `WMT_ASR_BACKEND`:
-   - `whisper` (default) — `faster-whisper` with `language=None`; produces English-orthography phonetic guesses.
-   - `phoneme` — wav2vec2 XLSR IPA model
-2. **Translate known words.** `backend/nlp/wmt_en_dict.json` rewrites Walmadjari clinical terms (e.g. `ngalak → headache`) so the existing English parsers can fire.
-3. **Fuzzy-match options.** If the English parser comes up empty, `_match_wmt_options` runs `rapidfuzz.partial_ratio` against `backend/nlp/option_vocab_wmt.json` (gender / age / severity / duration / yes-no / chronic) at threshold 75 and returns the same answer codes as the English path.
+| Question | Path |
+|---|---|
+| Fixed-answer (1, 2, 5, 6, 7, 8, 9) | `nlp/wmt_audio_matcher.py` — MFCC + DTW against the reference bank |
+| Symptoms (q=3, free-form) | `nlp/walmadjari_stt.py` — Whisper (forced `language="en"` for Latin-script output) → `wmt_en_dict.json` word translation → English parser |
 
-Switch backends with `WMT_ASR_BACKEND=whisper` or `WMT_ASR_BACKEND=phoneme`. First Walmadjari request downloads the Whisper base model (~145 MB).
+**Setting up the reference bank**
+
+Drop reference WAVs into `backend/data/wmt_references/<question_id>/<answer_code>/*.wav` — see `backend/data/wmt_references/README.md` for the layout and answer-code table. One clip per answer is enough for a single-speaker demo; more refs across speakers helps generalisation.
+
+**Response envelope** (returned by `/speech-to-text-page`)
+
+```json
+{
+  "question_id": 5,
+  "parsed_response": {"symptom_severity": "1"},
+  "confidence": 0.93,
+  "transcript": "",
+  "matched_reference": "mild.wav"
+}
+```
+
+For audio-matched questions `transcript` is `""` and `matched_reference` is set; for the symptoms path it's the reverse.
+
+**Tuning knobs** (in `nlp/wmt_audio_matcher.py`)
+
+- `WMT_AUDIO_MATCH_MAX_COST` — accept a match only if normalized DTW cost is below this.
+- `WMT_AUDIO_MATCH_MARGIN_RATIO` — winner must beat the runner-up by this ratio; close-call answers return `None` rather than guess.
+- `WMT_REFERENCES_DIR` env var — override the reference bank location.
+- `WMT_LOG_PATH` env var — JSONL telemetry log per Walmadjari request (default `backend/logs/wmt_transcripts.jsonl`, set to `/dev/null` to disable).
 
 #### Testing
 
@@ -43,19 +65,30 @@ pip install pytest
 cd backend && pytest tests/ -v
 ```
 
-For any one without Walmadjari audio or speakers, test in order:
+`tests/test_wmt_audio_matcher.py` covers the matcher with synthetic tones (exact match, ambiguous-margin rejection, noise rejection, threshold pinning, reference-loading discovery). No audio files or speakers required.
 
-1. **Unit-test the matcher** — `backend/tests/test_wmt_matcher.py` already covers every question_id branch, threshold boundaries, empty/placeholder vocab, and the rapidfuzz-missing fallback. No audio, no model.
-2. **Mock the transcriber** — patch `nlp.walmadjari_stt.get_transcriber` to return a stub that emits a canned string, then hit `/speech-to-text-page` with any WAV. Verifies the full API contract without loading Whisper.
-3. **Read the spellings out loud** — record yourself phonetically saying Walmadjari option words on your phone, POST the WAV. Tests the pipeline end-to-end with real (if accented) speech.
-4. **Evaluation harness with synthesized clips** — `backend/scripts/eval_walmadjari_stt.py` loops over `backend/data/wmt_audio/*.wav` plus a `manifest.json` and prints predicted-vs-expected accuracy. Useful for A/B-testing the two backends:
+For end-to-end testing with real audio:
+
+1. **Single-clip check** — point `process_audio_response` at one WAV:
    ```bash
-   WMT_ASR_BACKEND=whisper python3 backend/scripts/eval_walmadjari_stt.py
-   WMT_ASR_BACKEND=phoneme python3 backend/scripts/eval_walmadjari_stt.py
+   cd backend
+   python3 -c "
+   import sys; sys.path.insert(0, '.')
+   from nlp.nlp_service import process_audio_response
+   with open('<your.wav>', 'rb') as f:
+       print(process_audio_response(f, language=0, question_id=<id>))
+   "
    ```
-5. **Real Walmadjari recordings** — the only test that tells you about *recognition quality*. Likely sources: AIATSIS language collections, PARADISEC archive, Kimberley Language Resource Centre, community YouTube videos (`yt-dlp -x --audio-format wav`).
+2. **Through the API** (mirrors what the Android app does):
+   ```bash
+   curl -X POST http://127.0.0.1:8000/speech-to-text-page \
+     -F language=0 -F question_id=5 -F files=@your.wav
+   ```
+3. **Batch evaluation** — drop clips into `backend/data/wmt_audio/` with a `manifest.json` and run `python3 backend/scripts/eval_walmadjari_stt.py` for predicted-vs-expected accuracy.
 
-Don't forget the regression check: `language=1` (English) must still hit Google STT and parse correctly — branching on language should leave that path untouched.
+Audio prep: clips should be 16 kHz mono PCM WAV. Convert with `ffmpeg -i input.m4a -ar 16000 -ac 1 -c:a pcm_s16le output.wav`.
+
+Don't forget the regression check: `language=1` (English) must still hit Google STT and parse correctly.
 
 #### ML
 
