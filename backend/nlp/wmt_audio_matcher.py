@@ -46,7 +46,7 @@ class AudioMatch:
 
 def _extract_mfcc(wav_path: str):
     try:
-        import librosa  # lazy
+        import librosa
         import numpy as np
     except ImportError:
         return None
@@ -93,7 +93,7 @@ def match_audio(wav_path: str, question_id: int) -> AudioMatch:
         return AudioMatch(None, 0.0, 0.0, "", len(refs))
 
     try:
-        import librosa  # lazy
+        import librosa
     except ImportError:
         return AudioMatch(None, 0.0, 0.0, "", len(refs))
 

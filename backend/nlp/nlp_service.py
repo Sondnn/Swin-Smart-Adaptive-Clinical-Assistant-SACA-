@@ -345,96 +345,107 @@ def _parse_additional_symptoms(transcript: str) -> dict | None:
     ##
     return None
 
+def _has_phrase(transcript: str, phrase: str) -> bool:
+    """Whole-word/phrase match. Avoids substring false positives like
+    'no' matching 'know' or 'low' matching 'below'."""
+    return re.search(r"\b" + re.escape(phrase) + r"\b", transcript) is not None
+
+
+def _has_any(transcript: str, phrases: Iterable[str]) -> bool:
+    return any(_has_phrase(transcript, p) for p in phrases)
+
+
 def _parse_gender(transcript: str) -> dict | None:
-    if "female" in transcript:
+    if _has_phrase(transcript, "female"):
         return {"gender": "0"}
-    if "male" in transcript or "mail" in transcript:
+    if _has_any(transcript, ("male", "mail")):
         return {"gender": "1"}
-    if "unknown" in transcript or "prefer not to say" in transcript:
+    if _has_phrase(transcript, "unknown") or _has_phrase(transcript, "prefer not to say"):
         return {"gender": "2"}
     return None
 
 
 def _parse_age(transcript: str) -> dict | None:
-    has_65 = "65" in transcript or "sixty-five" in transcript or "sixty five" in transcript
+    has_65 = _has_any(transcript, ("65", "sixty-five", "sixty five"))
     if not has_65:
         return None
-    over_words = {"older", "over", "above", "more", "greater"}
-    under_words = {"younger", "under", "below", "less", "fewer"}
-    if any(w in transcript for w in over_words):
+    over_words = ("older", "over", "above", "more", "greater")
+    under_words = ("younger", "under", "below", "less", "fewer")
+    if _has_any(transcript, over_words):
         return {"age_over_65": "1"}
-    if any(w in transcript for w in under_words):
+    if _has_any(transcript, under_words):
         return {"age_over_65": "0"}
-    if "unknown" in transcript or "prefer not to say" in transcript:
+    if _has_phrase(transcript, "unknown") or _has_phrase(transcript, "prefer not to say"):
         return {"age_over_65": "2"}
     return None
 
-def _parse_severity(transript: str) -> dict | None:
-    if "mild" in transript or "mould" in transript:
+def _parse_severity(transcript: str) -> dict | None:
+    if _has_any(transcript, ("mild", "mould")):
         return {"symptom_severity": "1"}
-    if "low" in transript:
+    if _has_phrase(transcript, "low"):
         return {"symptom_severity": "2"}
-    if "moderate" in transript:
+    if _has_phrase(transcript, "moderate"):
         return {"symptom_severity": "3"}
-    if "high" in transript:
+    if _has_phrase(transcript, "high"):
         return {"symptom_severity": "4"}
-    if "severe" in transript:
+    if _has_phrase(transcript, "severe"):
         return {"symptom_severity": "5"}
     return None
 
 def _parse_duration(transcript: str) -> dict | None:
-    over_words = {"longer", "over", "more", "greater"}
-    under_words = {"shorter", "under", "less", "fewer"}
-    if any(w in transcript for w in under_words):
+    over_words = ("longer", "over", "more", "greater")
+    under_words = ("shorter", "under", "less", "fewer")
+    if _has_any(transcript, under_words):
         return {"symptoms_duration": "0"}
-    if any(w in transcript for w in over_words):
+    if _has_any(transcript, over_words):
         return {"symptoms_duration": "1"}
-    if "unknown" in transcript or "don't know" in transcript or "not sure" in transcript:
+    if _has_any(transcript, ("unknown", "don't know", "not sure")):
         return {"symptoms_duration": "2"}
+    return None
 
 def _parse_chronic_conditions(transcript: str) -> dict | None:
     conditions = set()
-    if "hypertension" in transcript:
+    if _has_phrase(transcript, "hypertension"):
         conditions.add("hypertension")
-    if "type 2 diabetes" in transcript:
+    if _has_phrase(transcript, "type 2 diabetes"):
         conditions.add("type_2_diabetes")
-    if "heart disease" in transcript:
+    if _has_phrase(transcript, "heart disease"):
         conditions.add("heart_disease")
-    if "asthma" in transcript or "copd" in transcript:
+    if _has_any(transcript, ("asthma", "copd")):
         conditions.add("asthma_copd")
-    if "depression" in transcript or "anxiety" in transcript:
+    if _has_any(transcript, ("depression", "anxiety")):
         conditions.add("depression_anxiety")
     return {"chronic_conditions": conditions} if conditions else None
 
 def _parse_escalation_triggers(transcript: str) -> dict | None:
     triggers = set()
-    if "difficulty breathing" in transcript or "shortness of breath" in transcript:
+    if _has_any(transcript, ("difficulty breathing", "shortness of breath")):
         triggers.add("difficulty_breathing")
-    if "chest pain" in transcript:
+    if _has_phrase(transcript, "chest pain"):
         triggers.add("chest_pain")
-    if "confusion" in transcript:
+    if _has_phrase(transcript, "confusion"):
         triggers.add("confusion")
-    if "persistent high fever" in transcript:
+    if _has_phrase(transcript, "persistent high fever"):
         triggers.add("persistent_high_fever")
-    if "severe weakness" in transcript:
+    if _has_phrase(transcript, "severe weakness"):
         triggers.add("severe_weakness")
     return {"escalation_triggers": triggers} if triggers else None
 
 def _parse_had_symptoms_before(transcript: str) -> dict | None:
-    if "don't know" in transcript or "not sure" in transcript or "unknown" in transcript:
+    if _has_any(transcript, ("don't know", "not sure", "unknown")):
         return {"had_symptoms_before": "2"}
-    if "yes" in transcript or "yeah" in transcript or "yep" in transcript:
+    if _has_any(transcript, ("yes", "yeah", "yep")):
         return {"had_symptoms_before": "1"}
-    if "no" in transcript or "not" in transcript or "nah" in transcript:
+    if _has_any(transcript, ("no", "not", "nah")):
         return {"had_symptoms_before": "0"}
     return None
 
 def _parse_had_contact(transcript: str) -> dict | None:
-    if "don't know" in transcript or "not sure" in transcript or "unknown" in transcript:
-        return {"had_contact": "2"}    
-    if "yes" in transcript or "yeah" in transcript or "yep" in transcript:
+    if _has_any(transcript, ("don't know", "not sure", "unknown")):
+        return {"had_contact": "2"}
+    if _has_any(transcript, ("yes", "yeah", "yep")):
         return {"had_contact": "1"}
-    if "no" in transcript or "not" in transcript or "nah" in transcript:
+    if _has_any(transcript, ("no", "not", "nah")):
         return {"had_contact": "0"}
     return None
 
