@@ -467,16 +467,6 @@ _QUESTION_PARSERS = {
 # symptoms) stays on the Whisper + word-translation + text-parser path.
 WMT_AUDIO_MATCH_QUESTIONS = {1, 2, 5, 6, 7, 8, 9}
 
-_FIELD_FOR_QUESTION = {
-    1: "gender",
-    2: "age_over_65",
-    5: "symptom_severity",
-    6: "symptoms_duration",
-    7: "had_symptoms_before",
-    8: "chronic_conditions",
-    9: "had_contact",
-}
-
 
 def process_audio_response(file_obj, language: int = 1, question_id: int = None) -> dict:
     """Run the right pipeline for one question, return a uniform envelope:
@@ -501,24 +491,24 @@ def process_audio_response(file_obj, language: int = 1, question_id: int = None)
 
         # ---- Walmadjari audio-match path (fixed-answer questions) -----------
         if language == 0 and question_id in WMT_AUDIO_MATCH_QUESTIONS:
-            from nlp.wmt_audio_matcher import match_audio
-            m = match_audio(tmp_path, question_id)
-            parsed = None
-            if m.answer_key is not None:
-                field = _FIELD_FOR_QUESTION[question_id]
-                if question_id == 8:
-                    # Multi-select; for now one matched ref -> one condition. Future:
-                    # run the matcher in multi-keyword mode against a sliding window.
-                    parsed = {field: {m.answer_key}}
-                else:
-                    parsed = {field: m.answer_key}
+            from nlp.wmt_audio_matcher import match_audio, available_labels, label_to_text
+            parser = _QUESTION_PARSERS.get(question_id)
+            allowed = None
+            if parser is not None:
+                allowed = {
+                    lbl for lbl in available_labels()
+                    if parser(label_to_text(lbl)) is not None
+                }
+            m = match_audio(tmp_path, allowed_labels=allowed)
+            transcript = label_to_text(m.matched_label) if m.matched_label else ""
+            parsed = parser(transcript) if (parser and transcript) else None
             _log_wmt_transcript(
                 tmp_path=tmp_path,
                 question_id=question_id,
                 raw_transcript="",
-                translated_transcript="",
+                translated_transcript=transcript,
                 parsed=parsed,
-                confidence=m.similarity if m.answer_key else None,
+                confidence=m.similarity if m.matched_label else None,
                 match_source="audio_match",
                 extra={"matched_reference": m.matched_reference,
                        "cost": round(m.cost, 4),
@@ -526,8 +516,8 @@ def process_audio_response(file_obj, language: int = 1, question_id: int = None)
             )
             return {
                 "parsed_response": parsed,
-                "confidence": m.similarity if m.answer_key else None,
-                "transcript": "",
+                "confidence": m.similarity if m.matched_label else None,
+                "transcript": transcript,
                 "matched_reference": m.matched_reference,
             }
 
