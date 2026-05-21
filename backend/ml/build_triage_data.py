@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import random
 import sys
 from collections import Counter
 from pathlib import Path
@@ -22,10 +23,17 @@ from config import (
 from triage_rules import CAT1_SYMPTOMS, CAT2_SYMPTOMS, CAT3_SYMPTOMS
 
 SEED = 42
-SAMPLE_ROWS = 50_000
-DEFAULT_DURATION_HOURS = 24
+SAMPLE_ROWS = 120_000
+DURATION_BUCKETS = [1, 2, 4, 8, 12, 24, 48, 72, 120]
+DURATION_WEIGHTS = [4, 6, 8, 9, 10, 12, 10, 8, 6]
+HAD_SYMPTOMS_BEFORE_DIST = {0: 0.65, 1: 0.25, 2: 0.10}
+HAD_CONTACT_DIST = {0: 0.75, 1: 0.15, 2: 0.10}
 
 HIGH_ACUITY = set(CAT1_SYMPTOMS) | set(CAT2_SYMPTOMS) | set(CAT3_SYMPTOMS)
+
+
+def _sample_choice(rng: random.Random, dist: dict[int, float]) -> int:
+    return rng.choices(list(dist), weights=list(dist.values()), k=1)[0]
 
 CC_TO_SYMPTOMS: dict[str, list[str]] = {
     "cc_abdominalcramping": ["symptom__abdominal_pain", "symptom__stomach_cramps"],
@@ -45,7 +53,7 @@ CC_TO_SYMPTOMS: dict[str, list[str]] = {
     "cc_anklepain": ["symptom__joint_pain"],
     "cc_anxiety": ["symptom__anxiety"],
     "cc_arminjury": ["symptom__injured_limb_or_possible_fracture"],
-    "cc_armpain": ["symptom__arm_pain"],
+    "cc_armpain": ["symptom_c_arm_pain"],
     "cc_armswelling": ["symptom__swelling"],
     "cc_assaultvictim": ["symptom__abuse_or_assault"],
     "cc_asthma": ["symptom__wheezing", "symptom__breathing_difficulty"],
@@ -309,6 +317,7 @@ def main():
         "chronic__depression_anxiety": [c for c in ("anxietydisorders",) if c in df.columns],
     }
 
+    rng = random.Random(SEED)
     rows: list[dict] = []
     triage_counts: Counter[int] = Counter()
     n_no_symptom = 0
@@ -345,9 +354,11 @@ def main():
         row["gender"] = _gender_code(gender_arr[i])
         row["age_over_65"] = _age_over_65(age_arr[i])
         row["symptom_severity"] = _proxy_severity(present)
-        row["symptoms_duration"] = DEFAULT_DURATION_HOURS
-        row["had_symptoms_before"] = 2
-        row["had_contact"] = 2
+        row["symptoms_duration"] = rng.choices(
+            DURATION_BUCKETS, weights=DURATION_WEIGHTS, k=1
+        )[0]
+        row["had_symptoms_before"] = _sample_choice(rng, HAD_SYMPTOMS_BEFORE_DIST)
+        row["had_contact"] = _sample_choice(rng, HAD_CONTACT_DIST)
         if "symptom__otherwise_well" in row:
             row["symptom__otherwise_well"] = 1 if row["symptom_severity"] <= 2 else 0
 
