@@ -112,11 +112,11 @@ namespace SACA.WindowsApp.Controls
                 _isRecording = true;
                 RecordingStatusTextBlock.Text = AppLanguage.T("recording");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 _isRecording = false;
                 RecordingStatusTextBlock.Text = AppLanguage.T("voice_failed");
-                MessageBox.Show($"Could not start voice recording: {ex.Message}");
+                MessageBox.Show("We could not start the voice recording. Please check the microphone and try again.", "Voice Recording");
                 CloseRecordingDevice();
             }
         }
@@ -137,11 +137,11 @@ namespace SACA.WindowsApp.Controls
                 savedRecordingPath = _recordingPath;
                 RecordingStatusTextBlock.Text = Path.GetFileName(_recordingPath);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 _recordingPath = "";
                 RecordingStatusTextBlock.Text = AppLanguage.T("voice_failed");
-                MessageBox.Show($"Could not save voice recording: {ex.Message}");
+                MessageBox.Show("We could not save the voice recording. Please try recording again.", "Voice Recording");
             }
             finally
             {
@@ -184,7 +184,7 @@ namespace SACA.WindowsApp.Controls
             catch (Exception ex)
             {
                 RecordingStatusTextBlock.Text = AppLanguage.T("voice_failed");
-                MessageBox.Show($"Could not process the voice answer: {ex.Message}");
+                MessageBox.Show(ex.Message, "Voice Answer");
             }
             finally
             {

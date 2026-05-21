@@ -28,12 +28,25 @@ namespace SACA.WindowsApp.Services
         public async Task<TriageResponse> AnalyseAsync(TriageRequest request)
         {
             var predictRequest = BuildPredictRequest(request);
-            var response = await _httpClient.PostAsJsonAsync(PredictUrl, predictRequest);
+            HttpResponseMessage response;
+
+            try
+            {
+                response = await _httpClient.PostAsJsonAsync(PredictUrl, predictRequest);
+            }
+            catch (HttpRequestException)
+            {
+                throw new Exception("We could not connect to the assessment service. Please check that the service is running and try again.");
+            }
+            catch (TaskCanceledException)
+            {
+                throw new Exception("The assessment service took too long to respond. Please try again.");
+            }
 
             if (!response.IsSuccessStatusCode)
             {
                 string errorBody = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Unable to receive triage result from the server. Server returned {(int)response.StatusCode}: {errorBody}");
+                throw new Exception(ToFriendlyBackendMessage(errorBody, "assessment"));
             }
 
             var result = await response.Content.ReadFromJsonAsync<TriageResponse>();
@@ -216,12 +229,12 @@ namespace SACA.WindowsApp.Services
             fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("audio/wav");
             form.Add(fileContent, "files", Path.GetFileName(audioFilePath));
 
-            using HttpResponseMessage response = await _httpClient.PostAsync(SpeechToTextUrl, form);
+            using HttpResponseMessage response = await PostVoiceRequestAsync(SpeechToTextUrl, form);
 
             if (!response.IsSuccessStatusCode)
             {
                 string errorBody = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Unable to convert speech to text. Server returned {(int)response.StatusCode}: {errorBody}");
+                throw new Exception(ToFriendlyBackendMessage(errorBody, "voice"));
             }
 
             string responseBody = await response.Content.ReadAsStringAsync();
@@ -244,12 +257,12 @@ namespace SACA.WindowsApp.Services
             fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("audio/wav");
             form.Add(fileContent, "files", Path.GetFileName(audioFilePath));
 
-            using HttpResponseMessage response = await _httpClient.PostAsync(SpeechToTextPageUrl, form);
+            using HttpResponseMessage response = await PostVoiceRequestAsync(SpeechToTextPageUrl, form);
             string responseBody = await response.Content.ReadAsStringAsync();
 
             if (!response.IsSuccessStatusCode)
             {
-                throw new Exception($"Unable to process voice answer. Server returned {(int)response.StatusCode}: {responseBody}");
+                throw new Exception(ToFriendlyBackendMessage(responseBody, "voice"));
             }
 
             using JsonDocument document = JsonDocument.Parse(responseBody);
@@ -257,14 +270,14 @@ namespace SACA.WindowsApp.Services
 
             if (root.TryGetProperty("error", out JsonElement error))
             {
-                throw new Exception(error.GetString() ?? "The speech-to-text service returned an error.");
+                throw new Exception(ToFriendlyBackendMessage(error.GetString() ?? responseBody, "voice"));
             }
 
             if (!root.TryGetProperty("parsed_response", out JsonElement parsedResponse)
                 || parsedResponse.ValueKind == JsonValueKind.Null
                 || parsedResponse.ValueKind == JsonValueKind.Undefined)
             {
-                throw new Exception($"The voice answer could not be understood for this question. Response: {responseBody}");
+                throw new Exception(ToFriendlyBackendMessage(responseBody, "voice"));
             }
 
             int returnedQuestionId = questionId;
@@ -300,6 +313,116 @@ namespace SACA.WindowsApp.Services
                 JsonValueKind.Object => string.Join(", ", element.EnumerateObject().Select(property => $"{property.Name}: {ToDisplayText(property.Value)}")),
                 _ => element.GetRawText()
             };
+        }
+
+        private async Task<HttpResponseMessage> PostVoiceRequestAsync(string url, MultipartFormDataContent form)
+        {
+            try
+            {
+                return await _httpClient.PostAsync(url, form);
+            }
+            catch (HttpRequestException)
+            {
+                throw new Exception("We could not connect to the voice service. Please check that the service is running and try again.");
+            }
+            catch (TaskCanceledException)
+            {
+                throw new Exception("The voice service took too long to respond. Please try again.");
+            }
+        }
+
+        private static string ToFriendlyBackendMessage(string responseBody, string context)
+        {
+            string backendMessage = ExtractBackendMessage(responseBody);
+            string normalisedMessage = backendMessage.ToLowerInvariant();
+
+            if (context == "voice")
+            {
+                if (normalisedMessage.Contains("audio")
+                    || normalisedMessage.Contains("speech")
+                    || normalisedMessage.Contains("silent")
+                    || normalisedMessage.Contains("noise")
+                    || normalisedMessage.Contains("understand")
+                    || normalisedMessage.Contains("transcrib")
+                    || normalisedMessage.Contains("empty")
+                    || normalisedMessage.Contains("too short")
+                    || normalisedMessage.Contains("quality"))
+                {
+                    return "We could not understand the recording. Please try again in a quiet place and speak clearly.";
+                }
+
+                return "We could not process the voice answer. Please try recording it again.";
+            }
+
+            return "We could not complete the assessment right now. Please check your answers and try again.";
+        }
+
+        private static string ExtractBackendMessage(string responseBody)
+        {
+            if (string.IsNullOrWhiteSpace(responseBody))
+            {
+                return "";
+            }
+
+            try
+            {
+                using JsonDocument document = JsonDocument.Parse(responseBody);
+                string? message = FindBackendMessage(document.RootElement);
+                return string.IsNullOrWhiteSpace(message) ? responseBody : message;
+            }
+            catch (JsonException)
+            {
+                return responseBody;
+            }
+        }
+
+        private static string? FindBackendMessage(JsonElement element)
+        {
+            if (element.ValueKind == JsonValueKind.String)
+            {
+                return element.GetString();
+            }
+
+            if (element.ValueKind == JsonValueKind.Object)
+            {
+                foreach (string propertyName in new[] { "message", "error", "detail", "description" })
+                {
+                    if (element.TryGetProperty(propertyName, out JsonElement propertyValue))
+                    {
+                        string? value = FindBackendMessage(propertyValue);
+
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
+                            return value;
+                        }
+                    }
+                }
+
+                foreach (JsonProperty property in element.EnumerateObject())
+                {
+                    string? value = FindBackendMessage(property.Value);
+
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
+                        return value;
+                    }
+                }
+            }
+
+            if (element.ValueKind == JsonValueKind.Array)
+            {
+                foreach (JsonElement item in element.EnumerateArray())
+                {
+                    string? value = FindBackendMessage(item);
+
+                    if (!string.IsNullOrWhiteSpace(value))
+                    {
+                        return value;
+                    }
+                }
+            }
+
+            return null;
         }
 
         private static string ExtractTranscript(string responseBody)
