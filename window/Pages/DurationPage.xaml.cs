@@ -111,5 +111,10 @@ namespace SACA.WindowsApp.Pages
                 || value.Contains(option, StringComparison.OrdinalIgnoreCase)
                 || option.Contains(value, StringComparison.OrdinalIgnoreCase);
         }
+
+        private void SpeakerButtonControl_Loaded(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
