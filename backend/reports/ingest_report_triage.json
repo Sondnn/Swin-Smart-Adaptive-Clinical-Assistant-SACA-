@@ -3,10 +3,10 @@
   "label_column": "esi",
   "sample_rows_target": 120000,
   "n_rows": 119999,
-  "n_rows_without_mapped_symptom": 13654,
+  "n_rows_without_mapped_symptom": 14317,
   "n_cc_columns_used": 200,
   "n_cc_columns_dropped_missing_in_source": 0,
-  "n_cc_targets_dropped_missing_in_schema": 0,
+  "n_cc_targets_dropped_missing_in_schema": 1,
   "triage_distribution": {
     "1": 1133,
     "2": 35167,
