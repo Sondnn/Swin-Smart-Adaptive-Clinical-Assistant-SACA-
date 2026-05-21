@@ -69,7 +69,7 @@ namespace SACA.WindowsApp.Services
                 gender = MapGender(request.Gender),
                 age_over_65 = MapAgeOver65(request.AgeGroup),
                 symptom_severity = MapSeverity(request.Severity),
-                symptoms_duration = 2,
+                symptoms_duration = MapDuration(request.Duration),
                 symptoms,
                 chronic_conditions = chronicConditions,
                 escalation_triggers = escalationTriggers,
@@ -130,17 +130,30 @@ namespace SACA.WindowsApp.Services
 
         private static int MapDuration(string value)
         {
-            if (value.Contains("Just", StringComparison.OrdinalIgnoreCase))
+            if (int.TryParse(value.Trim(), out int durationCode) && durationCode >= 0 && durationCode <= 2)
+            {
+                return durationCode;
+            }
+
+            if (value.Contains("less", StringComparison.OrdinalIgnoreCase)
+                || value.Contains("under", StringComparison.OrdinalIgnoreCase)
+                || value.Contains("shorter", StringComparison.OrdinalIgnoreCase)
+                || value.Contains("fewer", StringComparison.OrdinalIgnoreCase))
             {
                 return 0;
             }
 
-            if (value.Contains("couple", StringComparison.OrdinalIgnoreCase))
+            if (value.Contains("more", StringComparison.OrdinalIgnoreCase)
+                || value.Contains("over", StringComparison.OrdinalIgnoreCase)
+                || value.Contains("longer", StringComparison.OrdinalIgnoreCase)
+                || value.Contains("greater", StringComparison.OrdinalIgnoreCase))
             {
                 return 1;
             }
 
-            if (value.Contains("week", StringComparison.OrdinalIgnoreCase))
+            if (value.Contains("unknown", StringComparison.OrdinalIgnoreCase)
+                || value.Contains("don't know", StringComparison.OrdinalIgnoreCase)
+                || value.Contains("not sure", StringComparison.OrdinalIgnoreCase))
             {
                 return 2;
             }
