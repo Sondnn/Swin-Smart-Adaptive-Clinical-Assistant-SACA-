@@ -5,6 +5,7 @@ import time
 import joblib
 import numpy as np
 import pandas as pd
+import sklearn
 from scipy.optimize import minimize_scalar
 from sklearn.metrics import (
     accuracy_score,
@@ -21,7 +22,10 @@ from sklearn.model_selection import (
     cross_validate,
 )
 from sklearn.preprocessing import LabelEncoder
+from sklearn.utils.class_weight import compute_sample_weight
 from xgboost import XGBClassifier
+
+sklearn.set_config(enable_metadata_routing=True)
 
 from config import (
     DISEASE_TRAINING_CSV,
@@ -39,13 +43,17 @@ XGB_N_ITER = 15
 CALIBRATION_SIZE = 0.1
 
 
-def main():
+def main(skip_disease: bool = False):
     MODEL_DIR.mkdir(exist_ok=True)
     REPORTS_DIR.mkdir(exist_ok=True)
 
     grand_t0 = time.perf_counter()
     triage_metrics = run_triage()
-    disease_metrics = run_disease() if DISEASE_TRAINING_CSV.exists() else None
+    disease_metrics = (
+        None
+        if skip_disease
+        else (run_disease() if DISEASE_TRAINING_CSV.exists() else None)
+    )
     total_seconds = round(time.perf_counter() - grand_t0, 2)
 
     _print_timing_summary(triage_metrics, disease_metrics, total_seconds)
@@ -107,10 +115,18 @@ def _build_xgb() -> XGBClassifier:
         random_state=RANDOM_STATE,
         n_jobs=-1,
         tree_method="hist",
-    )
+    ).set_fit_request(sample_weight=True)
 
 
-def _fit_xgb(X_train, y_train, groups_train, xgb_param_grid):
+def _fit_xgb(
+    X_train,
+    y_train,
+    groups_train,
+    xgb_param_grid,
+    *,
+    sample_weight=None,
+    scoring="neg_log_loss",
+):
     cv = StratifiedGroupKFold(
         n_splits=N_FOLDS, shuffle=True, random_state=RANDOM_STATE
     )
@@ -119,13 +135,16 @@ def _fit_xgb(X_train, y_train, groups_train, xgb_param_grid):
         estimator=_build_xgb(),
         param_distributions=xgb_param_grid,
         n_iter=XGB_N_ITER,
-        scoring="neg_log_loss",
+        scoring=scoring,
         cv=cv,
         random_state=RANDOM_STATE,
         n_jobs=-1,
         refit=True,
     )
-    search.fit(X_train, y_train, groups=groups_train)
+    fit_kwargs = {"groups": groups_train}
+    if sample_weight is not None:
+        fit_kwargs["sample_weight"] = sample_weight
+    search.fit(X_train, y_train, **fit_kwargs)
     return search.best_estimator_, {
         "xgb_search_seconds": round(time.perf_counter() - t0, 2),
         "best_xgb_params": search.best_params_,
@@ -155,7 +174,11 @@ def train_triage_model(X, y, groups, encoder, feature_columns):
         "subsample": [0.85, 1.0],
         "colsample_bytree": [0.8, 1.0],
     }
-    model, fit_info = _fit_xgb(X_dev, y_dev, groups_dev, xgb_grid)
+    sample_weight_dev = np.sqrt(compute_sample_weight("balanced", y_dev))
+    model, fit_info = _fit_xgb(
+        X_dev, y_dev, groups_dev, xgb_grid,
+        sample_weight=sample_weight_dev,
+    )
 
     cv = StratifiedGroupKFold(
         n_splits=N_FOLDS, shuffle=True, random_state=RANDOM_STATE
@@ -163,7 +186,8 @@ def train_triage_model(X, y, groups, encoder, feature_columns):
     cv_results = cross_validate(
         model, X_dev, y_dev, cv=cv,
         scoring=["accuracy", "f1_macro"],
-        n_jobs=-1, groups=groups_dev,
+        n_jobs=-1,
+        params={"groups": groups_dev, "sample_weight": sample_weight_dev},
     )
     cv_acc = cv_results["test_accuracy"]
     cv_f1 = cv_results["test_f1_macro"]
@@ -389,4 +413,13 @@ def _write_metrics(triage_metrics, disease_metrics, total_seconds):
 
 
 if __name__ == "__main__":
-    main()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Train SACA models.")
+    parser.add_argument(
+        "--skip-disease",
+        action="store_true",
+        help="Train only the triage model (skip the slow disease model).",
+    )
+    args = parser.parse_args()
+    main(skip_disease=args.skip_disease)

@@ -1,50 +1,50 @@
 {
-  "trained_at": "2026-05-12T20:45:07",
-  "total_training_seconds": 386.62,
+  "trained_at": "2026-05-21T10:22:29",
+  "total_training_seconds": 116.21,
   "triage_model": {
     "split_strategy": "GroupShuffleSplit (outer) + StratifiedGroupKFold-3 (inner)",
-    "cv_accuracy_mean": 0.6123652495431964,
-    "cv_accuracy_std": 0.003142112850041958,
-    "cv_macro_f1_mean": 0.42741604745375383,
-    "cv_macro_f1_std": 0.007018791483090461,
-    "test_accuracy": 0.6188,
-    "test_macro_f1": 0.42458137829294496,
-    "test_weighted_f1": 0.6010608442876778,
+    "cv_accuracy_mean": 0.5984437384762024,
+    "cv_accuracy_std": 0.00166370258625585,
+    "cv_macro_f1_mean": 0.5041782891683442,
+    "cv_macro_f1_std": 0.0029456093540476155,
+    "test_accuracy": 0.5957083333333333,
+    "test_macro_f1": 0.4975266730742428,
+    "test_weighted_f1": 0.5948395981734665,
     "confusion_matrix": [
       [
-        10,
-        47,
-        31,
-        14,
+        73,
+        64,
+        8,
+        55,
         0
       ],
       [
-        2,
-        1678,
-        1117,
-        106,
-        0
+        122,
+        4497,
+        1633,
+        770,
+        23
       ],
       [
-        0,
-        646,
-        3080,
-        510,
-        0
+        32,
+        2303,
+        5473,
+        2097,
+        159
+      ],
+      [
+        24,
+        263,
+        751,
+        3871,
+        501
       ],
       [
         1,
-        59,
-        762,
-        1406,
-        6
-      ],
-      [
-        0,
-        15,
-        211,
-        285,
-        14
+        58,
+        167,
+        672,
+        383
       ]
     ],
     "labels": [
@@ -55,42 +55,17 @@
       5
     ],
     "n_features": 298,
-    "n_train": 39999,
-    "n_test": 10000,
-    "total_seconds": 46.57,
-    "xgb_search_seconds": 38.35,
+    "n_train": 95999,
+    "n_test": 24000,
+    "total_seconds": 115.73,
+    "xgb_search_seconds": 98.67,
     "best_xgb_params": {
       "subsample": 1.0,
-      "n_estimators": 400,
-      "max_depth": 4,
+      "n_estimators": 300,
+      "max_depth": 6,
       "learning_rate": 0.15,
-      "colsample_bytree": 1.0
-    },
-    "best_xgb_cv_neg_log_loss": -0.8924285659577981
-  },
-  "disease_model": {
-    "test_top1_accuracy": 0.6608260325406758,
-    "test_top3_accuracy": 0.8498122653316645,
-    "test_top5_accuracy": 0.917813934084272,
-    "test_macro_f1": 0.6510294765331004,
-    "test_log_loss_raw": 1.1722105083869199,
-    "test_log_loss_scaled": 1.1603808254386117,
-    "test_top1_confidence_mean_raw": 0.7405429482460022,
-    "test_top1_confidence_mean_scaled": 0.7004132866859436,
-    "temperature": 1.1155095088919564,
-    "n_classes": 150,
-    "n_train": 8612,
-    "n_calibration": 958,
-    "n_test": 2397,
-    "total_seconds": 339.76,
-    "xgb_search_seconds": 339.61,
-    "best_xgb_params": {
-      "subsample": 0.85,
-      "n_estimators": 200,
-      "max_depth": 10,
-      "learning_rate": 0.1,
       "colsample_bytree": 0.8
     },
-    "best_xgb_cv_neg_log_loss": -1.2455015468874069
+    "best_xgb_cv_neg_log_loss": -0.9211436019241788
   }
 }
