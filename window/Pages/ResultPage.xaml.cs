@@ -21,7 +21,7 @@ namespace SACA.WindowsApp.Pages
             InitializeComponent();
             _mainWindow = mainWindow;
 
-            SeverityLabelTextBlock.Text = response.TriageLabel;
+            SeverityLabelTextBlock.Text = GetDisplayTriageLabel(response.TriageLabel);
             SeverityIconImage.Source = new BitmapImage(new Uri(GetSeverityIconPath(response.TriageLabel), UriKind.Relative));
             RecommendationBodyTextBlock.Text = GetRecommendation(response.TriageLabel);
 
@@ -30,7 +30,7 @@ namespace SACA.WindowsApp.Pages
                 : response.InputSummary.Symptoms;
 
             SummaryTextBlock.Text = symptoms.Any()
-                ? string.Join(", ", symptoms.Select(ToDisplayText))
+                ? string.Join(", ", symptoms.Select(ToDisplaySymptom))
                 : "No symptoms were provided.";
 
             DiagnosticTextBlock.Text = string.IsNullOrWhiteSpace(response.Disease?.Disease)
@@ -54,31 +54,103 @@ namespace SACA.WindowsApp.Pages
         {
             return triageLabel switch
             {
-                "Immediate" => "/Assets/Icons/severity_category_A.png",
-                "Emergency" => "/Assets/Icons/severity_category_B.png",
+                "Resuscitation" => "/Assets/Icons/severity_category_A.png",
+                "Emergent" => "/Assets/Icons/severity_category_B.png",
                 "Urgent" => "/Assets/Icons/severity_category_C.png",
-                "Semi-Urgent" => "/Assets/Icons/severity_category_D.png",
+                "Less Urgent" => "/Assets/Icons/severity_category_F.png",
                 "Non-Urgent" => "/Assets/Icons/severity_category_E.png",
-                "Referred" => "/Assets/Icons/severity_category_F.png",
                 _ => "/Assets/Icons/severity_category_D.png"
             };
         }
 
         private static string GetRecommendation(string triageLabel)
         {
+            if (AppLanguage.IsWalmajarri)
+            {
+                return triageLabel switch
+                {
+                    "Resuscitation" => "Karlarra-ku yirrarni-rna nyuntu-ju karlarra-wana yirrarni karlarra.",
+                    "Emergent" => "Karlarra-ku yirrarni-rna nyuntu-ju karlarra jukurra yirrarni.",
+                    "Urgent" => "Karlarra-ku yirrarni-rna nyuntu-ju karlarra yirrarni-wana yimi",
+                    "Less Urgent" => "Karlarra-ku yirrarni-rna nyuntu-ju karlarra jukurra yirrarni-wana.",
+                    "Non-Urgent" => "Karlarra-ku yirrarni-rna nyuntu-ju karlarra yirrarni kujarra.",
+                    _ => "Please speak with a healthcare professional for further assessment."
+                };
+            }
+
             return triageLabel switch
             {
-                "Immediate" => "Seek immediate medical care now. Call emergency services or attend the nearest emergency department.",
-                "Emergency" => "Attend the emergency department as soon as possible for urgent medical assessment.",
-                "Urgent" => "Contact a clinic or healthcare professional urgently today for assessment and advice.",
-                "Semi-Urgent" => "Arrange a medical appointment soon and monitor your symptoms closely.",
-                "Non-Urgent" => "Monitor your symptoms, rest, and book a routine appointment if symptoms continue or worsen.",
-                "Referred" => "A healthcare professional should review your symptoms and direct you to the most appropriate service.",
+                "Resuscitation" => "Patient requires immediate life-saving medical attention. See the doctor or emergency team immediately.",
+                "Emergent" => "Patient should be seen urgently by the doctor or emergency department as soon as possible.",
+                "Urgent" => "Patient should be assessed by the practice nurse or doctor today. Monitor symptoms closely.",
+                "Less Urgent" => "Patient should attend the clinic for assessment and make an appointment today.",
+                "Non-Urgent" => "Patient may make a routine appointment and should call back if symptoms worsen.",
                 _ => "Please speak with a healthcare professional for further assessment."
             };
         }
 
-        private static string ToDisplayText(string value)
+        private static string GetDisplayTriageLabel(string triageLabel)
+        {
+            if (!AppLanguage.IsWalmajarri)
+            {
+                return triageLabel;
+            }
+
+            return triageLabel switch
+            {
+                "Resuscitation" => "Karlarra Wana",
+                "Emergent" => "Karlarra Jukurra",
+                "Urgent" => "Yirrarni Wana",
+                "Less Urgent" => "Yirrarni Kujarra",
+                "Non-Urgent" => "Kujarra",
+                _ => triageLabel
+            };
+        }
+
+        private static string ToDisplaySymptom(string value)
+        {
+            string normalisedValue = value.Trim()
+                .ToLowerInvariant()
+                .Replace("-", "_")
+                .Replace(" ", "_");
+
+            if (AppLanguage.IsWalmajarri)
+            {
+                return normalisedValue switch
+                {
+                    "fever" => "Karlarra Waru",
+                    "diarrhea" or "diarrhoea" => "Karlarra Parnta",
+                    "cough" => "Karlarra Kurrkurr",
+                    "vomiting" => "Karlarra Puka",
+                    "dizziness" => "Karlarra Mirrirr",
+                    "cold" => "Karlarra Mirrirr",
+                    "runny_nose" => "Karlarra Munyju",
+                    "eye_pain" => "Karlarra Miji",
+                    "sore_throat" => "Karlarra Juwi",
+                    "headache" => "Karlarra Kuja",
+                    "joint_pain" => "Karlarra Jirrpi",
+                    "abdominal_pain" => "Karlarra Jirri",
+                    "belly_pain" => "Karlarra Jirri",
+                    "body_pain" => "Karlarra Yijiji",
+                    _ => ToTitleCase(value)
+                };
+            }
+
+            return normalisedValue switch
+            {
+                "diarrhoea" => "Diarrhea",
+                "runny_nose" => "Runny Nose",
+                "eye_pain" => "Eye Pain",
+                "sore_throat" => "Sore throat",
+                "joint_pain" => "Joint Pain",
+                "abdominal_pain" => "Abdominal Pain",
+                "belly_pain" => "Belly pain",
+                "body_pain" => "Body Pain",
+                _ => ToTitleCase(value)
+            };
+        }
+
+        private static string ToTitleCase(string value)
         {
             return string.Join(
                 " ",
