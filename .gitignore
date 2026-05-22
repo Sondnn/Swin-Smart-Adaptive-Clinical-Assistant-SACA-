@@ -11,4 +11,5 @@ Thumbs.db
 __pycache__/
 
 # Raw data (too large for git; auto-downloaded by run_ml_pipeline.py)
-backend/data
+backend/data/raw_disease
+backend/data/raw_triage
