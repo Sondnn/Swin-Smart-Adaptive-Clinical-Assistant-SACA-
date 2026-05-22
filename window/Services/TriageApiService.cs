@@ -297,8 +297,23 @@ namespace SACA.WindowsApp.Services
                 QuestionId = returnedQuestionId,
                 ParsedResponse = parsedClone,
                 ParsedResponseJson = parsedJson,
-                DisplayText = ToDisplayText(parsedClone)
+                DisplayText = ToDisplayText(parsedClone, returnedQuestionId, languageCode)
             };
+        }
+
+        private static string ToDisplayText(JsonElement element, int questionId, int languageCode)
+        {
+            if (languageCode == 0)
+            {
+                string translatedValue = ToWalmajarriDisplayText(element, questionId);
+
+                if (!string.IsNullOrWhiteSpace(translatedValue))
+                {
+                    return translatedValue;
+                }
+            }
+
+            return ToDisplayText(element);
         }
 
         private static string ToDisplayText(JsonElement element)
@@ -312,6 +327,128 @@ namespace SACA.WindowsApp.Services
                 JsonValueKind.Array => string.Join(", ", element.EnumerateArray().Select(ToDisplayText).Where(value => !string.IsNullOrWhiteSpace(value))),
                 JsonValueKind.Object => string.Join(", ", element.EnumerateObject().Select(property => $"{property.Name}: {ToDisplayText(property.Value)}")),
                 _ => element.GetRawText()
+            };
+        }
+
+        private static string ToWalmajarriDisplayText(JsonElement element, int questionId)
+        {
+            return questionId switch
+            {
+                1 => MapWalmajarriGender(ParsedResponseReader.ReadSingleValue(element.GetRawText())),
+                2 => MapWalmajarriAge(ParsedResponseReader.ReadSingleValue(element.GetRawText())),
+                3 => string.Join(", ", ParsedResponseReader.ReadStringList(element.GetRawText()).Select(MapWalmajarriSymptom).Where(value => !string.IsNullOrWhiteSpace(value))),
+                5 => MapWalmajarriSeverity(ParsedResponseReader.ReadSingleValue(element.GetRawText())),
+                6 => MapWalmajarriDuration(ParsedResponseReader.ReadSingleValue(element.GetRawText())),
+                7 or 9 => MapWalmajarriTriState(ParsedResponseReader.ReadSingleValue(element.GetRawText())),
+                8 => string.Join(", ", ParsedResponseReader.ReadStringList(element.GetRawText()).Select(MapWalmajarriCondition).Where(value => !string.IsNullOrWhiteSpace(value))),
+                _ => ""
+            };
+        }
+
+        private static string MapWalmajarriGender(string value)
+        {
+            return value.Trim() switch
+            {
+                "0" => AppLanguage.T("gender_female"),
+                "1" => AppLanguage.T("gender_male"),
+                "2" => AppLanguage.T("gender_unknown"),
+                _ when value.Equals("Female", StringComparison.OrdinalIgnoreCase) => AppLanguage.T("gender_female"),
+                _ when value.Equals("Male", StringComparison.OrdinalIgnoreCase) => AppLanguage.T("gender_male"),
+                _ => AppLanguage.T("gender_unknown")
+            };
+        }
+
+        private static string MapWalmajarriAge(string value)
+        {
+            return value.Trim() switch
+            {
+                "0" => AppLanguage.T("age_younger"),
+                "1" => AppLanguage.T("age_older"),
+                _ when value.Contains("older", StringComparison.OrdinalIgnoreCase) => AppLanguage.T("age_older"),
+                _ when value.Contains("65", StringComparison.OrdinalIgnoreCase) => AppLanguage.T("age_younger"),
+                _ => AppLanguage.T("unknown")
+            };
+        }
+
+        private static string MapWalmajarriSeverity(string value)
+        {
+            return value.Trim() switch
+            {
+                "1" => AppLanguage.T("severity_mild"),
+                "2" => AppLanguage.T("severity_low"),
+                "3" => AppLanguage.T("severity_moderate"),
+                "4" => AppLanguage.T("severity_high"),
+                "5" => AppLanguage.T("severity_severe"),
+                _ when value.Equals("Mild", StringComparison.OrdinalIgnoreCase) => AppLanguage.T("severity_mild"),
+                _ when value.Equals("Low", StringComparison.OrdinalIgnoreCase) => AppLanguage.T("severity_low"),
+                _ when value.Equals("Moderate", StringComparison.OrdinalIgnoreCase) => AppLanguage.T("severity_moderate"),
+                _ when value.Equals("High", StringComparison.OrdinalIgnoreCase) => AppLanguage.T("severity_high"),
+                _ when value.Equals("Severe", StringComparison.OrdinalIgnoreCase) => AppLanguage.T("severity_severe"),
+                _ => value
+            };
+        }
+
+        private static string MapWalmajarriDuration(string value)
+        {
+            return value.Trim() switch
+            {
+                "0" => AppLanguage.T("duration_less_day"),
+                "1" => AppLanguage.T("duration_more_day"),
+                "2" => AppLanguage.T("unknown"),
+                _ when value.Contains("less", StringComparison.OrdinalIgnoreCase) => AppLanguage.T("duration_less_day"),
+                _ when value.Contains("more", StringComparison.OrdinalIgnoreCase) => AppLanguage.T("duration_more_day"),
+                _ => AppLanguage.T("unknown")
+            };
+        }
+
+        private static string MapWalmajarriTriState(string value)
+        {
+            return value.Trim() switch
+            {
+                "1" => AppLanguage.T("yes"),
+                "0" => AppLanguage.T("no"),
+                "2" => AppLanguage.T("unknown"),
+                _ when value.Equals("Yes", StringComparison.OrdinalIgnoreCase) => AppLanguage.T("yes"),
+                _ when value.Equals("No", StringComparison.OrdinalIgnoreCase) => AppLanguage.T("no"),
+                _ => AppLanguage.T("unknown")
+            };
+        }
+
+        private static string MapWalmajarriSymptom(string value)
+        {
+            string normalisedValue = ToBackendToken(value);
+
+            return normalisedValue switch
+            {
+                "fever" => AppLanguage.T("symptom_fever"),
+                "diarrhoea" or "diarrhea" => AppLanguage.T("symptom_diarrhea"),
+                "cough" => AppLanguage.T("symptom_cough"),
+                "vomiting" => AppLanguage.T("symptom_vomiting"),
+                "dizziness" or "cold" => AppLanguage.T("symptom_dizziness"),
+                "runny_nose" => AppLanguage.T("symptom_runny_nose"),
+                "eye_pain" => AppLanguage.T("symptom_eye_pain"),
+                "sore_throat" => AppLanguage.T("symptom_sore_throat"),
+                "headache" => AppLanguage.T("symptom_headache"),
+                "joint_pain" => AppLanguage.T("symptom_joint_pain"),
+                "abdominal_pain" or "belly_pain" => AppLanguage.T("symptom_abdominal_pain"),
+                "body_pain" => AppLanguage.T("symptom_body_pain"),
+                _ => value
+            };
+        }
+
+        private static string MapWalmajarriCondition(string value)
+        {
+            string normalisedValue = ToBackendToken(value);
+
+            return normalisedValue switch
+            {
+                "hypertension" => AppLanguage.T("condition_hypertension"),
+                "type2_diabetes" or "type_2_diabetes" => AppLanguage.T("condition_diabetes"),
+                "heart_disease" => AppLanguage.T("condition_heart"),
+                "asthma_copd" => AppLanguage.T("condition_asthma"),
+                "depression_anxiety" => AppLanguage.T("condition_depression"),
+                "unknown_none" or "unknown" or "none" => AppLanguage.T("unknown_none"),
+                _ => value
             };
         }
 
