@@ -34,6 +34,7 @@ SEVERITY_DIST = {1: 0.20, 2: 0.25, 3: 0.25, 4: 0.18, 5: 0.12}
 AUGMENT_PER_SYMPTOM = 60
 AUGMENT_COMBO_ROWS = 20_000
 AUGMENT_COMBO_MAX_SYMPTOMS = 4
+AUGMENT_ESCALATION_PER_TRIGGER = 400
 
 
 def _sample_choice(rng: random.Random, dist: dict[int, float]) -> int:
@@ -85,6 +86,19 @@ def _augment_symptom_coverage(
         row["group_id"] = gid
         gid += 1
         rows.append(row)
+
+    escalation_cols = [c for c in feature_columns if c.startswith("escalation__")]
+    for esc in escalation_cols:
+        for _ in range(AUGMENT_ESCALATION_PER_TRIGGER):
+            row = {c: 0 for c in feature_columns}
+            row[esc] = 1
+            for sym in rng.sample(symptom_cols, rng.randint(0, 3)):
+                row[sym] = 1
+            _fill_random_context(rng, row)
+            row["triage_category"] = assign_triage(row)
+            row["group_id"] = gid
+            gid += 1
+            rows.append(row)
 
     return rows
 

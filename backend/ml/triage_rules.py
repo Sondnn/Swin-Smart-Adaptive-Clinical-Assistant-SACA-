@@ -6,6 +6,14 @@ CHRONIC_COLS = [
     "chronic__depression_anxiety",
 ]
 
+ESCALATION_COLS = [
+    "escalation__chest_pain",
+    "escalation__breathing_difficulty_at_rest",
+    "escalation__sudden_confusion_or_loc",
+    "escalation__sudden_weakness_one_side",
+    "escalation__severe_allergic_reaction",
+]
+
 CAT1_SYMPTOMS = [
     "symptom__chest_pain", "symptom__radiating_chest_pain",
     "symptom__chest_pressure", "symptom__chest_tightness",
@@ -108,6 +116,9 @@ def _has_chronic_condition(row: dict) -> bool:
 def assign_triage(row: dict) -> int:
     def has(group) -> bool:
         return any(row.get(s, 0) == 1 for s in group)
+
+    if has(ESCALATION_COLS):
+        return 1
 
     if has(CAT1_SYMPTOMS):
         return 1

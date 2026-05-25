@@ -1,55 +1,55 @@
 {
-  "trained_at": "2026-05-25T23:31:24",
-  "total_training_seconds": 161.48,
+  "trained_at": "2026-05-26T00:00:08",
+  "total_training_seconds": 157.6,
   "triage_model": {
     "split_strategy": "GroupShuffleSplit (outer) + StratifiedGroupKFold-3 (inner)",
-    "cv_accuracy_mean": 0.9879874138686423,
-    "cv_accuracy_std": 0.0003790298244591826,
-    "cv_macro_f1_mean": 0.9798320362239205,
-    "cv_macro_f1_std": 0.00046766330835360057,
-    "test_accuracy": 0.9900586286005608,
-    "test_macro_f1": 0.9835075810772399,
-    "test_weighted_f1": 0.9900415762955505,
+    "cv_accuracy_mean": 0.9868879463860321,
+    "cv_accuracy_std": 0.0007809233760117188,
+    "cv_macro_f1_mean": 0.9783011913605592,
+    "cv_macro_f1_std": 0.001079816501360988,
+    "test_accuracy": 0.9882016108733954,
+    "test_macro_f1": 0.9805303009060543,
+    "test_weighted_f1": 0.9881946651073631,
     "confusion_matrix": [
       [
-        5487,
-        27,
-        11,
-        3,
-        3,
-        0
-      ],
-      [
-        0,
-        3568,
-        15,
-        4,
-        1,
-        0
-      ],
-      [
-        0,
-        0,
-        1638,
-        50,
+        5804,
+        37,
+        25,
         6,
+        5,
+        0
+      ],
+      [
+        0,
+        3566,
+        21,
+        7,
+        4,
         0
       ],
       [
         0,
         0,
-        3,
-        1908,
-        88,
+        1644,
+        64,
+        14,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        2000,
+        76,
         1
       ],
       [
         0,
         0,
         0,
-        23,
-        5744,
-        75
+        24,
+        5837,
+        88
       ],
       [
         0,
@@ -57,7 +57,7 @@
         0,
         0,
         2,
-        12727
+        12558
       ]
     ],
     "labels": [
@@ -69,10 +69,10 @@
       6
     ],
     "n_features": 298,
-    "n_train": 125535,
-    "n_test": 31384,
-    "total_seconds": 160.92,
-    "xgb_search_seconds": 137.37,
+    "n_train": 127135,
+    "n_test": 31784,
+    "total_seconds": 157.06,
+    "xgb_search_seconds": 133.24,
     "best_xgb_params": {
       "subsample": 1.0,
       "n_estimators": 300,
@@ -80,6 +80,6 @@
       "learning_rate": 0.15,
       "colsample_bytree": 0.8
     },
-    "best_xgb_cv_neg_log_loss": -0.08344464564402838
+    "best_xgb_cv_neg_log_loss": -0.09063249380375445
   }
 }
