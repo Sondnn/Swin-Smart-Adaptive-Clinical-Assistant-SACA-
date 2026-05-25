@@ -9,11 +9,11 @@
   "n_cc_columns_dropped_missing_in_source": 0,
   "n_cc_targets_dropped_missing_in_schema": 1,
   "triage_distribution": {
-    "1": 27350,
-    "2": 17903,
-    "3": 8139,
-    "4": 8137,
-    "5": 28004,
-    "6": 67386
+    "1": 27292,
+    "2": 17827,
+    "3": 8684,
+    "4": 10203,
+    "5": 29785,
+    "6": 63128
   }
 }

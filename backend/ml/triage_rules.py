@@ -87,6 +87,23 @@ FEVER_GI_PAIN_SYMPTOMS = [
 
 HIGH_ACUITY_THRESHOLD_HOURS = 24
 
+CHRONIC_SENSITIVE_SYMPTOMS = [
+    "symptom__fever", "symptom__high_fever",
+    "symptom__cough", "symptom__dry_cough", "symptom__productive_cough",
+    "symptom__cough_with_phlegm", "symptom__chest_congestion",
+    "symptom__flu_like_symptoms", "symptom__severe_flu_like_symptoms",
+    "symptom__shortness_of_breath", "symptom__wheezing",
+    "symptom__rapid_breathing", "symptom__pain_when_breathing",
+    "symptom__chest_tightness",
+    "symptom__vomiting", "symptom__continuous_vomiting", "symptom__diarrhoea",
+    "symptom__dehydration", "symptom__fatigue", "symptom__weakness",
+    "symptom__body_aches", "symptom__dizziness",
+]
+
+
+def _has_chronic_condition(row: dict) -> bool:
+    return any(row.get(c, 0) == 1 for c in CHRONIC_COLS)
+
 
 def assign_triage(row: dict) -> int:
     def has(group) -> bool:
@@ -98,17 +115,20 @@ def assign_triage(row: dict) -> int:
         return 2
     if has(CAT3_SYMPTOMS):
         return 3
-    if has(CAT4_SYMPTOMS):
-        return 4
 
-    if has(FEVER_GI_PAIN_SYMPTOMS):
+    if has(CAT4_SYMPTOMS):
+        cat = 4
+    elif has(FEVER_GI_PAIN_SYMPTOMS):
         vulnerable = row.get("age_over_65") == 1
         duration_hours = row.get("symptoms_duration", 0) or 0
-        if vulnerable and duration_hours > HIGH_ACUITY_THRESHOLD_HOURS:
-            return 4
-        return 5
+        cat = 4 if (vulnerable and duration_hours > HIGH_ACUITY_THRESHOLD_HOURS) else 5
+    elif has(CAT5_SYMPTOMS):
+        cat = 5
+    else:
+        cat = 6
 
-    if has(CAT5_SYMPTOMS):
-        return 5
+    # Chronic comorbidity raises urgency for systemic / cardiorespiratory illness.
+    if cat >= 4 and _has_chronic_condition(row) and has(CHRONIC_SENSITIVE_SYMPTOMS):
+        cat -= 1
 
-    return 6
+    return cat

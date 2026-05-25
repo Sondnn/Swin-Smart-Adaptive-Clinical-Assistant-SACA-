@@ -1,6 +1,6 @@
 import traceback
 
-from fastapi import APIRouter, File, Form, UploadFile
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from fastapi.responses import JSONResponse
 
 from config import MODEL_DIR, TRIAGE_TRAINING_CSV
@@ -163,6 +163,8 @@ async def extract_symptoms(payload: ExtractSymptomsRequest):
 async def suggest_symptoms(payload: SuggestSymptomsRequest):
     try:
         return symptom_suggestion_service.suggest(payload)
+    except HTTPException:
+        raise
     except Exception as e:
         return JSONResponse(
             status_code=500,

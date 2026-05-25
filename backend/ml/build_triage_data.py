@@ -49,6 +49,9 @@ def _fill_random_context(rng: random.Random, row: dict) -> None:
     )[0]
     row["had_symptoms_before"] = _sample_choice(rng, HAD_SYMPTOMS_BEFORE_DIST)
     row["had_contact"] = _sample_choice(rng, HAD_CONTACT_DIST)
+    for c in row:
+        if c.startswith("chronic__"):
+            row[c] = 1 if rng.random() < 0.2 else 0
     if "symptom__otherwise_well" in row:
         row["symptom__otherwise_well"] = 1 if row["symptom_severity"] <= 2 else 0
 
