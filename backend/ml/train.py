@@ -156,7 +156,7 @@ def _fit_xgb(
 # Triage model
 # --------------------------------------------------------------------------- #
 def train_triage_model(X, y, groups, encoder, feature_columns):
-    print("\n--- Triage classifier (ESI 1-5) ---")
+    print("\n--- Triage classifier (POPGUNS 1-6) ---")
     t0 = time.perf_counter()
     outer = GroupShuffleSplit(
         n_splits=1, test_size=TEST_SIZE, random_state=RANDOM_STATE
@@ -206,7 +206,7 @@ def train_triage_model(X, y, groups, encoder, feature_columns):
     print(f"  CV accuracy : {cv_acc.mean():.4f} +/- {cv_acc.std():.4f}")
     print(f"  CV macro-F1 : {cv_f1.mean():.4f} +/- {cv_f1.std():.4f}")
     print(f"  Test acc    : {acc:.4f} | macro-F1: {macro_f1:.4f} | weighted-F1: {weight_f1:.4f}")
-    per_class_str = "  ".join(f"ESI {c}: {f:.3f}" for c, f in zip(classes_orig, per_class_f1))
+    per_class_str = "  ".join(f"POPGUNS {c}: {f:.3f}" for c, f in zip(classes_orig, per_class_f1))
     print(f"  Per-class F1: {per_class_str}")
 
     joblib.dump(model, MODEL_DIR / "triage_model.joblib")

@@ -1,6 +1,6 @@
 {
   "source": "data/raw_triage/5v_cleandf.rdata",
-  "label_column": "esi",
+  "label_column": "triage_category (POPGUNS, derived via assign_triage)",
   "sample_rows_target": 120000,
   "n_rows": 119999,
   "n_rows_without_mapped_symptom": 14317,
@@ -8,10 +8,11 @@
   "n_cc_columns_dropped_missing_in_source": 0,
   "n_cc_targets_dropped_missing_in_schema": 1,
   "triage_distribution": {
-    "1": 1133,
-    "2": 35167,
-    "3": 50799,
-    "4": 26881,
-    "5": 6019
+    "1": 19818,
+    "2": 14008,
+    "3": 4770,
+    "4": 5241,
+    "5": 23845,
+    "6": 52317
   }
 }

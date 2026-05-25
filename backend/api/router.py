@@ -47,7 +47,7 @@ def root():
     tags=["Machine Learning"],
     summary="Predict triage category",
     description=(
-        "Runs the ensemble triage model against the structured intake form payload and returns a triage category (1=Immediate ... 6=Referred), human-readable label, predicted-class confidence, full per-class probability map, the model name used, and an `input_summary` echo of the request for traceability."
+        "Runs the ensemble triage model against the structured intake form payload and returns a POPGUNS triage category (1=Call 000 ... 6=Routine appointment), human-readable label, predicted-class confidence, full per-class probability map, the model name used, and an `input_summary` echo of the request for traceability."
     ),
     responses=ERROR_RESPONSES,
 )

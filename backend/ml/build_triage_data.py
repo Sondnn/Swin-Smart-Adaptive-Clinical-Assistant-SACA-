@@ -20,7 +20,12 @@ from config import (
     TRIAGE_INGEST_REPORT,
     TRIAGE_TRAINING_CSV,
 )
-from triage_rules import CAT1_SYMPTOMS, CAT2_SYMPTOMS, CAT3_SYMPTOMS
+from triage_rules import (
+    CAT1_SYMPTOMS,
+    CAT2_SYMPTOMS,
+    CAT3_SYMPTOMS,
+    assign_triage,
+)
 
 SEED = 42
 SAMPLE_ROWS = 120_000
@@ -328,7 +333,6 @@ def main():
     }
     age_arr = df["age"].to_numpy()
     gender_arr = df["gender"].astype(object).to_numpy()
-    esi_arr = df["esi"].to_numpy()
 
     for i in range(len(df)):
         present: set[str] = set()
@@ -362,7 +366,9 @@ def main():
         if "symptom__otherwise_well" in row:
             row["symptom__otherwise_well"] = 1 if row["symptom_severity"] <= 2 else 0
 
-        triage = int(esi_arr[i])
+        # POPGUNS category derived from the row's symptom presentation,
+        # duration and age (not the source ESI acuity).
+        triage = assign_triage(row)
         row["triage_category"] = triage
         row["group_id"] = i
         rows.append(row)
@@ -377,7 +383,7 @@ def main():
 
     report = {
         "source": str(RAW_TRIAGE_FILE.relative_to(BASE_DIR)),
-        "label_column": "esi",
+        "label_column": "triage_category (POPGUNS, derived via assign_triage)",
         "sample_rows_target": SAMPLE_ROWS,
         "n_rows": len(rows),
         "n_rows_without_mapped_symptom": n_no_symptom,

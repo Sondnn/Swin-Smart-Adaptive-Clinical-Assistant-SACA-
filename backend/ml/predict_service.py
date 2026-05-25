@@ -148,13 +148,13 @@ class PredictService:
 
         confidence = probabilities.get(f"category_{prediction}", None)
 
-        # ESI 1-5 labels (Emergency Severity Index).
         triage_labels = {
-            1: "Resuscitation",
-            2: "Emergent",
-            3: "Urgent",
-            4: "Less Urgent",
-            5: "Non-Urgent",
+            1: "Call 000",
+            2: "Go to Emergency Department now",
+            3: "Put call through to nurse / doctor immediately",
+            4: "Come to surgery now",
+            5: "Come to surgery today",
+            6: "Routine appointment",
         }
         triage_label = triage_labels.get(prediction, "Unknown")
 

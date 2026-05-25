@@ -1,50 +1,63 @@
 {
-  "trained_at": "2026-05-21T13:02:59",
-  "total_training_seconds": 107.3,
+  "trained_at": "2026-05-25T20:25:43",
+  "total_training_seconds": 153.85,
   "triage_model": {
     "split_strategy": "GroupShuffleSplit (outer) + StratifiedGroupKFold-3 (inner)",
-    "cv_accuracy_mean": 0.5973916583981791,
-    "cv_accuracy_std": 0.0019299259285370557,
-    "cv_macro_f1_mean": 0.5015812032911796,
-    "cv_macro_f1_std": 0.0027023244747370685,
-    "test_accuracy": 0.596125,
-    "test_macro_f1": 0.49632285161350637,
-    "test_weighted_f1": 0.595546551796799,
+    "cv_accuracy_mean": 0.9998854156900737,
+    "cv_accuracy_std": 2.946209201814879e-05,
+    "cv_macro_f1_mean": 0.9997372436718649,
+    "cv_macro_f1_std": 4.432411945856892e-05,
+    "test_accuracy": 0.9999583333333333,
+    "test_macro_f1": 0.9999494483866572,
+    "test_weighted_f1": 0.9999583343746833,
     "confusion_matrix": [
       [
-        73,
-        63,
-        13,
-        51,
+        3947,
+        1,
+        0,
+        0,
+        0,
         0
       ],
       [
-        124,
-        4377,
-        1740,
-        778,
-        26
+        0,
+        2830,
+        0,
+        0,
+        0,
+        0
       ],
       [
-        32,
-        2182,
-        5615,
-        2075,
-        160
+        0,
+        0,
+        988,
+        0,
+        0,
+        0
       ],
       [
-        25,
-        229,
-        792,
-        3866,
-        498
+        0,
+        0,
+        0,
+        1008,
+        0,
+        0
       ],
       [
-        1,
-        41,
-        187,
-        676,
-        376
+        0,
+        0,
+        0,
+        0,
+        4781,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        10445
       ]
     ],
     "labels": [
@@ -52,13 +65,14 @@
       2,
       3,
       4,
-      5
+      5,
+      6
     ],
     "n_features": 298,
     "n_train": 95999,
     "n_test": 24000,
-    "total_seconds": 106.92,
-    "xgb_search_seconds": 90.27,
+    "total_seconds": 153.44,
+    "xgb_search_seconds": 129.74,
     "best_xgb_params": {
       "subsample": 1.0,
       "n_estimators": 300,
@@ -66,6 +80,6 @@
       "learning_rate": 0.15,
       "colsample_bytree": 0.8
     },
-    "best_xgb_cv_neg_log_loss": -0.9240103023279959
+    "best_xgb_cv_neg_log_loss": -0.0008060609091241153
   }
 }
