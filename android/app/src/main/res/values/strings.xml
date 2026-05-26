@@ -21,19 +21,19 @@
     <string name="triage_form_continue_button">Continue</string>
     <string name="triage_form_assess_button">Assess</string>
 
-    <string name="triage_form_gender_title">Your Gender</string>
+    <string name="triage_form_gender_title">What is Your Gender?</string>
     <string name="triage_form_gender_question_speak">What is your gender?</string>
     <string name="triage_form_gender_option_male">Male</string>
     <string name="triage_form_gender_option_female">Female</string>
     <string name="triage_form_gender_option_prefer_not_to_say">Prefer not to say</string>
 
-    <string name="triage_form_age_title">Your Age</string>
+    <string name="triage_form_age_title">What is Your Age?</string>
     <string name="triage_form_age_question_speak">What is your age?</string>
     <string name="triage_form_age_option_older_adult_or_younger">65 years old or younger</string>
     <string name="triage_form_age_option_over_older_adult">Older than 65 years old</string>
 
-    <string name="triage_form_symptom_title">Select Any Symptoms</string>
-    <string name="triage_form_symptom_question_speak">What is your symptoms?</string>
+    <string name="triage_form_symptom_title">What are Your Symptoms?</string>
+    <string name="triage_form_symptom_question_speak">What are your symptoms?</string>
     <string name="triage_form_symptom_show_more">Show More</string>
     <string name="triage_form_symptom_or">OR</string>
     <string name="triage_form_symptom_describe_title">Describe Symptoms</string>
