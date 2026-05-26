@@ -39,7 +39,7 @@ namespace SACA.WindowsApp.Pages
             }
             catch (Exception ex)
             {
-                MessageBox.Show(ex.Message, "Assessment");
+                MessageBox.Show(ex.Message, AppLanguage.T("assessment"));
                 _mainWindow.NavigateToSymptoms();
             }
         }

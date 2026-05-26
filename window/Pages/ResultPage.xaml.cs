@@ -34,8 +34,8 @@ namespace SACA.WindowsApp.Pages
                 : "No symptoms were provided.";
 
             DiagnosticTextBlock.Text = string.IsNullOrWhiteSpace(response.Disease?.Disease)
-                ? "A likely diagnostic condition was not returned by the model."
-                : $"You are likely to have {response.Disease.Disease}.";
+                ? AppLanguage.T("diagnostic_not_returned")
+                : $"{AppLanguage.T("diagnostic_likely_prefix")} {ToDisplayDisease(response.Disease.Disease)}.";
         }
 
         private void StartAgain_Click(object sender, RoutedEventArgs e)
@@ -149,6 +149,33 @@ namespace SACA.WindowsApp.Pages
                 _ => ToTitleCase(value)
             };
         }
+
+        private static string ToDisplayDisease(string disease)
+        {
+            if (!AppLanguage.IsWalmajarri)
+            {
+                return ToTitleCase(disease);
+            }
+
+            string normalisedDisease = NormaliseDiseaseName(disease);
+
+            return WalmajarriDiseaseNames.TryGetValue(normalisedDisease, out string? translatedDisease)
+                ? translatedDisease
+                : ToTitleCase(disease);
+        }
+
+        private static string NormaliseDiseaseName(string value)
+        {
+            return value.Trim()
+                .ToLowerInvariant()
+                .Replace("_", " ")
+                .Replace("-", " ");
+        }
+
+        private static readonly Dictionary<string, string> WalmajarriDiseaseNames = new()
+        {
+            // Add verified Walmajarri disease names here as they are supplied.
+        };
 
         private static string ToTitleCase(string value)
         {

@@ -109,13 +109,30 @@ namespace SACA.WindowsApp.Pages
             {
                 string checkBoxValue = checkBox.Content?.ToString() ?? "";
                 string tagValue = checkBox.Tag?.ToString() ?? "";
+                string normalisedCheckBoxValue = NormaliseSelectionValue(checkBoxValue);
+                string normalisedTagValue = NormaliseSelectionValue(tagValue);
                 checkBox.IsChecked = values.Any(value =>
-                    checkBoxValue.Equals(value, StringComparison.OrdinalIgnoreCase)
+                {
+                    string normalisedValue = NormaliseSelectionValue(value);
+
+                    return normalisedCheckBoxValue.Equals(normalisedValue, StringComparison.OrdinalIgnoreCase)
+                    || normalisedTagValue.Equals(normalisedValue, StringComparison.OrdinalIgnoreCase)
+                    || checkBoxValue.Equals(value, StringComparison.OrdinalIgnoreCase)
                     || tagValue.Equals(value, StringComparison.OrdinalIgnoreCase)
                     || checkBoxValue.Contains(value, StringComparison.OrdinalIgnoreCase)
                     || tagValue.Contains(value, StringComparison.OrdinalIgnoreCase)
-                    || value.Contains(checkBoxValue, StringComparison.OrdinalIgnoreCase));
+                    || value.Contains(checkBoxValue, StringComparison.OrdinalIgnoreCase);
+                });
             }
+        }
+
+        private static string NormaliseSelectionValue(string value)
+        {
+            return value.Trim()
+                .ToLowerInvariant()
+                .Replace("-", "_")
+                .Replace("/", "_")
+                .Replace(" ", "_");
         }
 
         private static IEnumerable<T> FindVisualChildren<T>(DependencyObject parent)
