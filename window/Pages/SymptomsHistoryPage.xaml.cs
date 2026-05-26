@@ -88,9 +88,19 @@ namespace SACA.WindowsApp.Pages
 
         private void SelectRadioValue(string value)
         {
-            YesRadioButton.IsChecked = value.Contains("yes", StringComparison.OrdinalIgnoreCase);
-            NoRadioButton.IsChecked = value.Contains("no", StringComparison.OrdinalIgnoreCase);
-            UnknownRadioButton.IsChecked = value.Contains("unknown", StringComparison.OrdinalIgnoreCase);
+            string normalisedValue = value.Trim();
+
+            YesRadioButton.IsChecked = normalisedValue == "1"
+                || normalisedValue.Contains("yes", StringComparison.OrdinalIgnoreCase)
+                || normalisedValue.Contains("yuwa", StringComparison.OrdinalIgnoreCase);
+            NoRadioButton.IsChecked = normalisedValue == "0"
+                || normalisedValue.Equals("No", StringComparison.OrdinalIgnoreCase)
+                || normalisedValue.Contains("wiya", StringComparison.OrdinalIgnoreCase);
+            UnknownRadioButton.IsChecked = normalisedValue == "2"
+                || normalisedValue.Contains("unknown", StringComparison.OrdinalIgnoreCase)
+                || normalisedValue.Contains("not sure", StringComparison.OrdinalIgnoreCase)
+                || normalisedValue.Contains("don't know", StringComparison.OrdinalIgnoreCase)
+                || normalisedValue.Contains("kulini", StringComparison.OrdinalIgnoreCase);
         }
     }
 }

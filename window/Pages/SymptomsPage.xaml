@@ -58,6 +58,10 @@
                 <TextBlock Text="{services:Loc symptoms_title}"
                            Style="{StaticResource PageTitleTextStyle}"
                            FontSize="28"
+                           MaxWidth="620"
+                           TextWrapping="Wrap"
+                           TextTrimming="None"
+                           TextAlignment="Center"
                            VerticalAlignment="Center"/>
                 <controls:SpeakerButtonControl TextKey="speak_symptoms"/>
             </StackPanel>

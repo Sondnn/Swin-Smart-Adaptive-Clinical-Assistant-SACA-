@@ -4,27 +4,36 @@
              xmlns:services="clr-namespace:SACA.WindowsApp.Services">
 
     <Grid Background="{StaticResource AppBackgroundBrush}">
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="420">
+        <StackPanel VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Width="760"
+                    MaxWidth="760"
+                    Margin="40">
 
             <TextBlock Text="{services:Loc app_name}"
                        FontSize="34"
                        FontWeight="Bold"
                        Foreground="{StaticResource PrimaryTextBrush}"
                        TextAlignment="Center"
+                       TextWrapping="Wrap"
+                       TextTrimming="None"
                        Margin="0,0,0,20"/>
 
             <TextBlock Text="{services:Loc welcome}"
                        FontSize="20"
                        Foreground="{StaticResource BodyTextBrush}"
                        TextAlignment="Center"
+                       TextWrapping="Wrap"
                        Margin="0,0,0,60"/>
 
             <Button Content="{services:Loc english}"
+                    Width="420"
                     Height="45"
                     Margin="0,0,0,15"
                     Click="English_Click"/>
 
             <Button Content="{services:Loc walmajarri}"
+                    Width="420"
                     Height="45"
                     Click="Walmajarri_Click"/>
 

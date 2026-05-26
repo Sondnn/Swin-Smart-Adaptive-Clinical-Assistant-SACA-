@@ -100,9 +100,20 @@ namespace SACA.WindowsApp.Pages
 
         private void SelectRadioValue(string value)
         {
-            LessThanDayRadioButton.IsChecked = MatchesDuration(value, "Less than a day") || value.Contains("less", StringComparison.OrdinalIgnoreCase);
-            MoreThanDayRadioButton.IsChecked = MatchesDuration(value, "More than a day") || value.Contains("more", StringComparison.OrdinalIgnoreCase);
-            UnknownRadioButton.IsChecked = value.Contains("unknown", StringComparison.OrdinalIgnoreCase);
+            string normalisedValue = value.Trim();
+
+            LessThanDayRadioButton.IsChecked = normalisedValue == "0"
+                || MatchesDuration(normalisedValue, "Less than a day")
+                || normalisedValue.Contains("less", StringComparison.OrdinalIgnoreCase)
+                || normalisedValue.Contains("under", StringComparison.OrdinalIgnoreCase);
+            MoreThanDayRadioButton.IsChecked = normalisedValue == "1"
+                || MatchesDuration(normalisedValue, "More than a day")
+                || normalisedValue.Contains("more", StringComparison.OrdinalIgnoreCase)
+                || normalisedValue.Contains("over", StringComparison.OrdinalIgnoreCase);
+            UnknownRadioButton.IsChecked = normalisedValue == "2"
+                || normalisedValue.Contains("unknown", StringComparison.OrdinalIgnoreCase)
+                || normalisedValue.Contains("not sure", StringComparison.OrdinalIgnoreCase)
+                || normalisedValue.Contains("don't know", StringComparison.OrdinalIgnoreCase);
         }
 
         private static bool MatchesDuration(string value, string option)
