@@ -40,7 +40,22 @@ namespace SACA.WindowsApp.Services
 
             if (element.ValueKind == JsonValueKind.Object)
             {
-                string[] preferredFields = { "value", "answer", "gender", "age", "severity", "duration", "response", "result" };
+                string[] preferredFields =
+                {
+                    "value",
+                    "answer",
+                    "gender",
+                    "age",
+                    "age_over_65",
+                    "severity",
+                    "symptom_severity",
+                    "duration",
+                    "symptoms_duration",
+                    "had_symptoms_before",
+                    "had_contact",
+                    "response",
+                    "result"
+                };
 
                 foreach (string field in preferredFields)
                 {

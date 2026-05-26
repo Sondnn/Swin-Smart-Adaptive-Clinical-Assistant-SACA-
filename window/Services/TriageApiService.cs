@@ -36,11 +36,11 @@ namespace SACA.WindowsApp.Services
             }
             catch (HttpRequestException)
             {
-                throw new Exception("We could not connect to the assessment service. Please check that the service is running and try again.");
+                throw new Exception(AppLanguage.T("analysis_unavailable"));
             }
             catch (TaskCanceledException)
             {
-                throw new Exception("The assessment service took too long to respond. Please try again.");
+                throw new Exception(AppLanguage.T("analysis_unavailable"));
             }
 
             if (!response.IsSuccessStatusCode)
@@ -460,11 +460,11 @@ namespace SACA.WindowsApp.Services
             }
             catch (HttpRequestException)
             {
-                throw new Exception("We could not connect to the voice service. Please check that the service is running and try again.");
+                throw new Exception(AppLanguage.T("recording_transcribe_failed"));
             }
             catch (TaskCanceledException)
             {
-                throw new Exception("The voice service took too long to respond. Please try again.");
+                throw new Exception(AppLanguage.T("recording_transcribe_failed"));
             }
         }
 
@@ -485,13 +485,13 @@ namespace SACA.WindowsApp.Services
                     || normalisedMessage.Contains("too short")
                     || normalisedMessage.Contains("quality"))
                 {
-                    return "We could not understand the recording. Please try again in a quiet place and speak clearly.";
+                    return AppLanguage.T("recording_transcribe_failed");
                 }
 
-                return "We could not process the voice answer. Please try recording it again.";
+                return AppLanguage.T("recording_process_failed");
             }
 
-            return "We could not complete the assessment right now. Please check your answers and try again.";
+            return AppLanguage.T("analysis_unavailable");
         }
 
         private static string ExtractBackendMessage(string responseBody)
