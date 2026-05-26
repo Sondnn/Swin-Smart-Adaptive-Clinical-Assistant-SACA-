@@ -20,7 +20,11 @@ from config import (
     TRIAGE_INGEST_REPORT,
     TRIAGE_TRAINING_CSV,
 )
-from triage_rules import assign_triage
+from triage_rules import (
+    CHRONIC_COLS,
+    CHRONIC_SENSITIVE_SYMPTOMS,
+    assign_triage,
+)
 
 SEED = 42
 SAMPLE_ROWS = 120_000
@@ -35,6 +39,7 @@ AUGMENT_PER_SYMPTOM = 60
 AUGMENT_COMBO_ROWS = 20_000
 AUGMENT_COMBO_MAX_SYMPTOMS = 4
 AUGMENT_ESCALATION_PER_TRIGGER = 400
+AUGMENT_CHRONIC_PER_SYMPTOM = 400
 
 
 def _sample_choice(rng: random.Random, dist: dict[int, float]) -> int:
@@ -95,6 +100,20 @@ def _augment_symptom_coverage(
             for sym in rng.sample(symptom_cols, rng.randint(0, 3)):
                 row[sym] = 1
             _fill_random_context(rng, row)
+            row["triage_category"] = assign_triage(row)
+            row["group_id"] = gid
+            gid += 1
+            rows.append(row)
+
+    chronic_cols = [c for c in CHRONIC_COLS if c in feature_columns]
+    sensitive = [s for s in CHRONIC_SENSITIVE_SYMPTOMS if s in feature_columns]
+    for sym in sensitive:
+        for _ in range(AUGMENT_CHRONIC_PER_SYMPTOM):
+            row = {c: 0 for c in feature_columns}
+            row[sym] = 1
+            _fill_random_context(rng, row)
+            for c in rng.sample(chronic_cols, rng.randint(1, 2)):
+                row[c] = 1
             row["triage_category"] = assign_triage(row)
             row["group_id"] = gid
             gid += 1

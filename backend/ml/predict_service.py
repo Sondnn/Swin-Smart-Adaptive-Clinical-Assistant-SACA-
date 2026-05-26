@@ -7,6 +7,7 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 from ml.preprocess import make_single_case_dataframe
+from ml.triage_rules import assign_triage
 
 # Tri-state encoding for skippable yes/no questions: 0=no, 1=yes, 2=unknown.
 TRISTATE_DESCRIPTION = "Tri-state: 0=no, 1=yes, 2=unknown (skipped)."
@@ -135,7 +136,15 @@ class PredictService:
         )
 
         encoded_pred = self.model.predict(case_df)[0]
-        prediction = int(self.label_encoder.inverse_transform([encoded_pred])[0])
+        model_prediction = int(self.label_encoder.inverse_transform([encoded_pred])[0])
+
+        # Deterministic POPGUNS safety rules must always take effect: red-flag
+        # escalation triggers force Category 1, and a chronic comorbidity with a
+        # systemic symptom escalates urgency. The model under-represents these
+        # weak features, so take the more urgent of the model and the rule
+        # (lower category number = more urgent).
+        rule_prediction = assign_triage(case_df.iloc[0].to_dict())
+        prediction = min(model_prediction, rule_prediction)
 
         probabilities = {}
         if hasattr(self.model, "predict_proba"):

@@ -1,63 +1,63 @@
 {
-  "trained_at": "2026-05-26T00:00:08",
-  "total_training_seconds": 157.6,
+  "trained_at": "2026-05-26T22:48:40",
+  "total_training_seconds": 163.03,
   "triage_model": {
     "split_strategy": "GroupShuffleSplit (outer) + StratifiedGroupKFold-3 (inner)",
-    "cv_accuracy_mean": 0.9868879463860321,
-    "cv_accuracy_std": 0.0007809233760117188,
-    "cv_macro_f1_mean": 0.9783011913605592,
-    "cv_macro_f1_std": 0.001079816501360988,
-    "test_accuracy": 0.9882016108733954,
-    "test_macro_f1": 0.9805303009060543,
-    "test_weighted_f1": 0.9881946651073631,
+    "cv_accuracy_mean": 0.988120000041679,
+    "cv_accuracy_std": 0.0008954247851284447,
+    "cv_macro_f1_mean": 0.9802300904585994,
+    "cv_macro_f1_std": 0.0012530348251910332,
+    "test_accuracy": 0.9900429286906749,
+    "test_macro_f1": 0.9839930445796691,
+    "test_weighted_f1": 0.9900495056530273,
     "confusion_matrix": [
       [
-        5804,
-        37,
+        6035,
+        49,
         25,
         6,
-        5,
+        2,
         0
       ],
       [
         0,
-        3566,
-        21,
-        7,
+        3562,
+        19,
+        5,
         4,
         0
       ],
       [
         0,
         0,
-        1644,
-        64,
-        14,
+        1725,
+        48,
+        7,
         0
       ],
       [
         0,
         0,
-        1,
-        2000,
-        76,
+        2,
+        2476,
+        83,
         1
       ],
       [
         0,
         0,
         0,
-        24,
-        5837,
-        88
+        37,
+        6883,
+        27
       ],
       [
         0,
         0,
         0,
         0,
-        2,
-        12558
+        19,
+        12529
       ]
     ],
     "labels": [
@@ -69,10 +69,10 @@
       6
     ],
     "n_features": 298,
-    "n_train": 127135,
-    "n_test": 31784,
-    "total_seconds": 157.06,
-    "xgb_search_seconds": 133.24,
+    "n_train": 134175,
+    "n_test": 33544,
+    "total_seconds": 162.46,
+    "xgb_search_seconds": 137.34,
     "best_xgb_params": {
       "subsample": 1.0,
       "n_estimators": 300,
@@ -80,6 +80,6 @@
       "learning_rate": 0.15,
       "colsample_bytree": 0.8
     },
-    "best_xgb_cv_neg_log_loss": -0.09063249380375445
+    "best_xgb_cv_neg_log_loss": -0.09820280894080673
   }
 }
