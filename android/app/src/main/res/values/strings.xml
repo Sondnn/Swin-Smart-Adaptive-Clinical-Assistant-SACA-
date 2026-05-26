@@ -21,19 +21,19 @@
     <string name="triage_form_continue_button">Continue</string>
     <string name="triage_form_assess_button">Assess</string>
 
-    <string name="triage_form_gender_title">What is your gender?</string>
+    <string name="triage_form_gender_title">Your Gender</string>
     <string name="triage_form_gender_question_speak">What is your gender?</string>
     <string name="triage_form_gender_option_male">Male</string>
     <string name="triage_form_gender_option_female">Female</string>
     <string name="triage_form_gender_option_prefer_not_to_say">Prefer not to say</string>
 
-    <string name="triage_form_age_title">Are you 65 years old or above?</string>
-    <string name="triage_form_age_question_speak">Are you 65 years old or above?</string>
+    <string name="triage_form_age_title">Your Age</string>
+    <string name="triage_form_age_question_speak">What is your age?</string>
     <string name="triage_form_age_option_older_adult_or_younger">65 years old or younger</string>
     <string name="triage_form_age_option_over_older_adult">Older than 65 years old</string>
 
-    <string name="triage_form_symptom_title">What is your primary symptoms today?</string>
-    <string name="triage_form_symptom_question_speak">What is your primary symptoms today?</string>
+    <string name="triage_form_symptom_title">Select Any Symptoms</string>
+    <string name="triage_form_symptom_question_speak">What is your symptoms?</string>
     <string name="triage_form_symptom_show_more">Show More</string>
     <string name="triage_form_symptom_or">OR</string>
     <string name="triage_form_symptom_describe_title">Describe Symptoms</string>
@@ -66,22 +66,22 @@
     <string name="triage_form_symptom_abdominal_pain">Abdominal Pain</string>
     <string name="triage_form_symptom_back_pain">Back Pain</string>
 
-    <string name="triage_form_severity_title">How severe are your symptoms?</string>
-    <string name="triage_form_severity_question_speak">How severe are your symptoms?</string>
+    <string name="triage_form_severity_title">Severity of Symptoms</string>
+    <string name="triage_form_severity_question_speak">What is the severity of your symptoms?</string>
     <string name="triage_form_severity_option_mild">Mild</string>
     <string name="triage_form_severity_option_low">Low</string>
     <string name="triage_form_severity_option_moderate">Moderate</string>
     <string name="triage_form_severity_option_high">High</string>
     <string name="triage_form_severity_option_severe">Severe</string>
 
-    <string name="triage_form_duration_title">How long have you had these symptoms?</string>
+    <string name="triage_form_duration_title">Duration of Symptoms</string>
     <string name="triage_form_duration_question_speak">How long have you had these symptoms?</string>
     <string name="triage_form_duration_option_less_than_day">Less than a day</string>
     <string name="triage_form_duration_option_more_than_day">More than a day</string>
     <string name="triage_form_duration_option_unknown">Unknown</string>
 
-    <string name="triage_form_symptoms_before_title">Have you had these symptoms before?</string>
-    <string name="triage_form_symptoms_before_question_speak">Have you had these symptoms before?</string>
+    <string name="triage_form_symptoms_before_title">Have you had these symptoms Before?</string>
+    <string name="triage_form_symptoms_before_question_speak">Have you had these symptoms Before?</string>
     <string name="triage_form_symptoms_before_option_yes">Yes</string>
     <string name="triage_form_symptoms_before_option_no">No</string>
     <string name="triage_form_symptoms_before_option_unknown">Unknown</string>
