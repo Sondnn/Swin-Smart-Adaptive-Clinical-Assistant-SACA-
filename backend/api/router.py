@@ -3,9 +3,9 @@ import traceback
 from fastapi import APIRouter, File, Form, UploadFile
 from fastapi.responses import JSONResponse
 
-from config import MODEL_DIR
-from ml.ml_service import (
-    MLService,
+from config import MODEL_DIR, TRIAGE_TRAINING_CSV
+from ml.predict_service import (
+    PredictService,
     PredictRequest,
     PredictResponse
 )
@@ -18,8 +18,8 @@ from nlp import nlp_service
 from nlp.nlp_service import ExtractSymptomsRequest, ExtractSymptomsResponse
 
 router = APIRouter()
-ml_service = MLService(MODEL_DIR)
-symptom_suggestion_service = SymptomSuggestionService(MODEL_DIR, MODEL_DIR / "training_data.csv")
+predict_service = PredictService(MODEL_DIR)
+symptom_suggestion_service = SymptomSuggestionService(MODEL_DIR, TRIAGE_TRAINING_CSV)
 
 ERROR_RESPONSES = {
     500: {
@@ -53,7 +53,7 @@ def root():
 )
 async def analyze_symptoms(payload: PredictRequest):
     try:
-        return ml_service.predict(payload)
+        return predict_service.predict(payload)
     except Exception as e:
         return JSONResponse(
             status_code=500,
@@ -106,9 +106,16 @@ async def speech_to_text_page(
     files: UploadFile = File(...),
 ):
     try:
-        parsed_response = nlp_service.process_audio_response(files.file, language=language, question_id=question_id)
-        return {"question_id": question_id, 
-                "parsed_response": parsed_response}
+        result = nlp_service.process_audio_response(files.file, language=language, question_id=question_id)
+        parsed = result["parsed_response"]
+        if isinstance(parsed, dict):
+            parsed = {k: (sorted(v) if isinstance(v, set) else v) for k, v in parsed.items()}
+        return {
+            "question_id": question_id,
+            "parsed_response": parsed,
+            "confidence": result["confidence"],
+            "transcript": result["transcript"],
+        }
     except Exception as e:
         return JSONResponse(
             status_code=500,

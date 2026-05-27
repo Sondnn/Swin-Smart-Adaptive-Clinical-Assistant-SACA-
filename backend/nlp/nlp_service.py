@@ -1,5 +1,7 @@
 from typing import List
 from collections.abc import Iterable
+from datetime import datetime, timezone
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -16,15 +18,25 @@ try:
 except ImportError:
     sr = None
 
-BASE_DIR = Path(__file__).resolve().parents[1]
-FEATURE_COLUMNS_FILE = BASE_DIR / "models" / "feature_columns.json"
-WMT_EN_DICT_FILE = Path(__file__).resolve().with_name("wmt_en_dict.json")
+from config import MODEL_FEATURES_FILE
+from nlp.walmadjari_stt import transcribe_walmadjari
 
-# Maps language int (from API) to Google Speech API language code
+WMT_EN_DICT_FILE = Path(__file__).resolve().with_name("wmt_en_dict.json")
+WMT_LOG_PATH = Path(os.environ.get(
+    "WMT_LOG_PATH",
+    str(Path(__file__).resolve().parents[1] / "logs" / "wmt_transcripts.jsonl"),
+))
+
+# Language codes:
+#   1 = English (en-AU) -- handled by Google STT
+#   0 = Walmadjari -- fixed-answer questions go through audio matching (see
+#       nlp/wmt_audio_matcher.py); free-form symptoms (q=3) go through Whisper
+#       + word translation.
 LANGUAGE_MAP = {
     1: "en-AU",
-    0: "...",  # Replace with supported indigenous language code
+    0: "wmt",
 }
+
 
 def load_wmt_en_dict() -> dict:
     try:
@@ -32,7 +44,9 @@ def load_wmt_en_dict() -> dict:
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
+
 WMT_EN_DICT = load_wmt_en_dict()
+
 
 FALLBACK_STOPWORDS = {
     "a", "an", "and", "are", "as", "at", "be", "by", "for", "from",
@@ -68,7 +82,7 @@ def build_symptom_patterns(feature_columns: Iterable[str]) -> dict[str, list[str
 
 
 def load_symptom_patterns() -> dict[str, list[str]]:
-    feature_columns = json.loads(FEATURE_COLUMNS_FILE.read_text())
+    feature_columns = json.loads(MODEL_FEATURES_FILE.read_text())
     return build_symptom_patterns(feature_columns)
 
 
@@ -156,14 +170,6 @@ def convert_wav_to_text(wav_file_path: str, language: int = 1) -> str:
     if language not in LANGUAGE_MAP:
         raise ValueError(f"Unsupported language code: {language}. Use 1 (English) or 0 (Indigenous).")
 
-    language_code = LANGUAGE_MAP[language]
-
-    if sr is None:
-        raise ImportError(
-            "Missing dependency 'speech_recognition'.\n"
-            "Install backend requirements to enable audio transcription."
-        )
-
     if not os.path.isfile(wav_file_path):
         raise FileNotFoundError(f"WAV file not found: {wav_file_path}")
 
@@ -175,6 +181,18 @@ def convert_wav_to_text(wav_file_path: str, language: int = 1) -> str:
             f"Invalid WAV audio file: {wav_file_path}. File must be RIFF/PCM WAV."
         ) from exc
 
+    if language == 0:
+        transcript = transcribe_walmadjari(wav_file_path)
+        print(f"Transcription (wmt, backend={os.environ.get('WMT_ASR_BACKEND', 'whisper')}): {transcript}")
+        return transcript
+
+    if sr is None:
+        raise ImportError(
+            "Missing dependency 'speech_recognition'.\n"
+            "Install backend requirements to enable audio transcription."
+        )
+
+    language_code = LANGUAGE_MAP[language]
     recognizer = sr.Recognizer()
     with sr.AudioFile(wav_file_path) as source:
         audio = recognizer.record(source)
@@ -327,96 +345,107 @@ def _parse_additional_symptoms(transcript: str) -> dict | None:
     ##
     return None
 
+def _has_phrase(transcript: str, phrase: str) -> bool:
+    """Whole-word/phrase match. Avoids substring false positives like
+    'no' matching 'know' or 'low' matching 'below'."""
+    return re.search(r"\b" + re.escape(phrase) + r"\b", transcript) is not None
+
+
+def _has_any(transcript: str, phrases: Iterable[str]) -> bool:
+    return any(_has_phrase(transcript, p) for p in phrases)
+
+
 def _parse_gender(transcript: str) -> dict | None:
-    if "female" in transcript:
+    if _has_phrase(transcript, "female"):
         return {"gender": "0"}
-    if "male" in transcript or "mail" in transcript:
+    if _has_any(transcript, ("male", "mail")):
         return {"gender": "1"}
-    if "unknown" in transcript or "prefer not to say" in transcript:
+    if _has_phrase(transcript, "unknown") or _has_phrase(transcript, "prefer not to say"):
         return {"gender": "2"}
     return None
 
 
 def _parse_age(transcript: str) -> dict | None:
-    has_65 = "65" in transcript or "sixty-five" in transcript or "sixty five" in transcript
+    has_65 = _has_any(transcript, ("65", "sixty-five", "sixty five"))
     if not has_65:
         return None
-    over_words = {"older", "over", "above", "more", "greater"}
-    under_words = {"younger", "under", "below", "less", "fewer"}
-    if any(w in transcript for w in over_words):
+    over_words = ("older", "over", "above", "more", "greater")
+    under_words = ("younger", "under", "below", "less", "fewer")
+    if _has_any(transcript, over_words):
         return {"age_over_65": "1"}
-    if any(w in transcript for w in under_words):
+    if _has_any(transcript, under_words):
         return {"age_over_65": "0"}
-    if "unknown" in transcript or "prefer not to say" in transcript:
+    if _has_phrase(transcript, "unknown") or _has_phrase(transcript, "prefer not to say"):
         return {"age_over_65": "2"}
     return None
 
-def _parse_severity(transript: str) -> dict | None:
-    if "mild" in transript or "mould" in transript:
+def _parse_severity(transcript: str) -> dict | None:
+    if _has_any(transcript, ("mild", "mould")):
         return {"symptom_severity": "1"}
-    if "low" in transript:
+    if _has_phrase(transcript, "low"):
         return {"symptom_severity": "2"}
-    if "moderate" in transript:
+    if _has_phrase(transcript, "moderate"):
         return {"symptom_severity": "3"}
-    if "high" in transript:
+    if _has_phrase(transcript, "high"):
         return {"symptom_severity": "4"}
-    if "severe" in transript:
+    if _has_phrase(transcript, "severe"):
         return {"symptom_severity": "5"}
     return None
 
 def _parse_duration(transcript: str) -> dict | None:
-    over_words = {"longer", "over", "more", "greater"}
-    under_words = {"shorter", "under", "less", "fewer"}
-    if any(w in transcript for w in under_words):
+    over_words = ("longer", "over", "more", "greater")
+    under_words = ("shorter", "under", "less", "fewer")
+    if _has_any(transcript, under_words):
         return {"symptoms_duration": "0"}
-    if any(w in transcript for w in over_words):
+    if _has_any(transcript, over_words):
         return {"symptoms_duration": "1"}
-    if "unknown" in transcript or "don't know" in transcript or "not sure" in transcript:
+    if _has_any(transcript, ("unknown", "don't know", "not sure")):
         return {"symptoms_duration": "2"}
+    return None
 
 def _parse_chronic_conditions(transcript: str) -> dict | None:
     conditions = set()
-    if "hypertension" in transcript:
+    if _has_phrase(transcript, "hypertension"):
         conditions.add("hypertension")
-    if "type 2 diabetes" in transcript:
+    if _has_phrase(transcript, "type 2 diabetes"):
         conditions.add("type_2_diabetes")
-    if "heart disease" in transcript:
+    if _has_phrase(transcript, "heart disease"):
         conditions.add("heart_disease")
-    if "asthma" in transcript or "copd" in transcript:
+    if _has_any(transcript, ("asthma", "copd")):
         conditions.add("asthma_copd")
-    if "depression" in transcript or "anxiety" in transcript:
+    if _has_any(transcript, ("depression", "anxiety")):
         conditions.add("depression_anxiety")
     return {"chronic_conditions": conditions} if conditions else None
 
 def _parse_escalation_triggers(transcript: str) -> dict | None:
     triggers = set()
-    if "difficulty breathing" in transcript or "shortness of breath" in transcript:
+    if _has_any(transcript, ("difficulty breathing", "shortness of breath")):
         triggers.add("difficulty_breathing")
-    if "chest pain" in transcript:
+    if _has_phrase(transcript, "chest pain"):
         triggers.add("chest_pain")
-    if "confusion" in transcript:
+    if _has_phrase(transcript, "confusion"):
         triggers.add("confusion")
-    if "persistent high fever" in transcript:
+    if _has_phrase(transcript, "persistent high fever"):
         triggers.add("persistent_high_fever")
-    if "severe weakness" in transcript:
+    if _has_phrase(transcript, "severe weakness"):
         triggers.add("severe_weakness")
     return {"escalation_triggers": triggers} if triggers else None
 
 def _parse_had_symptoms_before(transcript: str) -> dict | None:
-    if "don't know" in transcript or "not sure" in transcript or "unknown" in transcript:
+    if _has_any(transcript, ("don't know", "not sure", "unknown")):
         return {"had_symptoms_before": "2"}
-    if "yes" in transcript or "yeah" in transcript or "yep" in transcript:
+    if _has_any(transcript, ("yes", "yeah", "yep")):
         return {"had_symptoms_before": "1"}
-    if "no" in transcript or "not" in transcript or "nah" in transcript:
+    if _has_any(transcript, ("no", "not", "nah")):
         return {"had_symptoms_before": "0"}
     return None
 
 def _parse_had_contact(transcript: str) -> dict | None:
-    if "don't know" in transcript or "not sure" in transcript or "unknown" in transcript:
-        return {"had_contact": "2"}    
-    if "yes" in transcript or "yeah" in transcript or "yep" in transcript:
+    if _has_any(transcript, ("don't know", "not sure", "unknown")):
+        return {"had_contact": "2"}
+    if _has_any(transcript, ("yes", "yeah", "yep")):
         return {"had_contact": "1"}
-    if "no" in transcript or "not" in transcript or "nah" in transcript:
+    if _has_any(transcript, ("no", "not", "nah")):
         return {"had_contact": "0"}
     return None
 
@@ -433,26 +462,147 @@ _QUESTION_PARSERS = {
     #10: _parse_escalation_triggers, #not implemented yet
 }
 
-def process_audio_response(file_obj, language: int = 1, question_id: int = None) -> dict | None:
+# Questions whose Walmadjari answers are matched directly against pre-recorded
+# reference WAVs (audio-to-audio matching, no STT). Question 3 (free-form
+# symptoms) stays on the Whisper + word-translation + text-parser path.
+WMT_AUDIO_MATCH_QUESTIONS = {1, 2, 5, 6, 7, 8, 9}
+
+
+def process_audio_response(file_obj, language: int = 1, question_id: int = None) -> dict:
+    """Run the right pipeline for one question, return a uniform envelope:
+
+        {"parsed_response":    dict | None,
+         "confidence":         float | None,   # 0..1 (None for English/Google STT)
+         "transcript":         str,            # raw STT text, "" when audio-matched
+         "matched_reference":  str}            # reference WAV name, "" when text-matched
+
+    English (language=1) always goes through Google STT + text parsers.
+    Walmadjari (language=0):
+      - q=3 (symptoms, free-form): Whisper + wmt->en word translation + parser
+      - everything else: MFCC+DTW match against backend/data/wmt_references/
+    """
     with tempfile.NamedTemporaryFile(delete=False, suffix=".wav") as tmp:
         shutil.copyfileobj(file_obj, tmp)
         tmp_path = tmp.name
 
     try:
-        transcript = convert_wav_to_text(tmp_path, language=language)
         if language not in LANGUAGE_MAP:
             raise ValueError(f"Unsupported language code: {language}. Use 1 (English) or 0 (Indigenous).")
+
+        # ---- Walmadjari audio-match path (fixed-answer questions) -----------
+        if language == 0 and question_id in WMT_AUDIO_MATCH_QUESTIONS:
+            from nlp.wmt_audio_matcher import match_audio, available_labels, label_to_text
+            parser = _QUESTION_PARSERS.get(question_id)
+            allowed = None
+            if parser is not None:
+                allowed = {
+                    lbl for lbl in available_labels()
+                    if parser(label_to_text(lbl)) is not None
+                }
+            m = match_audio(tmp_path, allowed_labels=allowed)
+            transcript = label_to_text(m.matched_label) if m.matched_label else ""
+            parsed = parser(transcript) if (parser and transcript) else None
+            _log_wmt_transcript(
+                tmp_path=tmp_path,
+                question_id=question_id,
+                raw_transcript="",
+                translated_transcript=transcript,
+                parsed=parsed,
+                confidence=m.similarity if m.matched_label else None,
+                match_source="audio_match",
+                extra={"matched_reference": m.matched_reference,
+                       "cost": round(m.cost, 4),
+                       "refs_considered": m.refs_considered},
+            )
+            return {
+                "parsed_response": parsed,
+                "confidence": m.similarity if m.matched_label else None,
+                "transcript": transcript,
+                "matched_reference": m.matched_reference,
+            }
+
+        # ---- Text path: English, OR Walmadjari symptoms (q=3) ---------------
+        raw_transcript = convert_wav_to_text(tmp_path, language=language)
         if language == 0:
-            audio_to_process = translate_indigenous_to_english(transcript)
+            transcript = translate_indigenous_to_english(raw_transcript).lower().strip()
         else:
-            audio_to_process = transcript
-        transcript = audio_to_process.lower().strip()
+            transcript = raw_transcript.lower().strip()
+
         parser = _QUESTION_PARSERS.get(question_id)
+        parsed: dict | None = None
+        confidence: float | None = None
         if parser:
-            return parser(transcript)
-        return None
+            parsed = parser(transcript)
+            if parsed is not None:
+                confidence = 1.0
+
+        if language == 0:
+            _log_wmt_transcript(
+                tmp_path=tmp_path,
+                question_id=question_id,
+                raw_transcript=raw_transcript,
+                translated_transcript=transcript,
+                parsed=parsed,
+                confidence=confidence,
+                match_source="text_parser",
+            )
+
+        return {
+            "parsed_response": parsed,
+            "confidence": confidence,
+            "transcript": raw_transcript,
+            "matched_reference": "",
+        }
     finally:
         os.unlink(tmp_path)
+
+
+def _log_wmt_transcript(
+    *,
+    tmp_path: str,
+    question_id: int | None,
+    raw_transcript: str,
+    translated_transcript: str,
+    parsed: dict | None,
+    confidence: float | None,
+    match_source: str,
+    extra: dict | None = None,
+) -> None:
+    """Append one JSONL record for a Walmadjari request. Best-effort: any IO
+    error is swallowed so logging never breaks the request. Disable by
+    setting WMT_LOG_PATH=/dev/null.
+    """
+    try:
+        if str(WMT_LOG_PATH) == os.devnull:
+            return
+        WMT_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
+        wav_sha1 = ""
+        try:
+            with open(tmp_path, "rb") as fh:
+                wav_sha1 = hashlib.sha1(fh.read()).hexdigest()
+        except OSError:
+            pass
+        parsed_jsonable = parsed
+        if isinstance(parsed, dict):
+            parsed_jsonable = {
+                k: (sorted(v) if isinstance(v, set) else v) for k, v in parsed.items()
+            }
+        record = {
+            "ts": datetime.now(timezone.utc).isoformat(),
+            "wav_sha1": wav_sha1,
+            "question_id": question_id,
+            "raw_transcript": raw_transcript,
+            "translated_transcript": translated_transcript,
+            "parsed": parsed_jsonable,
+            "confidence": confidence,
+            "match_source": match_source,
+        }
+        if extra:
+            record.update(extra)
+        with WMT_LOG_PATH.open("a", encoding="utf-8") as out:
+            out.write(json.dumps(record, ensure_ascii=False) + "\n")
+    except Exception:
+        pass
 
 def main() -> None:
     

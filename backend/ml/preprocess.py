@@ -6,10 +6,10 @@ NON_FEATURE_COLUMNS = {"language", "case_id", "triage_category", "triage_label",
 
 
 def _normalize_prefixed_names(
-    values: Iterable[str],
-    prefix: str,
-    feature_columns: Iterable[str],
-    strict: bool,
+        values: Iterable[str],
+        prefix: str,
+        feature_columns: Iterable[str],
+        strict: bool,
 ) -> List[str]:
     feature_set = set(feature_columns)
     normalized: List[str] = []
@@ -39,16 +39,16 @@ def normalize_symptom_names(symptoms: Iterable[str], feature_columns: Iterable[s
 
 
 def make_single_case_dataframe(
-    feature_columns: list[str],
-    gender: int,
-    age_over_65: int,
-    symptom_severity: int,
-    symptoms_duration: int,
-    symptoms: list[str],
-    chronic_conditions: Optional[list[str]] = None,
-    escalation_triggers: Optional[list[str]] = None,
-    had_symptoms_before: int = 0,
-    had_contact: int = 0,
+        feature_columns: List[str],
+        gender: int,
+        age_over_65: int,
+        symptom_severity: int,
+        symptoms_duration: int,
+        symptoms: List[str],
+        chronic_conditions: Optional[List[str]] = None,
+        escalation_triggers: Optional[List[str]] = None,
+        had_symptoms_before: int = 0,
+        had_contact: int = 0,
 ) -> pd.DataFrame:
     chronic_conditions = chronic_conditions or []
     escalation_triggers = escalation_triggers or []

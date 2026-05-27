@@ -10,7 +10,6 @@ Thumbs.db
 *.pyc
 __pycache__/
 
-# Training model
-backend/models/*.joblib
-backend/models/training_data_v1.csv
-backend/models/ml_metrics.json
+# Raw data (too large for git; auto-downloaded by run_ml_pipeline.py)
+backend/data/raw_disease
+backend/data/raw_triage
