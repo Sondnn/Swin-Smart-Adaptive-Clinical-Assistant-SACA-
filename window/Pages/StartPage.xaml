@@ -10,7 +10,11 @@
                VerticalAlignment="Top"
                Opacity="0.35"
                IsHitTestVisible="False"/>
-        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="520">
+        <StackPanel VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Width="640"
+                    MaxWidth="640"
+                    Margin="40">
 
 
             <TextBlock Text="{services:Loc triage_assessment}"
@@ -19,9 +23,10 @@
                        Margin="0,0,0,15"/>
 
             <TextBlock Text="{services:Loc welcome_body}"
-                       FontSize="18"
+                       FontSize="17"
                        Foreground="{StaticResource BodyTextBrush}"
                        TextWrapping="Wrap"
+                       TextTrimming="None"
                        TextAlignment="Center"
                        Margin="0,0,0,40"/>
 

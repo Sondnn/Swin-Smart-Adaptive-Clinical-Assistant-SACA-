@@ -6,8 +6,8 @@
     <Grid Background="{StaticResource AppBackgroundBrush}">
         <StackPanel VerticalAlignment="Center"
                     HorizontalAlignment="Center"
-                    Width="760"
-                    MaxWidth="760"
+                    Width="860"
+                    MaxWidth="860"
                     Margin="40">
 
             <TextBlock Text="{services:Loc app_name}"
@@ -20,10 +20,11 @@
                        Margin="0,0,0,20"/>
 
             <TextBlock Text="{services:Loc welcome}"
-                       FontSize="20"
+                       FontSize="18"
                        Foreground="{StaticResource BodyTextBrush}"
                        TextAlignment="Center"
                        TextWrapping="Wrap"
+                       TextTrimming="None"
                        Margin="0,0,0,60"/>
 
             <Button Content="{services:Loc english}"
