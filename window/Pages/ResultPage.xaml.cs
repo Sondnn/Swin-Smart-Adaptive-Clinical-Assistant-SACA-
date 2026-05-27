@@ -54,6 +54,12 @@ namespace SACA.WindowsApp.Pages
         {
             return triageLabel switch
             {
+                "Call 000" => "/Assets/Icons/severity_category_A.png",
+                "Go to Emergency Department now" => "/Assets/Icons/severity_category_B.png",
+                "Put call through to nurse / doctor immediately" => "/Assets/Icons/severity_category_C.png",
+                "Come to surgery now" => "/Assets/Icons/severity_category_D.png",
+                "Come to surgery today" => "/Assets/Icons/severity_category_E.png",
+                "Routine appointment" => "/Assets/Icons/severity_category_F.png",
                 "Resuscitation" => "/Assets/Icons/severity_category_A.png",
                 "Emergent" => "/Assets/Icons/severity_category_B.png",
                 "Urgent" => "/Assets/Icons/severity_category_C.png",
@@ -65,6 +71,22 @@ namespace SACA.WindowsApp.Pages
 
         private static string GetRecommendation(string triageLabel)
         {
+            string? actionRecommendation = triageLabel switch
+            {
+                "Call 000" => AppLanguage.T("recommendation_call_000"),
+                "Go to Emergency Department now" => AppLanguage.T("recommendation_go_ed_now"),
+                "Put call through to nurse / doctor immediately" => AppLanguage.T("recommendation_call_nurse_doctor"),
+                "Come to surgery now" => AppLanguage.T("recommendation_surgery_now"),
+                "Come to surgery today" => AppLanguage.T("recommendation_surgery_today"),
+                "Routine appointment" => AppLanguage.T("recommendation_routine_appointment"),
+                _ => null
+            };
+
+            if (!string.IsNullOrWhiteSpace(actionRecommendation))
+            {
+                return actionRecommendation;
+            }
+
             if (AppLanguage.IsWalmajarri)
             {
                 return triageLabel switch
@@ -98,6 +120,12 @@ namespace SACA.WindowsApp.Pages
 
             return triageLabel switch
             {
+                "Call 000" => AppLanguage.T("triage_call_000"),
+                "Go to Emergency Department now" => AppLanguage.T("triage_go_ed_now"),
+                "Put call through to nurse / doctor immediately" => AppLanguage.T("triage_call_nurse_doctor"),
+                "Come to surgery now" => AppLanguage.T("triage_surgery_now"),
+                "Come to surgery today" => AppLanguage.T("triage_surgery_today"),
+                "Routine appointment" => AppLanguage.T("triage_routine_appointment"),
                 "Resuscitation" => "Karlarra Wana",
                 "Emergent" => "Karlarra Jukurra",
                 "Urgent" => "Yirrarni Wana",
