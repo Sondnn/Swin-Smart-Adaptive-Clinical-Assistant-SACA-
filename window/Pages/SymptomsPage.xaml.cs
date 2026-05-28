@@ -96,34 +96,35 @@ namespace SACA.WindowsApp.Pages
 
         private void SelectCheckBoxes(IEnumerable<string> values)
         {
+            var normalisedValues = values
+                .Select(NormaliseSelectionValue)
+                .Where(value => !string.IsNullOrWhiteSpace(value))
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
             foreach (CheckBox checkBox in FindVisualChildren<CheckBox>(this))
             {
                 string checkBoxValue = checkBox.Content?.ToString() ?? "";
                 string tagValue = checkBox.Tag?.ToString() ?? "";
                 string normalisedCheckBoxValue = NormaliseSelectionValue(checkBoxValue);
                 string normalisedTagValue = NormaliseSelectionValue(tagValue);
-                checkBox.IsChecked = values.Any(value =>
-                {
-                    string normalisedValue = NormaliseSelectionValue(value);
-
-                    return normalisedCheckBoxValue.Equals(normalisedValue, StringComparison.OrdinalIgnoreCase)
-                    || normalisedTagValue.Equals(normalisedValue, StringComparison.OrdinalIgnoreCase)
-                    || checkBoxValue.Equals(value, StringComparison.OrdinalIgnoreCase)
-                    || tagValue.Equals(value, StringComparison.OrdinalIgnoreCase)
-                    || checkBoxValue.Contains(value, StringComparison.OrdinalIgnoreCase)
-                    || tagValue.Contains(value, StringComparison.OrdinalIgnoreCase)
-                    || value.Contains(checkBoxValue, StringComparison.OrdinalIgnoreCase);
-                });
+                checkBox.IsChecked = normalisedValues.Contains(normalisedCheckBoxValue)
+                    || normalisedValues.Contains(normalisedTagValue);
             }
         }
 
         private static string NormaliseSelectionValue(string value)
         {
-            return value.Trim()
+            string normalisedValue = value.Trim()
                 .ToLowerInvariant()
                 .Replace("-", "_")
                 .Replace("/", "_")
                 .Replace(" ", "_");
+
+            return normalisedValue switch
+            {
+                "body_pain" => "body_aches",
+                _ => normalisedValue
+            };
         }
 
         private static IEnumerable<T> FindVisualChildren<T>(DependencyObject parent)
