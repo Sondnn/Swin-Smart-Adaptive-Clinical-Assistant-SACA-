@@ -306,8 +306,7 @@ class TriageFormViewModel(
                 recordingErrorResId = R.string.triage_form_symptom_transcription_failed_message
             } finally {
                 isTranscribing = false
-                // audioFile is stored for testing purpose, but should be deleted after recording in production
-                // audioFile.delete()
+                audioFile.delete()
             }
         }
     }

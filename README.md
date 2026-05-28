@@ -143,6 +143,32 @@ Trains the triage XGBoost classifier and the disease XGBoost classifier with tem
 
 ### Android
 
+## Description
+This triage Android app is built using Kotlin and Jetpack Compose, the triage process is designed based on POPGUNS, the app allow users to select or voice input through the process, and analysis their symptoms and current conditions to predict the severity level and give suggestions.
+
+## Getting Started
+The Android app program is under the /android folder
+
+### Dependencies
+* Android Studio
+* Backend API
+
+### Installing
+
+- Open the \android folder in Android Studio
+
+- Open the build.gradle and sync dependencies
+
+### Executing program
+
+* How to run the program
+
+1. Go the the Constants file to make sure the base URL is same as the running backend API
+
+2. Choose the emulator and build the app 
+
+3. Click the "Run" button to get started
+
 ### Window
 
 ## Repository Layout

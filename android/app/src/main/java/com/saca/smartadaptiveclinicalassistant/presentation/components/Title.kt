@@ -3,9 +3,7 @@ package com.saca.smartadaptiveclinicalassistant.presentation.components
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.sp
 import com.saca.smartadaptiveclinicalassistant.ui.theme.TextBrown
 
 

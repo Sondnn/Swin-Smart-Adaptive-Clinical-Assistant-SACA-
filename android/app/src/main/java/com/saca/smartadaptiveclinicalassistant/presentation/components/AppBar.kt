@@ -90,6 +90,5 @@ fun AppBar(
 enum class ActionBarIconButton(
     @param:DrawableRes val iconResourceId: Int,
 ) {
-    MENU(R.drawable.button_menu),
     BACK(R.drawable.button_back)
 }
