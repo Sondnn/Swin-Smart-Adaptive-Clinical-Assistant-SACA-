@@ -20,7 +20,11 @@ from config import (
     TRIAGE_INGEST_REPORT,
     TRIAGE_TRAINING_CSV,
 )
-from triage_rules import CAT1_SYMPTOMS, CAT2_SYMPTOMS, CAT3_SYMPTOMS
+from triage_rules import (
+    CHRONIC_COLS,
+    CHRONIC_SENSITIVE_SYMPTOMS,
+    assign_triage,
+)
 
 SEED = 42
 SAMPLE_ROWS = 120_000
@@ -29,11 +33,93 @@ DURATION_WEIGHTS = [4, 6, 8, 9, 10, 12, 10, 8, 6]
 HAD_SYMPTOMS_BEFORE_DIST = {0: 0.65, 1: 0.25, 2: 0.10}
 HAD_CONTACT_DIST = {0: 0.75, 1: 0.15, 2: 0.10}
 
-HIGH_ACUITY = set(CAT1_SYMPTOMS) | set(CAT2_SYMPTOMS) | set(CAT3_SYMPTOMS)
+SEVERITY_DIST = {1: 0.20, 2: 0.25, 3: 0.25, 4: 0.18, 5: 0.12}
+
+AUGMENT_PER_SYMPTOM = 60
+AUGMENT_COMBO_ROWS = 20_000
+AUGMENT_COMBO_MAX_SYMPTOMS = 4
+AUGMENT_ESCALATION_PER_TRIGGER = 400
+AUGMENT_CHRONIC_PER_SYMPTOM = 400
 
 
 def _sample_choice(rng: random.Random, dist: dict[int, float]) -> int:
     return rng.choices(list(dist), weights=list(dist.values()), k=1)[0]
+
+
+def _fill_random_context(rng: random.Random, row: dict) -> None:
+    row["gender"] = rng.choice([0, 1, 2])
+    row["age_over_65"] = rng.choice([0, 1, 2])
+    row["symptom_severity"] = _sample_choice(rng, SEVERITY_DIST)
+    row["symptoms_duration"] = rng.choices(
+        DURATION_BUCKETS, weights=DURATION_WEIGHTS, k=1
+    )[0]
+    row["had_symptoms_before"] = _sample_choice(rng, HAD_SYMPTOMS_BEFORE_DIST)
+    row["had_contact"] = _sample_choice(rng, HAD_CONTACT_DIST)
+    for c in row:
+        if c.startswith("chronic__"):
+            row[c] = 1 if rng.random() < 0.2 else 0
+    if "symptom__otherwise_well" in row:
+        row["symptom__otherwise_well"] = 1 if row["symptom_severity"] <= 2 else 0
+
+
+def _augment_symptom_coverage(
+    feature_columns: list[str], rng: random.Random, start_group_id: int
+) -> list[dict]:
+    symptom_cols = [c for c in feature_columns if c.startswith("symptom__")]
+    rows: list[dict] = []
+    gid = start_group_id
+
+    # Single-symptom rows: guarantee every symptom's isolated POPGUNS mapping.
+    for sym in symptom_cols:
+        for _ in range(AUGMENT_PER_SYMPTOM):
+            row = {c: 0 for c in feature_columns}
+            row[sym] = 1
+            _fill_random_context(rng, row)
+            row["triage_category"] = assign_triage(row)
+            row["group_id"] = gid
+            gid += 1
+            rows.append(row)
+
+    # Multi-symptom rows: teach the model that the most urgent category wins.
+    for _ in range(AUGMENT_COMBO_ROWS):
+        row = {c: 0 for c in feature_columns}
+        k = rng.randint(2, AUGMENT_COMBO_MAX_SYMPTOMS)
+        for sym in rng.sample(symptom_cols, k):
+            row[sym] = 1
+        _fill_random_context(rng, row)
+        row["triage_category"] = assign_triage(row)
+        row["group_id"] = gid
+        gid += 1
+        rows.append(row)
+
+    escalation_cols = [c for c in feature_columns if c.startswith("escalation__")]
+    for esc in escalation_cols:
+        for _ in range(AUGMENT_ESCALATION_PER_TRIGGER):
+            row = {c: 0 for c in feature_columns}
+            row[esc] = 1
+            for sym in rng.sample(symptom_cols, rng.randint(0, 3)):
+                row[sym] = 1
+            _fill_random_context(rng, row)
+            row["triage_category"] = assign_triage(row)
+            row["group_id"] = gid
+            gid += 1
+            rows.append(row)
+
+    chronic_cols = [c for c in CHRONIC_COLS if c in feature_columns]
+    sensitive = [s for s in CHRONIC_SENSITIVE_SYMPTOMS if s in feature_columns]
+    for sym in sensitive:
+        for _ in range(AUGMENT_CHRONIC_PER_SYMPTOM):
+            row = {c: 0 for c in feature_columns}
+            row[sym] = 1
+            _fill_random_context(rng, row)
+            for c in rng.sample(chronic_cols, rng.randint(1, 2)):
+                row[c] = 1
+            row["triage_category"] = assign_triage(row)
+            row["group_id"] = gid
+            gid += 1
+            rows.append(row)
+
+    return rows
 
 CC_TO_SYMPTOMS: dict[str, list[str]] = {
     "cc_abdominalcramping": ["symptom__abdominal_pain", "symptom__stomach_cramps"],
@@ -239,17 +325,6 @@ CC_TO_SYMPTOMS: dict[str, list[str]] = {
 }
 
 
-def _proxy_severity(present: set[str]) -> int:
-    high = sum(1 for c in present if c in HIGH_ACUITY)
-    if high >= 3:
-        return 5
-    if high == 2:
-        return 4
-    if high == 1:
-        return 3
-    return 2 if len(present) >= 2 else 1
-
-
 def _gender_code(value) -> int:
     if isinstance(value, str):
         v = value.strip().lower()
@@ -328,7 +403,6 @@ def main():
     }
     age_arr = df["age"].to_numpy()
     gender_arr = df["gender"].astype(object).to_numpy()
-    esi_arr = df["esi"].to_numpy()
 
     for i in range(len(df)):
         present: set[str] = set()
@@ -353,7 +427,7 @@ def main():
 
         row["gender"] = _gender_code(gender_arr[i])
         row["age_over_65"] = _age_over_65(age_arr[i])
-        row["symptom_severity"] = _proxy_severity(present)
+        row["symptom_severity"] = _sample_choice(rng, SEVERITY_DIST)
         row["symptoms_duration"] = rng.choices(
             DURATION_BUCKETS, weights=DURATION_WEIGHTS, k=1
         )[0]
@@ -362,13 +436,21 @@ def main():
         if "symptom__otherwise_well" in row:
             row["symptom__otherwise_well"] = 1 if row["symptom_severity"] <= 2 else 0
 
-        triage = int(esi_arr[i])
+        # POPGUNS category derived from the row's symptom presentation,
+        # duration and age (not the source ESI acuity).
+        triage = assign_triage(row)
         row["triage_category"] = triage
         row["group_id"] = i
         rows.append(row)
         triage_counts[triage] += 1
         if not present:
             n_no_symptom += 1
+
+    aug_rows = _augment_symptom_coverage(feature_columns, rng, start_group_id=len(df))
+    for r in aug_rows:
+        triage_counts[r["triage_category"]] += 1
+    rows.extend(aug_rows)
+    print(f"Augmentation rows added for symptom coverage: {len(aug_rows):,}")
 
     MODEL_DIR.mkdir(exist_ok=True)
     REPORTS_DIR.mkdir(exist_ok=True)
@@ -377,9 +459,10 @@ def main():
 
     report = {
         "source": str(RAW_TRIAGE_FILE.relative_to(BASE_DIR)),
-        "label_column": "esi",
+        "label_column": "triage_category (POPGUNS, derived via assign_triage)",
         "sample_rows_target": SAMPLE_ROWS,
         "n_rows": len(rows),
+        "n_rows_augmented_for_coverage": len(aug_rows),
         "n_rows_without_mapped_symptom": n_no_symptom,
         "n_cc_columns_used": len(cc_present_cols),
         "n_cc_columns_dropped_missing_in_source": len(dropped_cc),

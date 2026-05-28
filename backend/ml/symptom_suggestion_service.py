@@ -5,6 +5,7 @@ from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Dict, List, Set
 
+from fastapi import HTTPException
 from pydantic import BaseModel
 
 from ml.symptom_clusters import SCENARIOS
@@ -89,15 +90,25 @@ class SymptomSuggestionService:
         if not self._loaded:
             self.load()
 
-        valid_keys = [
-            SYMPTOM_PREFIX + s for s in payload.chosen_symptom
-            if (SYMPTOM_PREFIX + s) in self.feature_columns
-        ]
-        if not valid_keys:
-            return SuggestSymptomsResponse(
-                chosen_symptom=payload.chosen_symptom,
-                suggested_symptoms=[],
+        # BE-15: empty input is a client error, not an empty result.
+        if not payload.chosen_symptom:
+            raise HTTPException(
+                status_code=422,
+                detail="chosen_symptom must contain at least one symptom.",
             )
+
+        # BE-16: unrecognised symptoms are a client error, not an empty result.
+        invalid = [
+            s for s in payload.chosen_symptom
+            if (SYMPTOM_PREFIX + s) not in self.feature_columns
+        ]
+        if invalid:
+            raise HTTPException(
+                status_code=422,
+                detail=f"Unrecognised symptom(s): {invalid}.",
+            )
+
+        valid_keys = [SYMPTOM_PREFIX + s for s in payload.chosen_symptom]
 
         ordered: List[str] = []
         seen: Set[str] = set(valid_keys)

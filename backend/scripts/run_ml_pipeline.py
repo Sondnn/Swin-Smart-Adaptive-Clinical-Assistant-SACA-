@@ -6,7 +6,7 @@ python3 backend/scripts/run_ml_pipeline.py --skip-build     # retrain only
 python3 backend/scripts/run_ml_pipeline.py --skip-train     # ingest only
 
 The pipeline trains two models from two distinct Kaggle datasets:
-* Triage (ESI 1-5): maalona/hospital-triage-and-patient-history-data
+* Triage (POPGUNS 1-6): maalona/hospital-triage-and-patient-history-data
 * Disease classifier: dhivyeshrk/diseases-and-symptoms-dataset
 
 Prerequisite
