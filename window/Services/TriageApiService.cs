@@ -65,7 +65,7 @@ namespace SACA.WindowsApp.Services
 
         private static object BuildPredictRequest(TriageRequest request)
         {
-            List<string> symptoms = request.Symptoms.Select(ToBackendToken).Where(value => !string.IsNullOrWhiteSpace(value)).Distinct().ToList();
+            List<string> symptoms = request.Symptoms.Select(MapSymptomName).Where(value => !string.IsNullOrWhiteSpace(value)).Distinct().ToList();
             List<string> chronicConditions = request.ChronicConditions
                 .Where(value => !value.Contains("Unknown", StringComparison.OrdinalIgnoreCase))
                 .Select(MapChronicCondition)
@@ -197,6 +197,17 @@ namespace SACA.WindowsApp.Services
                 .Replace("/", "_")
                 .Replace(" ", "_")
                 .Replace("__", "_");
+        }
+
+        private static string MapSymptomName(string value)
+        {
+            string normalisedValue = ToBackendToken(value);
+
+            return normalisedValue switch
+            {
+                "body_pain" => "body_aches",
+                _ => normalisedValue
+            };
         }
 
         private static string MapChronicCondition(string value)
@@ -431,7 +442,7 @@ namespace SACA.WindowsApp.Services
                 "headache" => AppLanguage.T("symptom_headache"),
                 "joint_pain" => AppLanguage.T("symptom_joint_pain"),
                 "abdominal_pain" or "belly_pain" => AppLanguage.T("symptom_abdominal_pain"),
-                "body_pain" => AppLanguage.T("symptom_body_pain"),
+                "body_pain" or "body_aches" => AppLanguage.T("symptom_body_pain"),
                 _ => value
             };
         }
