@@ -133,7 +133,7 @@
                         <TextBlock Text="{services:Loc symptom_abdominal_pain}" TextAlignment="Center" TextWrapping="Wrap" FontSize="15"/>
                     </StackPanel>
                 </CheckBox>
-                <CheckBox Tag="Body Pain" Style="{StaticResource SymptomCardCheckBoxStyle}">
+                <CheckBox Tag="Body Aches" Style="{StaticResource SymptomCardCheckBoxStyle}">
                     <StackPanel>
                         <Image Source="/Assets/Icons/back 1.png" Width="44" Height="44" Stretch="Uniform" Margin="0,0,0,6"/>
                         <TextBlock Text="{services:Loc symptom_body_pain}" TextAlignment="Center" TextWrapping="Wrap" FontSize="15"/>

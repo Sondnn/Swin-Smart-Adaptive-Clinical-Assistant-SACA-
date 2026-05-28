@@ -159,7 +159,7 @@ namespace SACA.WindowsApp.Pages
                     "joint_pain" => "Karlarra Jirrpi",
                     "abdominal_pain" => "Karlarra Jirri",
                     "belly_pain" => "Karlarra Jirri",
-                    "body_pain" => "Karlarra Yijiji",
+                    "body_pain" or "body_aches" => "Karlarra Yijiji",
                     _ => ToTitleCase(value)
                 };
             }
@@ -173,7 +173,7 @@ namespace SACA.WindowsApp.Pages
                 "joint_pain" => "Joint Pain",
                 "abdominal_pain" => "Abdominal Pain",
                 "belly_pain" => "Belly pain",
-                "body_pain" => "Body Pain",
+                "body_pain" or "body_aches" => "Body Pain",
                 _ => ToTitleCase(value)
             };
         }
